@@ -1,0 +1,1726 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Parkette · Level Builder</title>
+<style>
+  :root {
+    --bg: #0f1117;
+    --surface: #1a1d27;
+    --surface2: #22263a;
+    --border: rgba(255,255,255,0.08);
+    --border2: rgba(255,255,255,0.14);
+    --accent: #6c63ff;
+    --accent2: #8b83ff;
+    --gold: #ffd600;
+    --green: #4caf50;
+    --red: #ef5350;
+    --orange: #ffa726;
+    --text: #e8eaf6;
+    --muted: #7986cb;
+    --tag-bg: rgba(108,99,255,0.18);
+    --radius: 10px;
+    --radius-lg: 16px;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Segoe UI', system-ui, sans-serif;
+    font-size: 14px;
+    min-height: 100vh;
+  }
+
+  /* ── Layout ── */
+  .shell {
+    display: grid;
+    grid-template-columns: 240px 1fr;
+    min-height: 100vh;
+  }
+
+  /* ── Sidebar ── */
+  .sidebar {
+    background: var(--surface);
+    border-right: 1px solid var(--border);
+    padding: 20px 0;
+    display: flex;
+    flex-direction: column;
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    overflow-y: auto;
+  }
+
+  .logo {
+    padding: 0 20px 20px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 16px;
+  }
+
+  .logo-title {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--accent2);
+    letter-spacing: 0.5px;
+  }
+
+  .logo-sub {
+    font-size: 11px;
+    color: var(--muted);
+    margin-top: 2px;
+  }
+
+  .nav-label {
+    font-size: 10px;
+    font-weight: 700;
+    color: var(--muted);
+    letter-spacing: 1.2px;
+    text-transform: uppercase;
+    padding: 0 20px;
+    margin-bottom: 6px;
+  }
+
+  .nav-btn {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    padding: 10px 20px;
+    background: none;
+    border: none;
+    color: var(--text);
+    font-size: 13px;
+    cursor: pointer;
+    text-align: left;
+    border-radius: 0;
+    transition: background 0.15s;
+  }
+
+  .nav-btn:hover { background: rgba(255,255,255,0.05); }
+  .nav-btn.active { background: var(--tag-bg); color: var(--accent2); font-weight: 600; border-right: 3px solid var(--accent); }
+  .nav-btn .icon { font-size: 16px; width: 20px; text-align: center; }
+
+  .sidebar-spacer { flex: 1; }
+
+  .api-status {
+    padding: 14px 20px;
+    border-top: 1px solid var(--border);
+    font-size: 11px;
+    color: var(--muted);
+  }
+
+  .api-dot {
+    display: inline-block;
+    width: 7px; height: 7px;
+    border-radius: 50%;
+    background: var(--red);
+    margin-right: 6px;
+    vertical-align: middle;
+  }
+  .api-dot.ok { background: var(--green); }
+
+  /* ── Main ── */
+  .main {
+    padding: 32px 36px;
+    max-width: 900px;
+  }
+
+  .page { display: none; }
+  .page.active { display: block; }
+
+  /* ── Page header ── */
+  .page-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    margin-bottom: 28px;
+    gap: 16px;
+  }
+
+  .page-title { font-size: 22px; font-weight: 700; color: var(--text); }
+  .page-sub { font-size: 13px; color: var(--muted); margin-top: 4px; }
+
+  /* ── Cards ── */
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 22px 24px;
+    margin-bottom: 20px;
+  }
+
+  .card-title {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--accent2);
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  /* ── Form elements ── */
+  label {
+    display: block;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--muted);
+    margin-bottom: 5px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  input[type=text], input[type=number], textarea, select {
+    width: 100%;
+    background: var(--surface2);
+    border: 1px solid var(--border2);
+    border-radius: var(--radius);
+    color: var(--text);
+    font-size: 13px;
+    padding: 10px 12px;
+    outline: none;
+    transition: border-color 0.15s;
+    font-family: inherit;
+    resize: vertical;
+  }
+
+  input:focus, textarea:focus, select:focus {
+    border-color: var(--accent);
+  }
+
+  select option { background: #22263a; }
+
+  .field { margin-bottom: 16px; }
+
+  .field-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+  }
+
+  .field-row-3 {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 14px;
+  }
+
+  .hint {
+    font-size: 11px;
+    color: var(--muted);
+    margin-top: 4px;
+  }
+
+  /* ── Buttons ── */
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 9px 18px;
+    border-radius: var(--radius);
+    border: none;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: opacity 0.15s, transform 0.1s;
+  }
+  .btn:active { transform: scale(0.97); }
+  .btn:disabled { opacity: 0.45; cursor: not-allowed; }
+
+  .btn-primary { background: var(--accent); color: white; }
+  .btn-primary:hover:not(:disabled) { background: var(--accent2); }
+  .btn-outline { background: transparent; color: var(--text); border: 1px solid var(--border2); }
+  .btn-outline:hover { background: rgba(255,255,255,0.06); }
+  .btn-danger { background: rgba(239,83,80,0.15); color: var(--red); border: 1px solid rgba(239,83,80,0.3); }
+  .btn-danger:hover { background: rgba(239,83,80,0.25); }
+  .btn-success { background: rgba(76,175,80,0.15); color: var(--green); border: 1px solid rgba(76,175,80,0.3); }
+  .btn-sm { padding: 6px 12px; font-size: 12px; }
+
+  /* ── Dialog step builder ── */
+  .step-list { display: flex; flex-direction: column; gap: 10px; }
+
+  .step-item {
+    background: var(--surface2);
+    border: 1px solid var(--border2);
+    border-radius: var(--radius);
+    padding: 14px 16px;
+    position: relative;
+  }
+
+  .step-item.type-narrate { border-left: 3px solid var(--muted); }
+  .step-item.type-dialog { border-left: 3px solid #29b6f6; }
+  .step-item.type-choice { border-left: 3px solid var(--gold); }
+
+  .step-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 10px;
+  }
+
+  .step-type-badge {
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    padding: 3px 8px;
+    border-radius: 6px;
+  }
+
+  .badge-narrate { background: rgba(121,134,203,0.2); color: var(--muted); }
+  .badge-dialog { background: rgba(41,182,246,0.15); color: #29b6f6; }
+  .badge-choice { background: rgba(255,214,0,0.12); color: var(--gold); }
+
+  .step-num { font-size: 11px; color: var(--muted); font-weight: 600; }
+  .step-delete { margin-left: auto; }
+
+  .option-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 8px;
+  }
+
+  .option-row input[type=text] { flex: 1; }
+
+  .correct-toggle {
+    appearance: none;
+    width: 18px; height: 18px;
+    border: 2px solid var(--border2);
+    border-radius: 4px;
+    cursor: pointer;
+    background: var(--surface2);
+    flex-shrink: 0;
+    position: relative;
+  }
+
+  .correct-toggle:checked {
+    background: var(--green);
+    border-color: var(--green);
+  }
+
+  .correct-toggle:checked::after {
+    content: '✓';
+    position: absolute;
+    color: white;
+    font-size: 12px;
+    top: -1px; left: 2px;
+  }
+
+  /* ── Add step menu ── */
+  .add-step-row {
+    display: flex;
+    gap: 8px;
+    margin-top: 12px;
+  }
+
+  /* ── Level list ── */
+  .level-list { display: flex; flex-direction: column; gap: 10px; }
+
+  .level-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 16px 18px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    cursor: pointer;
+    transition: border-color 0.15s;
+  }
+
+  .level-card:hover { border-color: var(--accent); }
+
+  .level-order {
+    width: 32px; height: 32px;
+    border-radius: 50%;
+    background: var(--tag-bg);
+    color: var(--accent2);
+    font-weight: 700;
+    font-size: 13px;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+
+  .level-info { flex: 1; }
+  .level-name { font-weight: 600; font-size: 14px; }
+  .level-meta { font-size: 11px; color: var(--muted); margin-top: 2px; }
+
+  .diff-badge {
+    font-size: 10px;
+    font-weight: 700;
+    padding: 3px 8px;
+    border-radius: 6px;
+    text-transform: uppercase;
+  }
+  .diff-easy { background: rgba(76,175,80,0.15); color: var(--green); }
+  .diff-medium { background: rgba(255,167,38,0.15); color: var(--orange); }
+  .diff-hard { background: rgba(239,83,80,0.15); color: var(--red); }
+
+  /* ── Toast ── */
+  #toast {
+    position: fixed;
+    bottom: 24px; right: 24px;
+    background: var(--surface);
+    border: 1px solid var(--border2);
+    border-radius: var(--radius);
+    padding: 12px 18px;
+    font-size: 13px;
+    color: var(--text);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    box-shadow: 0 4px 24px rgba(0,0,0,0.4);
+    transform: translateY(80px);
+    opacity: 0;
+    transition: transform 0.3s, opacity 0.3s;
+    z-index: 999;
+    max-width: 320px;
+  }
+  #toast.show { transform: translateY(0); opacity: 1; }
+  #toast.success { border-color: rgba(76,175,80,0.4); }
+  #toast.error { border-color: rgba(239,83,80,0.4); }
+
+  /* ── Spinner ── */
+  .spinner {
+    display: inline-block;
+    width: 14px; height: 14px;
+    border: 2px solid rgba(255,255,255,0.2);
+    border-top-color: white;
+    border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* ── Empty state ── */
+  .empty {
+    text-align: center;
+    padding: 48px 24px;
+    color: var(--muted);
+  }
+  .empty-icon { font-size: 36px; margin-bottom: 12px; }
+  .empty-text { font-size: 14px; }
+
+  /* ── Divider ── */
+  .divider {
+    border: none;
+    border-top: 1px solid var(--border);
+    margin: 20px 0;
+  }
+
+  /* ── Chapter picker ── */
+  .chapter-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 20px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .chapter-select-wrap { flex: 1; }
+
+  /* ── Scrollable step list ── */
+  .step-scroll {
+    max-height: 480px;
+    overflow-y: auto;
+    padding-right: 4px;
+  }
+
+  .step-scroll::-webkit-scrollbar { width: 4px; }
+  .step-scroll::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 4px; }
+
+  /* ── Branch builder ── */
+  .step-item {
+    background: var(--surface2);
+    border: 1px solid var(--border2);
+    border-radius: var(--radius);
+    padding: 12px 14px;
+    margin-bottom: 8px;
+    position: relative;
+  }
+  .step-item.type-narrate { border-left: 3px solid var(--muted); }
+  .step-item.type-dialog  { border-left: 3px solid #29b6f6; }
+  .step-item.type-choice  { border-left: 3px solid var(--gold); }
+
+  .step-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 10px;
+  }
+
+  .step-type-badge {
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    padding: 3px 8px;
+    border-radius: 6px;
+  }
+  .badge-narrate { background: rgba(121,134,203,0.2); color: var(--muted); }
+  .badge-dialog  { background: rgba(41,182,246,0.15); color: #29b6f6; }
+  .badge-choice  { background: rgba(255,214,0,0.12);  color: var(--gold); }
+
+  /* Drag and drop styles */
+  .step-item {
+    cursor: grab;
+    transition: opacity 0.2s, transform 0.2s;
+  }
+
+  .step-item.dragging {
+    opacity: 0.5;
+    transform: scale(0.98);
+  }
+
+  .step-item.drag-over {
+    border-top: 2px solid var(--accent);
+    padding-top: 12px;
+    margin-top: 8px;
+  }
+
+  .step-item.drag-over::before {
+    content: '';
+    position: absolute;
+    top: -2px;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: var(--accent);
+  }
+
+  .drag-handle {
+    display: inline-flex;
+    align-items: center;
+    cursor: grab;
+    color: var(--muted);
+    margin-right: 8px;
+    user-select: none;
+    flex-shrink: 0;
+  }
+
+  .drag-handle:active {
+    cursor: grabbing;
+  }
+
+  /* Branch per option */
+  .branch-list {
+    margin-top: 10px;
+    border-left: 2px solid var(--border2);
+    padding-left: 12px;
+  }
+
+  .branch-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 6px;
+    padding: 6px 10px;
+    background: rgba(255,255,255,0.04);
+    border-radius: 6px;
+  }
+
+  .branch-label {
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--muted);
+    flex: 1;
+  }
+
+  .branch-correct-badge {
+    font-size: 10px;
+    padding: 2px 7px;
+    border-radius: 5px;
+    background: rgba(76,175,80,0.15);
+    color: var(--green);
+    font-weight: 700;
+  }
+
+  .branch-wrong-badge {
+    font-size: 10px;
+    padding: 2px 7px;
+    border-radius: 5px;
+    background: rgba(239,83,80,0.12);
+    color: var(--red);
+    font-weight: 700;
+  }
+
+  .branch-steps { margin-bottom: 6px; }
+
+  .add-step-row {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+  }
+
+  .option-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 8px;
+  }
+  .option-row input[type=text] { flex: 1; }
+
+  .correct-toggle {
+    appearance: none;
+    width: 18px; height: 18px;
+    border: 2px solid var(--border2);
+    border-radius: 4px;
+    cursor: pointer;
+    background: var(--surface2);
+    flex-shrink: 0;
+    position: relative;
+  }
+  .correct-toggle:checked { background: var(--green); border-color: var(--green); }
+  .correct-toggle:checked::after {
+    content: '✓';
+    position: absolute;
+    color: white;
+    font-size: 11px;
+    top: -1px; left: 2px;
+  }
+</style>
+</head>
+<body>
+
+<div class="shell">
+  <!-- ── SIDEBAR ── -->
+  <aside class="sidebar">
+    <div class="logo">
+      <div class="logo-title">🌳 Parkette</div>
+      <div class="logo-sub">Level Builder</div>
+    </div>
+
+    <div class="nav-label">Content</div>
+    <button class="nav-btn active" onclick="showPage('levels')" id="nav-levels">
+      <span class="icon">📋</span> All Levels
+    </button>
+    <button class="nav-btn" onclick="showPage('builder')" id="nav-builder">
+      <span class="icon">✏️</span> New Level
+    </button>
+
+    <div class="nav-label" style="margin-top:16px;">Manage</div>
+    <button class="nav-btn" onclick="showPage('chapters')" id="nav-chapters">
+      <span class="icon">📚</span> Chapters
+    </button>
+
+    <div class="sidebar-spacer"></div>
+
+    <div class="api-status">
+      <span class="api-dot" id="api-dot"></span>
+      <span id="api-url-label">Not connected</span>
+      <div style="margin-top:8px;">
+        <input type="text" id="api-url-input"
+          placeholder="http://localhost:3000"
+          style="font-size:11px;padding:6px 8px;"
+          oninput="saveApiUrl(this.value)" />
+      </div>
+    </div>
+  </aside>
+
+  <!-- ── MAIN ── -->
+  <main class="main">
+
+    <!-- ════════════════════ LEVELS LIST PAGE ════════════════════ -->
+    <div class="page active" id="page-levels">
+      <div class="page-header">
+        <div>
+          <div class="page-title">Levels</div>
+          <div class="page-sub">All scenario levels across chapters</div>
+        </div>
+        <button class="btn btn-primary" onclick="showPage('builder'); resetBuilder();">
+          + New Level
+        </button>
+      </div>
+
+      <div class="chapter-header">
+        <div class="chapter-select-wrap">
+          <select id="filter-chapter" onchange="loadLevels()">
+            <option value="">All Chapters</option>
+          </select>
+        </div>
+        <button class="btn btn-outline btn-sm" onclick="loadLevels()">↻ Refresh</button>
+      </div>
+
+      <div id="levels-list">
+        <div class="empty">
+          <div class="empty-icon">🔌</div>
+          <div class="empty-text">Enter your API URL in the sidebar to get started.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ════════════════════ LEVEL BUILDER PAGE ════════════════════ -->
+    <div class="page" id="page-builder">
+      <div class="page-header">
+        <div>
+          <div class="page-title" id="builder-title">New Level</div>
+          <div class="page-sub">Fill in the form — no seed script needed</div>
+        </div>
+        <div style="display:flex;gap:8px;">
+          <button class="btn btn-outline" onclick="showPage('levels')">Cancel</button>
+          <button class="btn btn-primary" id="save-btn" onclick="saveLevel()">
+            Save Level
+          </button>
+        </div>
+      </div>
+
+      <input type="hidden" id="edit-level-id" />
+
+      <!-- Basic info -->
+      <div class="card">
+        <div class="card-title">📝 Basic Info</div>
+        <div class="field-row">
+          <div class="field">
+            <label>Chapter</label>
+            <select id="b-chapter"></select>
+          </div>
+          <div class="field">
+            <label>Level Title</label>
+            <input type="text" id="b-title" placeholder="e.g. Stranger at the Park" />
+          </div>
+        </div>
+        <div class="field-row-3">
+          <div class="field">
+            <label>Order</label>
+            <input type="number" id="b-order" value="1" min="1" />
+          </div>
+          <div class="field">
+            <label>Max Retries</label>
+            <input type="number" id="b-retries" value="3" min="1" />
+          </div>
+          <div class="field">
+            <label>Max Stars</label>
+            <input type="number" id="b-stars" value="3" min="1" max="5" />
+          </div>
+        </div>
+      </div>
+
+      <!-- Tags -->
+      <div class="card">
+        <div class="card-title">🏷️ Tags</div>
+        <div class="field-row">
+          <div class="field">
+            <label>Environment</label>
+            <input type="text" id="b-env" placeholder="e.g. park, school, home" />
+          </div>
+          <div class="field">
+            <label>Emotional Theme</label>
+            <input type="text" id="b-emotion" placeholder="e.g. fear, trust, joy" />
+          </div>
+        </div>
+        <div class="field-row">
+          <div class="field">
+            <label>Difficulty</label>
+            <select id="b-diff">
+              <option value="easy">Easy</option>
+              <option value="medium" selected>Medium</option>
+              <option value="hard">Hard</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>Skills (comma-separated)</label>
+            <input type="text" id="b-skills" placeholder="safety, assertiveness, decision-making" />
+          </div>
+        </div>
+        <div class="field">
+          <label>Age Ranges (comma-separated)</label>
+          <input type="text" id="b-age" placeholder="5-7, 8-10" />
+        </div>
+      </div>
+
+      <!-- Scene -->
+      <div class="card">
+        <div class="card-title">🎬 Scene</div>
+        <div class="field">
+          <label>Characters in scene</label>
+          <input type="text" id="b-characters" placeholder="child, mother, stranger" />
+          <div class="hint">Comma-separated. These determine which character sprites appear.</div>
+        </div>
+        <div class="field">
+          <label>Base Narrative</label>
+          <textarea id="b-narrative" rows="3" placeholder="Describe the scene in simple language for the default difficulty..."></textarea>
+        </div>
+        <div class="field-row">
+          <div class="field">
+            <label>Simple Variant (younger / struggling)</label>
+            <textarea id="b-narrative-simple" rows="2" placeholder="Simpler wording for younger kids..."></textarea>
+          </div>
+          <div class="field">
+            <label>Complex Variant (advanced)</label>
+            <textarea id="b-narrative-complex" rows="2" placeholder="More nuanced wording for advanced kids..."></textarea>
+          </div>
+        </div>
+        <div class="field">
+          <label>Background Image Key</label>
+          <input type="text" id="b-bg" placeholder="e.g. park_sunny, school_hallway" />
+          <div class="hint">Used by your asset loader. Must match a key in your assets config.</div>
+        </div>
+        
+      </div>
+      
+      <!-- Dialog Steps -->
+      <div class="card">
+        <div class="card-title">💬 Dialog Script</div>
+        <div class="hint" style="margin-bottom:14px;">
+          Steps play top-to-bottom. When a <strong style="color:var(--gold)">Choice</strong> step is reached, each option can have its own branch of steps that play after the player picks it.
+        </div>
+        <div id="step-list"></div>
+        <div class="add-step-row" style="margin-top:12px;">
+          <button class="btn btn-outline btn-sm" onclick="addStepToList('narrate', document.getElementById('step-list'))">+ Narrate</button>
+          <button class="btn btn-outline btn-sm" onclick="addStepToList('dialog', document.getElementById('step-list'))">+ Dialog</button>
+          <button class="btn btn-outline btn-sm" onclick="addStepToList('task', document.getElementById('step-list'))">+ Task</button>
+        </div>
+      </div>
+
+    <!-- ════════════════════ CHAPTERS PAGE ════════════════════ -->
+    <div class="page" id="page-chapters">
+      <div class="page-header">
+        <div>
+          <div class="page-title">Chapters</div>
+          <div class="page-sub">Manage chapter names and order</div>
+        </div>
+        <button class="btn btn-primary" onclick="showAddChapter()">+ New Chapter</button>
+      </div>
+
+      <div class="card" id="add-chapter-card" style="display:none;">
+        <div class="card-title">New Chapter</div>
+        <div class="field-row">
+          <div class="field">
+            <label>Chapter Title</label>
+            <input type="text" id="ch-title" placeholder="e.g. Stranger Safety" />
+          </div>
+          <div class="field">
+            <label>Order</label>
+            <input type="number" id="ch-order" value="1" min="1" />
+          </div>
+        </div>
+        <div style="display:flex;gap:8px;">
+          <button class="btn btn-primary btn-sm" onclick="createChapter()">Create</button>
+          <button class="btn btn-outline btn-sm" onclick="hideAddChapter()">Cancel</button>
+        </div>
+      </div>
+
+      <div id="chapters-list"></div>
+    </div>
+
+  </main>
+</div>
+
+<!-- Toast -->
+<div id="toast"></div>
+
+<script>
+// ─── State ────────────────────────────────────────────────────────────────────
+
+let API = localStorage.getItem('pb_api') || '';
+let chapters = [];
+let stepCounter = 0;
+let draggedElement = null;
+
+// ─── Init ─────────────────────────────────────────────────────────────────────
+
+window.addEventListener('DOMContentLoaded', () => {
+  const input = document.getElementById('api-url-input');
+  input.value = API;
+  if (API) pingApi();
+});
+
+// ─── API URL ──────────────────────────────────────────────────────────────────
+
+function saveApiUrl(val) {
+  API = val.trim().replace(/\/$/, '');
+  localStorage.setItem('pb_api', API);
+  clearTimeout(window._pingTimer);
+  window._pingTimer = setTimeout(pingApi, 600);
+}
+
+async function pingApi() {
+  const dot = document.getElementById('api-dot');
+  const label = document.getElementById('api-url-label');
+  if (!API) { dot.className = 'api-dot'; label.textContent = 'Not connected'; return; }
+  try {
+    const r = await fetch(`${API}/api/health`, { signal: AbortSignal.timeout(3000) });
+    if (r.ok) {
+      dot.className = 'api-dot ok';
+      label.textContent = 'Connected';
+      fetchChapters();
+    } else {
+      throw new Error('bad response');
+    }
+  } catch {
+    dot.className = 'api-dot';
+    label.textContent = 'Cannot reach API';
+  }
+}
+
+async function fetchChapters() {
+  try {
+    const r = await fetch(`${API}/api/chapters/admin`);
+    if (!r.ok) return;
+    const data = await r.json();
+    const raw = data.chapters ?? data.data ?? data;
+    chapters = Array.isArray(raw) ? raw : [];
+    populateChapterSelects();
+  } catch {}
+}
+
+// ─── Navigation ───────────────────────────────────────────────────────────────
+
+function showPage(name) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('page-' + name).classList.add('active');
+  document.getElementById('nav-' + name)?.classList.add('active');
+
+  if (name === 'levels') loadLevels();
+  if (name === 'chapters') loadChapters();
+  if (name === 'builder') populateChapterSelects();
+}
+
+// ─── Chapters ─────────────────────────────────────────────────────────────────
+
+function populateChapterSelects() {
+  const selects = ['b-chapter', 'filter-chapter'];
+  selects.forEach(id => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    const prev = el.value;
+    el.innerHTML = id === 'filter-chapter'
+      ? '<option value="">All Chapters</option>'
+      : '<option value="">Select chapter…</option>';
+    (Array.isArray(chapters) ? chapters : []).forEach(ch => {
+      const o = document.createElement('option');
+      o.value = ch._id;
+      o.textContent = ch.title;
+      el.appendChild(o);
+    });
+    if (prev) el.value = prev;
+  });
+}
+
+async function loadChapters() {
+  const list = document.getElementById('chapters-list');
+  if (!API) { list.innerHTML = '<div class="empty"><div class="empty-icon">🔌</div><div class="empty-text">Connect your API first.</div></div>'; return; }
+  list.innerHTML = '<div style="color:var(--muted);padding:16px;">Loading…</div>';
+  try {
+    const r = await fetch(`${API}/api/chapters`);
+    const data = await r.json();
+    const raw = data.chapters ?? data.data ?? data;
+    chapters = Array.isArray(raw) ? raw : [];
+    populateChapterSelects();
+
+    if (!chapters.length) {
+      list.innerHTML = '<div class="empty"><div class="empty-icon">📚</div><div class="empty-text">No chapters yet. Create one above.</div></div>';
+      return;
+    }
+
+    list.innerHTML = chapters.map(ch => `
+      <div class="level-card">
+        <div class="level-order">${ch.order ?? '?'}</div>
+        <div class="level-info">
+          <div class="level-name">${esc(ch.title)}</div>
+          <div class="level-meta">ID: ${ch._id}</div>
+        </div>
+        <button class="btn btn-danger btn-sm" onclick="deleteChapter('${ch._id}', event)">Delete</button>
+      </div>
+    `).join('');
+  } catch (e) {
+    list.innerHTML = `<div class="empty"><div class="empty-text" style="color:var(--red)">Error: ${e.message}</div></div>`;
+  }
+}
+
+function showAddChapter() { document.getElementById('add-chapter-card').style.display = 'block'; }
+function hideAddChapter() { document.getElementById('add-chapter-card').style.display = 'none'; }
+
+async function createChapter() {
+  const title = document.getElementById('ch-title').value.trim();
+  const order = parseInt(document.getElementById('ch-order').value) || 1;
+  if (!title) { toast('Chapter title required.', 'error'); return; }
+  try {
+    const r = await fetch(`${API}/api/chapters`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ title, order, isActive: true }),
+    });
+    if (!r.ok) throw new Error(await r.text());
+    toast('Chapter created!', 'success');
+    hideAddChapter();
+    loadChapters();
+  } catch (e) { toast('Error: ' + e.message, 'error'); }
+}
+
+async function deleteChapter(id, e) {
+  e.stopPropagation();
+  if (!confirm('Delete this chapter and all its levels?')) return;
+  try {
+    await fetch(`${API}/api/chapters/${id}`, { method: 'DELETE' });
+    toast('Chapter deleted.', 'success');
+    loadChapters();
+  } catch (e) { toast('Error: ' + e.message, 'error'); }
+}
+
+// ─── Levels list ──────────────────────────────────────────────────────────────
+
+async function loadLevels() {
+  const list = document.getElementById('levels-list');
+  if (!API) return;
+  const chapterId = document.getElementById('filter-chapter').value;
+  const url = chapterId ? `${API}/api/levels/admin?chapterId=${chapterId}` : `${API}/api/levels/admin`;
+  list.innerHTML = '<div style="color:var(--muted);padding:16px;">Loading…</div>';
+  try {
+    const r = await fetch(url);
+    const data = await r.json();
+    const levels = data.levels || data || [];
+    if (!levels.length) {
+      list.innerHTML = '<div class="empty"><div class="empty-icon">🎮</div><div class="empty-text">No levels yet. Create one!</div></div>';
+      return;
+    }
+    list.innerHTML = '';
+    const div = document.createElement('div');
+    div.className = 'level-list';
+    div.innerHTML = levels.map(lv => `
+      <div class="level-card">
+        <div class="level-order">${lv.order}</div>
+        <div class="level-info">
+          <div class="level-name">${esc(lv.title)}</div>
+          <div class="level-meta">
+            ${lv.dialog?.length ?? 0} dialog steps &nbsp;·&nbsp;
+            ${lv.scene?.characters?.join(', ') || '—'}
+          </div>
+        </div>
+        <span class="diff-badge diff-${lv.tags?.difficulty ?? 'medium'}">${lv.tags?.difficulty ?? '—'}</span>
+        <button class="btn btn-primary btn-sm" onclick="editLevel('${lv._id}', event)">Edit</button>
+        <button class="btn btn-danger btn-sm" onclick="deleteLevel('${lv._id}', event)">Delete</button>
+      </div>
+    `).join('');
+    list.appendChild(div);
+  } catch (e) {
+    list.innerHTML = `<div class="empty"><div class="empty-text" style="color:var(--red)">Error: ${e.message}</div></div>`;
+  }
+}
+
+async function deleteLevel(id, e) {
+  e.stopPropagation();
+  if (!confirm('Delete this level?')) return;
+  try {
+    await fetch(`${API}/api/levels/${id}`, { method: 'DELETE' });
+    toast('Level deleted.', 'success');
+    loadLevels();
+  } catch (e) { toast('Error: ' + e.message, 'error'); }
+}
+
+// ─── Edit level ───────────────────────────────────────────────────────────────
+
+async function editLevel(id, e) {
+  if (e) e.stopPropagation();
+  showPage('builder');
+  try {
+    const r = await fetch(`${API}/api/levels/${id}`);
+    const data = await r.json();
+    const lv = data.level || data;
+    populateBuilder(lv);
+    document.getElementById('edit-level-id').value = id;
+    document.getElementById('builder-title').textContent = 'Edit Level';
+  } catch (e) { toast('Failed to load level: ' + e.message, 'error'); }
+}
+
+function populateBuilder(lv) {
+  document.getElementById('b-chapter').value = lv.chapterId?._id ?? lv.chapterId ?? '';
+  document.getElementById('b-title').value = lv.title ?? '';
+  document.getElementById('b-order').value = lv.order ?? 1;
+  document.getElementById('b-retries').value = lv.maxRetries ?? 3;
+  document.getElementById('b-stars').value = lv.reward?.stars ?? 3;
+
+  document.getElementById('b-env').value = lv.tags?.environment ?? '';
+  document.getElementById('b-emotion').value = lv.tags?.emotionalTheme ?? '';
+  document.getElementById('b-diff').value = lv.tags?.difficulty ?? 'medium';
+  document.getElementById('b-skills').value = (lv.tags?.skills ?? []).join(', ');
+  document.getElementById('b-age').value = (lv.tags?.ageRange ?? []).join(', ');
+
+  document.getElementById('b-characters').value = (lv.scene?.characters ?? []).join(', ');
+  document.getElementById('b-narrative').value = lv.scene?.narrative ?? '';
+  document.getElementById('b-narrative-simple').value = lv.scene?.narrativeVariants?.simple ?? '';
+  document.getElementById('b-narrative-complex').value = lv.scene?.narrativeVariants?.complex ?? '';
+  document.getElementById('b-bg').value = lv.scene?.backgroundImage ?? '';
+
+  // Clear and populate steps
+  const stepList = document.getElementById('step-list');
+  stepList.innerHTML = '';
+  (lv.dialog ?? []).forEach(step => {
+    addStepToList(step.type, stepList, step);
+  });
+
+  // Re-attach drag listeners
+  stepList.querySelectorAll('.step-item').forEach(el => attachDragListeners(el));
+}
+
+function resetBuilder() {
+  document.getElementById('edit-level-id').value = '';
+  document.getElementById('builder-title').textContent = 'New Level';
+  
+  const fields = [
+    'b-title', 'b-env', 'b-emotion', 'b-skills', 'b-age',
+    'b-characters', 'b-narrative', 'b-narrative-simple',
+    'b-narrative-complex', 'b-bg'
+  ];
+  
+  fields.forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.value = '';
+  });
+
+  document.getElementById('b-order').value = 1;
+  document.getElementById('b-retries').value = 3;
+  document.getElementById('b-stars').value = 3;
+  document.getElementById('b-diff').value = 'medium';
+  document.getElementById('step-list').innerHTML = '';
+}
+
+// ─── Dialog Step Builder with Full Content Support ─────────────────────────
+
+function makeStepEl(type, data = {}) {
+  const div = document.createElement('div');
+  div.className = `step-item type-${type}`;
+  div.draggable = true;
+  div.dataset.stepType = type;
+  const badgeLabel = type.charAt(0).toUpperCase() + type.slice(1);
+  let inner = '';
+ 
+  if (type === 'narrate') {
+    inner = `
+    <div class="field" style="margin-bottom:8px;">
+    <label>Scene Key</label>
+    <input type="text" class="step-scene-key" 
+      placeholder="e.g. park_arrival, park_playground"
+      value="${esc(data.sceneKey ?? '')}" />
+  </div>
+    <textarea class="step-text" rows="2" placeholder="Describe what happens...">${esc(data.text ?? '')}</textarea>`;
+ 
+  } else if (type === 'dialog') {
+    inner = `
+      <div class="field-row" style="margin-bottom:8px;">
+        <label>Scene Key</label>
+    <input type="text" class="step-scene-key" 
+      placeholder="e.g. park_arrival, park_playground"
+      value="${esc(data.sceneKey ?? '')}" />
+        <div><label>Speaker</label>
+          <input type="text" class="step-speaker" placeholder="Mom / Stranger / You" value="${esc(data.speaker ?? '')}" />
+        </div><div></div>
+      </div>
+      <textarea class="step-text" rows="2" placeholder="What they say...">${esc(data.text ?? '')}</textarea>`;
+ 
+  } else if (type === 'task') {
+    const taskType  = data.taskType  ?? 'choice';
+    const gameType  = data.gameType  ?? '';
+    const renderMode = data.renderMode ?? 'inline';
+    let taskContent = '';
+ 
+    // ── Core task fields ──────────────────────────────────────────────────────
+    taskContent = `
+      <div class="field" style="margin-bottom:12px;">
+        <label>Scene Key</label>
+    <input type="text" class="step-scene-key" 
+      placeholder="e.g. park_arrival, park_playground"
+      value="${esc(data.sceneKey ?? '')}" />
+        <label>Task Type</label>
+        <select class="task-type-select" onchange="updateTaskUI(this.closest('.step-item'), this.value)">
+          <option value="choice"     ${taskType === 'choice'     ? 'selected' : ''}>Multiple Choice</option>
+          <option value="tap_object" ${taskType === 'tap_object' ? 'selected' : ''}>Tap Object</option>
+          <option value="drag_drop"  ${taskType === 'drag_drop'  ? 'selected' : ''}>Drag & Drop</option>
+          <option value="speak"      ${taskType === 'speak'      ? 'selected' : ''}>Speak</option>
+          <option value="image_choice" ${taskType === 'image_choice' ? 'selected' : ''}>Image Choice</option>
+        </select>
+      </div>
+ 
+      <div class="field-row" style="margin-bottom:12px;">
+        <div class="field">
+          <label>Game Type</label>
+          <input type="text" class="task-game-type"
+            placeholder="e.g. choose_slide, find_friends"
+            value="${esc(gameType)}" />
+          <div class="hint">Leave empty for standard tasks. Determines which game component renders.</div>
+        </div>
+        <div class="field">
+          <label>Render Mode</label>
+          <select class="task-render-mode">
+            <option value="inline"     ${renderMode === 'inline'     ? 'selected' : ''}>Inline (bottom sheet)</option>
+            <option value="overlay"    ${renderMode === 'overlay'    ? 'selected' : ''}>Overlay (over scene)</option>
+            <option value="fullscreen" ${renderMode === 'fullscreen' ? 'selected' : ''}>Fullscreen (hide scene)</option>
+          </select>
+          <div class="hint">How this task is presented on screen.</div>
+        </div>
+      </div>
+ 
+      <div class="field" style="margin-bottom:10px;">
+        <label>Instruction</label>
+        <input type="text" class="task-instruction" placeholder="What should the player do?" value="${esc(data.instruction ?? '')}" />
+      </div>`;
+ 
+    // ── Task-specific content ─────────────────────────────────────────────────
+    if (taskType === 'choice') {
+      const opts = data.content?.options?.length ? data.content.options : [
+        { text: '', correct: false },
+        { text: '', correct: false },
+        { text: '', correct: true },
+      ];
+      taskContent += `
+        <label style="margin-bottom:6px;display:block;">Options</label>
+        <div class="options-wrap">${opts.map((o, i) => buildTaskOptionHTML(o, i)).join('')}</div>
+        <button class="btn btn-outline btn-sm" style="margin-top:8px;" onclick="addTaskOption(this)">+ Add Option</button>`;
+
+      // In makeStepEl, after rendering opts:
+div.querySelectorAll('.task-option').forEach((optEl, i) => {
+  const contContainer = optEl.querySelector('.option-continuation-steps');
+  (opts[i]?.continuationSteps ?? []).forEach(s => addStepToList(s.type, contContainer, s));
+});
+ 
+    } else if (taskType === 'tap_object') {
+      // Detect find_friends via top-level gameType (new) OR legacy content.gameType
+      const isFindFriends = gameType === 'find_friends' || data.content?.gameType === 'find_friends';
+      const objs    = data.content?.objectsInScene ?? [];
+      const correct = data.content?.correctObject  ?? '';
+      const friends = data.content?.friends        ?? [];
+ 
+      taskContent += `
+        <div class="game-config">
+          <div class="field">
+            <label>
+              <input type="checkbox" class="is-find-friends-game" ${isFindFriends ? 'checked' : ''}
+                     onchange="toggleFindFriendsMode(this)" />
+              Find Friends Game Mode
+            </label>
+            <div class="hint">Players must tap multiple hidden friends in the scene.</div>
+          </div>
+ 
+          <div class="standard-mode" style="${isFindFriends ? 'display:none;' : ''}">
+            <label style="margin-bottom:6px;display:block;">Objects in Scene (comma-separated)</label>
+            <input type="text" class="tap-objects-input" placeholder="apple, ball, tree"
+              value="${esc(objs.join(', '))}" style="margin-bottom:10px;" />
+            <label>Correct Object</label>
+            <input type="text" class="tap-correct-input" placeholder="Which one is correct?" value="${esc(correct)}" />
+          </div>
+ 
+          <div class="find-friends-mode" style="${isFindFriends ? '' : 'display:none;'}">
+            <label>Friends to Find</label>
+            <div class="friend-list">
+              ${friends.map(f => `
+                <div class="friend-item" style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
+                  <input type="text" class="friend-name" placeholder="Friend name" value="${esc(f.name)}" style="flex:1;" />
+                  <input type="text" class="friend-emoji" placeholder="Emoji" value="${esc(f.emoji)}" style="width:60px;" />
+                  <button class="btn btn-danger btn-sm" onclick="this.closest('.friend-item').remove()">✕</button>
+                </div>
+              `).join('')}
+            </div>
+            <button class="btn btn-outline btn-sm" onclick="addFriendItem(this)">+ Add Friend</button>
+            <div style="margin-top:8px;">
+              <label style="display:flex;align-items:center;gap:6px;text-transform:none;font-weight:400;">
+                <input type="checkbox" class="random-positions-checkbox" ${data.content?.randomPositions !== false ? 'checked' : ''} />
+                Random positions each time
+              </label>
+            </div>
+          </div>
+        </div>`;
+ 
+    } else if (taskType === 'drag_drop') {
+      const items   = data.content?.items   ?? [];
+      const targets = data.content?.targets ?? [];
+      taskContent += `
+        <label style="margin-bottom:6px;display:block;">Draggable Items (comma-separated)</label>
+        <input type="text" class="drag-items-input" placeholder="item1, item2, item3"
+          value="${esc(items.join(', '))}" style="margin-bottom:10px;" />
+        <label style="margin-bottom:6px;display:block;">Drop Targets (comma-separated)</label>
+        <input type="text" class="drag-targets-input" placeholder="target1, target2, target3"
+          value="${esc(targets.join(', '))}" />
+        <div class="field">
+          <label>Match Map (optional, format: item1:target1,item2:target2)</label>
+          <input type="text" class="drag-match-map" placeholder="apple:fruit,ball:toy"
+            value="${esc(data.content?.matchMap ?? '')}" />
+        </div>`;
+ 
+    } else if (taskType === 'speak') {
+      const phrase   = data.content?.expectedPhrase    ?? '';
+      const similar  = data.content?.acceptSimilar     ?? true;
+      const alts     = data.content?.alternativePhrases ?? [];
+      taskContent += `
+        <label>Expected Phrase</label>
+        <input type="text" class="speak-phrase-input" placeholder="What should they say?"
+          value="${esc(phrase)}" style="margin-bottom:10px;" />
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;">
+          <input type="checkbox" class="speak-similar-input" ${similar ? 'checked' : ''} />
+          <label style="margin:0;text-transform:none;font-weight:400;">Accept similar phrases</label>
+        </div>
+        <div class="field">
+          <label>Alternative phrases (comma-separated, optional)</label>
+          <input type="text" class="speak-alternatives" placeholder="yes, yeah, yep"
+            value="${esc(alts.join(', '))}" />
+        </div>`;
+    } else if (taskType === 'image_choice') {
+const opts = data.content?.options?.length ? data.content.options : [
+  { id: '1', label: 'Option 1', image: '', correct: false },
+  { id: '2', label: 'Option 2', image: '', correct: false },
+  { id: '3', label: 'Option 3', image: '', correct: true  },
+];
+  taskContent += `
+    <label style="margin-bottom:6px;display:block;">Image Options</label>
+    <div class="image-options-wrap">
+      ${opts.map((o, i) => buildImageOptionHTML(o, i)).join('')}
+    </div>
+    <button class="btn btn-outline btn-sm" style="margin-top:8px;" onclick="addImageOption(this)">+ Add Option</button>`;
+}
+
+div.querySelectorAll('.image-option').forEach((optEl, i) => {
+      const contContainer = optEl.querySelector('.option-continuation-steps');
+      (opts[i]?.continuationSteps ?? []).forEach(s => addStepToList(s.type, contContainer, s));
+    });
+      const contSteps = div.querySelector('.continuation-steps');
+  if (contSteps && Array.isArray(data.continuationSteps)) {
+    data.continuationSteps.forEach(s => addStepToList(s.type, contSteps, s));
+  }
+
+
+ 
+    // ── Feedback + continuations ──────────────────────────────────────────────
+    taskContent += `
+      <div class="field" style="margin-top:12px;">
+        <label>Correct Feedback</label>
+        <textarea class="task-correct-feedback" rows="2" placeholder="Great job!">${esc(data.correctFeedback ?? '')}</textarea>
+      </div>
+      <div class="field">
+        <label>Wrong Feedback</label>
+        <textarea class="task-wrong-feedback" rows="2" placeholder="Try again...">${esc(data.wrongFeedback ?? '')}</textarea>
+      </div>
+ 
+      <div style="margin-top:12px;padding-top:12px;border-top:1px solid var(--border);">
+        <label style="margin-bottom:8px;display:block;">Continuation (steps after correct answer)</label>
+        <div class="continuation-steps"></div>
+        <div class="add-step-row">
+          <button class="btn btn-outline btn-sm" onclick="addStepToList('narrate', this.closest('.step-item').querySelector('.continuation-steps'))">+ Narrate</button>
+          <button class="btn btn-outline btn-sm" onclick="addStepToList('dialog',  this.closest('.step-item').querySelector('.continuation-steps'))">+ Dialog</button>
+          <button class="btn btn-outline btn-sm" onclick="addStepToList('task',    this.closest('.step-item').querySelector('.continuation-steps'))">+ Task</button>
+        </div>
+      </div>`;
+ 
+    inner = taskContent;
+  }
+ 
+  div.innerHTML = `
+    <div class="step-header">
+      <span class="drag-handle" title="Drag to reorder">⋮⋮</span>
+      <span class="step-type-badge badge-${type}">${badgeLabel}</span>
+      <button class="btn btn-danger btn-sm" style="margin-left:auto;" onclick="this.closest('.step-item').remove()">✕</button>
+    </div>${inner}`;
+ 
+  // Populate continuation steps
+  if (type === 'task') {
+    const contSteps = div.querySelector('.continuation-steps');
+    if (contSteps && Array.isArray(data.continuationSteps)) {
+      data.continuationSteps.forEach(s => addStepToList(s.type, contSteps, s));
+    }
+  }
+ 
+  attachDragListeners(div);
+  return div;
+}
+
+// Helper functions for Find Friends Game
+function toggleFindFriendsMode(checkbox) {
+  const stepItem = checkbox.closest('.step-item');
+  const gameTypeInput = stepItem.querySelector('.task-game-type');
+  const renderModeSelect = stepItem.querySelector('.task-render-mode');
+  
+  if (checkbox.checked) {
+    gameTypeInput.value = 'find_friends';      // auto-fill
+    renderModeSelect.value = 'fullscreen';     // auto-fill
+  } else {
+    gameTypeInput.value = '';
+    renderModeSelect.value = 'inline';
+  }
+}
+
+function addFriendItem(btn) {
+  const friendList = btn.previousElementSibling;
+  const friendDiv = document.createElement('div');
+  friendDiv.className = 'friend-item';
+  friendDiv.innerHTML = `
+    <input type="text" class="friend-name" placeholder="Friend name" style="flex:1;" />
+    <input type="text" class="friend-emoji" placeholder="Emoji" value="🧒" style="width:60px;" />
+    <button class="btn btn-danger btn-sm" onclick="this.closest('.friend-item').remove()">✕</button>
+  `;
+  friendList.appendChild(friendDiv);
+}
+
+function buildTaskOptionHTML(o = {}, i = 0) {
+  const contSteps = (o.continuationSteps ?? []);
+  return `
+    <div class="task-option" style="margin-bottom:12px;border:1px solid var(--border2);border-radius:8px;padding:10px;">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">
+        <input type="checkbox" class="option-correct" title="Mark as correct" ${o.correct ? 'checked' : ''} />
+        <input type="text" class="option-text-input" placeholder="Option ${i + 1}" value="${esc(o.text ?? '')}" style="flex:1;" />
+        <button class="btn btn-danger btn-sm" onclick="this.closest('.task-option').remove()">✕</button>
+      </div>
+      <details style="margin-top:6px;">
+        <summary style="font-size:11px;color:var(--muted);cursor:pointer;">▶ Continuation steps if chosen</summary>
+        <div style="margin-top:8px;padding-left:10px;border-left:2px solid var(--border2);">
+          <div class="option-continuation-steps"></div>
+          <div class="add-step-row" style="margin-top:6px;">
+            <button class="btn btn-outline btn-sm" onclick="addStepToList('narrate', this.closest('details').querySelector('.option-continuation-steps'))">+ Narrate</button>
+            <button class="btn btn-outline btn-sm" onclick="addStepToList('dialog',  this.closest('details').querySelector('.option-continuation-steps'))">+ Dialog</button>
+            <button class="btn btn-outline btn-sm" onclick="addStepToList('task',    this.closest('details').querySelector('.option-continuation-steps'))">+ Task</button>
+          </div>
+        </div>
+      </details>
+    </div>`;
+}
+
+function buildImageOptionHTML(o = {}, i = 0) {
+  return `
+    <div class="image-option" style="margin-bottom:10px;border:1px solid var(--border2);border-radius:8px;padding:10px;">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
+        <input type="checkbox" class="option-correct" title="Mark as correct" ${o.correct ? 'checked' : ''} />
+        <input type="text" class="image-option-id" placeholder="id (e.g. 1)" value="${esc(o.id ?? String(i+1))}" style="width:60px;" />
+        <input type="text" class="image-option-label" placeholder="Label (e.g. Park)" value="${esc(o.label ?? '')}" style="flex:1;" />
+        <button class="btn btn-danger btn-sm" onclick="this.closest('.image-option').remove()">✕</button>
+      </div>
+      <div style="margin-bottom:8px;">
+        <label>Image filename</label>
+        <input type="text" class="image-option-file" placeholder="e.g. park.png" value="${esc(o.image ?? '')}" />
+        <div class="hint">Must match a key in your frontend imageMap</div>
+      </div>
+      <details style="margin-top:6px;">
+        <summary style="font-size:11px;color:var(--muted);cursor:pointer;">▶ Continuation steps if chosen</summary>
+        <div style="margin-top:8px;padding-left:10px;border-left:2px solid var(--border2);">
+          <div class="option-continuation-steps"></div>
+          <div class="add-step-row" style="margin-top:6px;">
+            <button class="btn btn-outline btn-sm" onclick="addStepToList('narrate', this.closest('details').querySelector('.option-continuation-steps'))">+ Narrate</button>
+            <button class="btn btn-outline btn-sm" onclick="addStepToList('dialog',  this.closest('details').querySelector('.option-continuation-steps'))">+ Dialog</button>
+            <button class="btn btn-outline btn-sm" onclick="addStepToList('task',    this.closest('details').querySelector('.option-continuation-steps'))">+ Task</button>
+          </div>
+        </div>
+      </details>
+    </div>`;
+}
+
+function addImageOption(btn) {
+  const wrap = btn.previousElementSibling;
+  const count = wrap.querySelectorAll('.image-option').length;
+  const tmp = document.createElement('div');
+  tmp.innerHTML = buildImageOptionHTML({}, count);
+  wrap.appendChild(tmp.firstElementChild);
+}
+
+function addTaskOption(btn) {
+  const wrap = btn.previousElementSibling;
+  const count = wrap.querySelectorAll('.task-option').length;
+  const tmp = document.createElement('div');
+  tmp.innerHTML = buildTaskOptionHTML({}, count);
+  wrap.appendChild(tmp.firstElementChild);
+}
+
+// function updateTaskUI(stepEl, newTaskType) {
+//   // Rebuild task UI (simplified - in production you'd recreate the step)
+//   const currentTaskType = stepEl.querySelector('.task-type-select').value;
+//   if (currentTaskType !== newTaskType) {
+//     // You can implement a full rebuild here if needed
+//   }
+// }
+
+function updateTaskUI(stepEl, newTaskType) {
+  const instruction = stepEl.querySelector('.task-instruction')?.value ?? '';
+  const gameType    = stepEl.querySelector('.task-game-type')?.value ?? '';
+  const renderMode  = stepEl.querySelector('.task-render-mode')?.value ?? 'inline';
+  const correctFb   = stepEl.querySelector('.task-correct-feedback')?.value ?? '';
+  const wrongFb     = stepEl.querySelector('.task-wrong-feedback')?.value ?? '';
+
+  // ← collect continuation steps BEFORE wiping
+  const contContainer = stepEl.querySelector('.continuation-steps');
+  const continuationSteps = contContainer ? collectSteps(contContainer) : [];
+
+  const newData = {
+    taskType: newTaskType,
+    gameType,
+    renderMode,
+    instruction,
+    correctFeedback: correctFb,
+    wrongFeedback: wrongFb,
+    continuationSteps, // ← pass them into the new element
+  };
+
+  const newEl = makeStepEl('task', newData);
+  stepEl.replaceWith(newEl);
+}
+
+function attachDragListeners(el) {
+  el.addEventListener('dragstart', (e) => {
+    draggedElement = el;
+    e.dataTransfer.effectAllowed = 'move';
+    e.dataTransfer.setData('text/html', el.innerHTML);
+    el.classList.add('dragging');
+  });
+
+  el.addEventListener('dragend', (e) => {
+    draggedElement = null;
+    el.classList.remove('dragging');
+    document.querySelectorAll('.drag-over').forEach(el => el.classList.remove('drag-over'));
+  });
+
+  el.addEventListener('dragover', (e) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+    
+    if (!draggedElement || draggedElement === el) return;
+
+    const container = el.parentNode;
+    const allSteps = [...container.querySelectorAll('.step-item:not(.dragging)')];
+    const afterElement = getDragAfterElement(container, e.clientY);
+    
+    if (afterElement == null) {
+      container.appendChild(draggedElement);
+    } else {
+      container.insertBefore(draggedElement, afterElement);
+    }
+  });
+
+  el.addEventListener('drop', (e) => {
+    e.preventDefault();
+  });
+}
+
+function getDragAfterElement(container, y) {
+  const draggableElements = [...container.querySelectorAll('.step-item:not(.dragging)')];
+  return draggableElements.reduce((closest, child) => {
+    const box = child.getBoundingClientRect();
+    const offset = y - box.top - box.height / 2;
+    if (offset < 0 && offset > closest.offset) {
+      return { offset: offset, element: child };
+    } else {
+      return closest;
+    }
+  }, { offset: Number.NEGATIVE_INFINITY }).element;
+}
+
+function addStepToList(type, listEl, data = {}) {
+  if (!listEl) return;
+  const stepEl = makeStepEl(type, data);
+  listEl.appendChild(stepEl);
+}
+
+// ─── Collect dialog tree recursively with full content ─────────────────────────
+
+function collectSteps(container) {
+  const steps = [];
+  container.querySelectorAll(':scope > .step-item').forEach(el => {
+    const type = [...el.classList].find(c => c.startsWith('type-'))?.replace('type-', '');
+    if (!type) return;
+
+    if (type === 'narrate') {
+      steps.push({ type: 'narrate', sceneKey: el.querySelector('.step-scene-key')?.value.trim() || undefined, text: el.querySelector('.step-text')?.value.trim() ?? '' });
+
+    } else if (type === 'dialog') {
+      steps.push({
+        type: 'dialog',
+        sceneKey: el.querySelector('.step-scene-key')?.value.trim() || undefined,
+        speaker: el.querySelector('.step-speaker')?.value.trim() ?? '',
+        text:    el.querySelector('.step-text')?.value.trim() ?? '',
+      });
+
+    } else if (type === 'task') {
+      sceneKey = el.querySelector('.step-scene-key')?.value.trim() || undefined;
+      const taskType = el.querySelector('.task-type-select')?.value ?? 'choice';
+      const instruction = el.querySelector('.task-instruction')?.value.trim() ?? '';
+      const correctFeedback = el.querySelector('.task-correct-feedback')?.value.trim() ?? '';
+      const wrongFeedback = el.querySelector('.task-wrong-feedback')?.value.trim() ?? '';
+      
+      let content = {};
+      
+      if (taskType === 'choice') {
+        const options = [];
+        el.querySelectorAll(':scope > .options-wrap > .task-option').forEach(optEl => {
+          const contContainer = optEl.querySelector('.option-continuation-steps');
+          options.push({
+            text: optEl.querySelector('.option-text-input')?.value.trim() ?? '',
+            correct: optEl.querySelector('.option-correct')?.checked ?? false,
+            continuationSteps: contContainer ? collectSteps(contContainer) : [],
+          });
+        });
+        content = { options };
+      } else if (taskType === 'tap_object') {
+        const isFindFriends = el.querySelector('.is-find-friends-game')?.checked ?? false;
+        
+        if (isFindFriends) {
+          // Collect friends for Find Friends game
+          const friends = [];
+          el.querySelectorAll('.friend-item').forEach(friendEl => {
+            friends.push({
+              name: friendEl.querySelector('.friend-name')?.value.trim() ?? '',
+              emoji: friendEl.querySelector('.friend-emoji')?.value.trim() ?? '🧒',
+            });
+          });
+          content = {
+            friends: friends,
+            randomPositions: el.querySelector('.random-positions-checkbox')?.checked ?? true,
+            objectsInScene: friends.map(f => f.name),
+          };
+        } else {
+          // Standard tap_object
+          const objs = el.querySelector('.tap-objects-input')?.value.split(',').map(s => s.trim()).filter(Boolean) ?? [];
+          const correct = el.querySelector('.tap-correct-input')?.value.trim() ?? '';
+          content = { objectsInScene: objs, correctObject: correct };
+        }
+        
+      } else if (taskType === 'drag_drop') {
+        const items = el.querySelector('.drag-items-input')?.value.split(',').map(s => s.trim()).filter(Boolean) ?? [];
+        const targets = el.querySelector('.drag-targets-input')?.value.split(',').map(s => s.trim()).filter(Boolean) ?? [];
+        const matchMapStr = el.querySelector('.drag-match-map')?.value.trim() ?? '';
+        const matchMap = {};
+        matchMapStr.split(',').forEach(pair => {
+          const [item, target] = pair.split(':').map(s => s.trim());
+          if (item && target) matchMap[item] = target;
+        });
+        content = { items, targets, matchMap };
+        
+      } else if (taskType === 'speak') {
+        const phrase = el.querySelector('.speak-phrase-input')?.value.trim() ?? '';
+        const similar = el.querySelector('.speak-similar-input')?.checked ?? true;
+        const alternatives = el.querySelector('.speak-alternatives')?.value.split(',').map(s => s.trim()).filter(Boolean) ?? [];
+        content = { 
+          expectedPhrase: phrase, 
+          acceptSimilar: similar,
+          alternativePhrases: alternatives 
+        };
+      } else if (taskType === 'image_choice') {
+  const options = [];
+  el.querySelectorAll('.image-option').forEach(optEl => {
+    const c = optEl.querySelector('.option-continuation-steps');
+    options.push({
+      id:      optEl.querySelector('.image-option-id')?.value.trim() ?? '',
+      label:   optEl.querySelector('.image-option-label')?.value.trim() ?? '',
+      image:   optEl.querySelector('.image-option-file')?.value.trim() ?? '',
+      correct: optEl.querySelector('.option-correct')?.checked ?? false,
+      continuationSteps: c ? collectSteps(c) : [],  // ← add this
+    });
+  });
+  content = { options };
+}
+      
+      // Collect continuation steps
+      const continuationSteps = [];
+      const contContainer = el.querySelector('.continuation-steps');
+      if (contContainer) {
+        continuationSteps.push(...collectSteps(contContainer));
+      }
+      
+      steps.push({
+  type: 'task',
+  taskType,
+  gameType: el.querySelector('.task-game-type')?.value.trim() || undefined, // ADD
+  renderMode: el.querySelector('.task-render-mode')?.value ?? 'inline',     // ADD
+  instruction,
+  content,
+  correctFeedback,
+  wrongFeedback,
+  continuationSteps,
+});
+    }
+  });
+  return steps;
+}
+
+// ─── Build payload from form ──────────────────────────────────────────────────
+
+function buildPayload() {
+  const dialog = collectSteps(document.getElementById('step-list'));
+
+  const diff = document.getElementById('b-diff').value;
+  const diffScore = diff === 'easy' ? 1 : diff === 'medium' ? 2 : 3;
+
+  return {
+    chapterId: document.getElementById('b-chapter').value,
+    title:     document.getElementById('b-title').value.trim(),
+    order:     parseInt(document.getElementById('b-order').value) || 1,
+    maxRetries: parseInt(document.getElementById('b-retries').value) || 3,
+    reward:    { stars: parseInt(document.getElementById('b-stars').value) || 3 },
+    isActive:  true,
+
+    tags: {
+      environment:     document.getElementById('b-env').value.trim(),
+      emotionalTheme:  document.getElementById('b-emotion').value.trim(),
+      difficulty:      diff,
+      difficultyScore: diffScore,
+      skills:   document.getElementById('b-skills').value.split(',').map(s => s.trim()).filter(Boolean),
+      ageRange: document.getElementById('b-age').value.split(',').map(s => s.trim()).filter(Boolean),
+      source: 'manual',
+    },
+
+    scene: {
+      backgroundImage: document.getElementById('b-bg').value.trim(),
+      narrative: document.getElementById('b-narrative').value.trim(),
+      narrativeVariants: {
+        simple:  document.getElementById('b-narrative-simple').value.trim(),
+        complex: document.getElementById('b-narrative-complex').value.trim(),
+      },
+      characters: document.getElementById('b-characters').value.split(',').map(s => s.trim()).filter(Boolean),
+    },
+
+    dialog,
+  };
+}
+
+// ─── Save ─────────────────────────────────────────────────────────────────────
+
+async function saveLevel() {
+  const payload = buildPayload();
+  if (!payload.chapterId) { toast('Select a chapter.', 'error'); return; }
+  if (!payload.title) { toast('Level title required.', 'error'); return; }
+
+  const btn = document.getElementById('save-btn');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span> Saving…';
+
+  const editId = document.getElementById('edit-level-id').value;
+  const method = editId ? 'PUT' : 'POST';
+  const url = editId ? `${API}/api/levels/${editId}` : `${API}/api/levels`;
+
+  try {
+    const r = await fetch(url, {
+      method,
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+    if (!r.ok) {
+      const err = await r.json().catch(() => ({ error: 'Unknown error' }));
+      throw new Error(err.error || r.statusText);
+    }
+    toast(editId ? 'Level updated!' : 'Level created!', 'success');
+    setTimeout(() => { showPage('levels'); resetBuilder(); }, 800);
+  } catch (e) {
+    toast('Save failed: ' + e.message, 'error');
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = 'Save Level';
+  }
+}
+
+// ─── Toast ────────────────────────────────────────────────────────────────────
+
+let toastTimer;
+function toast(msg, type = 'success') {
+  const el = document.getElementById('toast');
+  el.textContent = (type === 'success' ? '✅ ' : '❌ ') + msg;
+  el.className = 'show ' + type;
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => { el.className = ''; }, 3000);
+}
+
+// ─── Utils ────────────────────────────────────────────────────────────────────
+
+function esc(str) {
+  return String(str ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+</script>
+</body>
+</html>
