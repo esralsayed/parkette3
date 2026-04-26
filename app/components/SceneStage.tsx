@@ -17,6 +17,8 @@ import LevelDecorations from './LevelDecorations';
 
 const { width, height } = Dimensions.get('window');
 
+// explaining this component ->
+// this scene props has characters, currentstep, onAdvance function, bg, scenekey, gameMode, inscenegame
 interface SceneStageProps {
   characters?: GameCharacter[];
   currentStep?: any;
@@ -24,11 +26,6 @@ interface SceneStageProps {
   backgroundImage?: any;
   sceneKey?: string;
   gameMode?: boolean;
-  /**
-   * NEW — pass a fully-constructed game component here.
-   * SceneStage renders it in the bottom panel (where dialog normally sits).
-   * When this is provided the dialog / narrate UI is hidden.
-   */
   inSceneGame?: React.ReactNode;
 }
 
@@ -46,25 +43,16 @@ export default function SceneStage({
   const [side, setSide] = useState<'left' | 'right'>('left');
   console.log('🎭 SceneStage rendered', { sceneKey });
 
-  const Z = {
-    background: 0,
-    decorations: 2,
-    ground: 3,
-    characters: 10,
-    dialog: 20,
-  };
-
+  //this portion is for making the dialog on the left or on the right
   const speakingCharacter = currentStep?.type === 'dialog' 
     ? characters.find(c => c.name === currentStep?.speaker || c.displayName === currentStep?.speaker)
     : null;
 
-  useEffect(() => {
-    if (currentStep) {
-      const randomSide = Math.random() < 0.5 ? 'left' : 'right';
-      setSide(randomSide);
-    }
-    console.log('Current Step:', sceneKey, currentStep);
-  }, [currentStep]);
+useEffect(() => {
+  if (speakingCharacter?.side) {
+    setSide(speakingCharacter.side);
+  }
+}, [currentStep]);
 
   const sceneContent = (
     <>
@@ -72,12 +60,12 @@ export default function SceneStage({
       <View style={styles.ground} />
 
       {/* ── When an in-scene game is active, show it in the bottom panel ── */}
-      {inSceneGame ? (
-        <View style={styles.inSceneGamePanel}>
-          {inSceneGame}
-        </View>
-      ) : (
-        !gameMode && (
+{inSceneGame && (
+  <View style={styles.inSceneLayer}>
+    {inSceneGame}
+  </View>
+)}
+        {!gameMode && (
           <View style={styles.contentContainer}>
 
             {/* NARRATE — centered text box, no character */}
@@ -98,8 +86,19 @@ export default function SceneStage({
               side === 'left' ? styles.combinedLeft : styles.combinedRight
             ]}>
               {speakingCharacter && (
-                <View style={styles.characterWrapper}>
-                  <View style={styles.characterBubble}>
+                <View
+                  style={[
+                    styles.characterWrapper,
+                    side === 'left'
+                      ? { marginLeft: -30 }   // overlaps dialog from right
+                      : { marginRight: -30 }  // overlaps dialog from left
+                  ]}
+                >                  <View
+                                style={[
+                                  styles.characterBubble,
+                                  { transform: [{ scale: speakingCharacter?.scale ?? 1 }] }
+                                ]}
+                              >
                     <Image 
                       source={speakingCharacter.sprite} 
                       style={styles.characterSprite}
@@ -123,7 +122,6 @@ export default function SceneStage({
             </View>
 
           </View>
-        )
       )}
     </>
   );
@@ -156,6 +154,10 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
+  inSceneLayer: {
+  ...StyleSheet.absoluteFillObject,
+  zIndex: 25, // below dialog (30), above decorations
+},
   background: {
     flex: 1,
     justifyContent: 'flex-end',
@@ -205,44 +207,45 @@ const styles = StyleSheet.create({
   },
 
   // ── Existing layout (unchanged) ───────────────────────────────────────────
-  combinedContainer: {
-    position: 'absolute',
-    top: Spacing.xl,
-    flexDirection: 'column',
-    alignItems: 'flex-end',
-    zIndex: 30,
-  },
-  combinedLeft: {
-    left: Spacing.md,
-    right: undefined,
-    alignItems: 'flex-start',
-  },
-  combinedRight: {
-    right: Spacing.md,
-    left: undefined,
-    alignItems: 'flex-end',
-  },
+combinedContainer: {
+  position: 'absolute',
+  top: Spacing.xl,
+  flexDirection: 'row',
+  alignItems: 'flex-end',
+  zIndex: 30,
+},
+combinedLeft: {
+  left: Spacing.md,
+  flexDirection: 'row', // dialog then character
+},
+
+combinedRight: {
+  right: Spacing.md,
+  flexDirection: 'row-reverse', // character then dialog
+},
   characterWrapper: {
-    alignItems: 'center',
-    marginBottom: -50,
+  justifyContent: 'flex-end',
+  zIndex: 40, // above dialog
   },
   characterBubble: {
-    width: 150,
-    height: 150,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: 'transparent',
+  width: 140,
+  height: 140,
+  alignItems: 'center',
+  justifyContent: 'flex-end',
+  backgroundColor: 'transparent',
+    transform: [{ translateY: 10 }], // sits into dialog
+
   },
   characterSprite: {
     width: '100%',
     height: '100%',
-    resizeMode: 'contain',
   },
   dialogBoxWrapper: {
     alignSelf: 'flex-start',
     maxWidth: 300,
     minWidth: 200,
     zIndex: 30,
+    marginTop: -20
   },
   narrateContainer: {
     position: 'absolute',

@@ -49,9 +49,8 @@ const SceneSchema = new Schema(
 // AI pre-generates these from the base scene + task
 const DifficultyVariantSchema = new Schema(
   {
-    narrative: { type: String },
-    taskContent: { type: Schema.Types.Mixed },  // overrides task.content
-    instruction: { type: String },
+    dialog: { type: [Schema.Types.Mixed], default: [] }, // ← ADD THIS
+
   },
   { _id: false }
 );

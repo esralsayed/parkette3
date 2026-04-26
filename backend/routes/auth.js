@@ -1,6 +1,7 @@
 import express from "express";
 import jwt from "jsonwebtoken";
 import { Parent, User } from "../models/User.js";
+import { createDiaryForUser } from "./diary.js";
 
 const router = express.Router();
 
@@ -108,12 +109,15 @@ router.post("/register-child", async (req, res) => {
       email,
       password,
       username,
-      parentId
+      parentId,
     });
 
     await child.save();
+    await createDiaryForUser(child._id, child.name);
 
+///save children to parent
     const parent = await Parent.findById(parentId);
+    if (!parent) return res.status(404).json({ message: "Parent not found" });
     parent.children.push(child._id);
     await parent.save();
 
@@ -128,6 +132,34 @@ router.post("/register-child", async (req, res) => {
     });
   } catch (error) {
     console.error("Register child error:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
+router.delete("/delete", async (req, res) => {
+  try {
+    console.log("deleting...", req.query);
+
+    const { userId } = req.query;
+
+    if (!userId)
+      return res.status(400).json({ message: "userId required" });
+
+    const user = await User.findByIdAndDelete(userId);
+
+    if (!user)
+      return res.status(404).json({ message: "User not found" });
+
+    const diary = await Diary.deleteOne({userId:userId});
+    console.log("deleted diary?", diary); 
+
+    return res.status(200).json({
+      message: "User deleted successfully",
+      user
+    });
+
+  } catch (error) {
+    console.error("deleting child error:", error);
     res.status(500).json({ message: "Server error" });
   }
 });
