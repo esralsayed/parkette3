@@ -178,8 +178,7 @@ const styles = StyleSheet.create({
     width: 200,
     height: 200,
   },
-  modal: {
-    width: '100%',
+  modal: {width: '100%',
     backgroundColor: AppColors.lilac,
     borderRadius: 14,
     borderWidth: 3,

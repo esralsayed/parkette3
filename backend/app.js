@@ -7,6 +7,7 @@ import { connectDB } from "./db.js";
 import airouter from "./routes/ai.js";
 import authRoutes from "./routes/auth.js";
 import chapterroutes from "./routes/chapters.js";
+import diaryroutes from "./routes/diary.js";
 import levelroutes from "./routes/levels.js";
 import performanceRouter from "./routes/performance.js";
 import router from "./routes/progress.js";
@@ -27,6 +28,7 @@ app.use("/api/levels", levelroutes);
 app.use("/api/progress", router);
 app.use("/api/performance", performanceRouter);
 app.use("/api/ai", airouter);
+app.use("/api/diary",diaryroutes);
 
 // Health check
 app.get("/api/health", (req, res) => {

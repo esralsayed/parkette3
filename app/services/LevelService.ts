@@ -88,6 +88,28 @@ export class LevelService {
     
     // Use medium difficulty for now (you can change this later)
     this.currentDifficulty = difficulty || 'medium';
+
+    // Check cache first for easy mode
+  if (this.currentDifficulty === 'easy') {
+    const cached = await this.getCachedSimplifiedLevel(levelId);
+    if (cached) {
+      // Skip adapter entirely — use cached version
+      this.wrongChoiceCount = 0;
+      this.performanceTracker = new PerformanceTracker(userId, levelId);
+      this.currentSession = {
+        levelId,
+        level: cached,
+        currentSceneIndex: 0,
+        currentStepIndex: 0,
+        starsEarned: cached.reward?.stars || 3,
+        attempts: this.levelRetrialCount + 1,
+        startTime: Date.now(),
+        completed: false,
+        answers: []
+      };
+      return cached;
+    }
+  }
     
     // Fetch and adapt level
     const rawLevel = await levelRepository.getLevelById(levelId);

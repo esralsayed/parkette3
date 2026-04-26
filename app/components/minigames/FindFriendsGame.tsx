@@ -1,6 +1,6 @@
 // minigames/FindFriendsGame.tsx
 import { AppColors, AppFonts } from '@/constants/theme';
-import React, { JSX, useEffect, useState } from 'react';
+import React, { JSX, useEffect, useRef, useState } from 'react';
 import {
   Animated,
   Dimensions,
@@ -62,31 +62,9 @@ function PixelScene({ areaWidth, areaHeight }: { areaWidth: number; areaHeight: 
       blocks.push(<PixelBlock key={key++} x={col * B} y={groundY} w={B} h={3} color={AppColors.blue} />);
     }
   }
-
-  // // Left wall cluster
-  // for (let row = 0; row < 6; row++) {
-  //   blocks.push(<PixelBlock key={key++} x={0}   y={groundY - row * B} w={B*2} h={B} color={row % 2 === 0 ? C.blockDark : C.blockMid} />);
-  //   blocks.push(<PixelBlock key={key++} x={B*2} y={groundY - row * B} w={B}   h={B} color={C.blockMid} />);
-  // }
-
-  // // Right wall cluster
-  // for (let row = 0; row < 5; row++) {
-  //   blocks.push(<PixelBlock key={key++} x={areaWidth - B*2} y={groundY - row * B} w={B*2} h={B} color={row % 2 === 0 ? C.blockDark : C.blockMid} />);
-  //   blocks.push(<PixelBlock key={key++} x={areaWidth - B*3} y={groundY - row * B} w={B}   h={B} color={C.blockMid} />);
-  // }
-
-//   // Small raised platform in the middle-right
-//   const platY = groundY - B * 4;
-//   const platX = areaWidth * 0.55;
-//   for (let col = 0; col < 5; col++) {
-//     blocks.push(<PixelBlock key={key++} x={platX + col*B} y={platY}     w={B} h={B} color={C.blockMid}  />);
-//     blocks.push(<PixelBlock key={key++} x={platX + col*B} y={platY + B} w={B} h={B} color={C.blockDark} />);
-//   }
-//   // highlight
-//   blocks.push(<PixelBlock key={key++} x={platX} y={platY} w={B * 5} h={3} color={C.blockLight} />);
-
-//   return <>{blocks}</>;
- }
+  
+  return <>{blocks}</>;
+}
 
 // ─── Main component ───────────────────────────────────────────────────────────
 export default function FindFriendsGame({
@@ -103,7 +81,9 @@ export default function FindFriendsGame({
   const [gameCompleted, setGameCompleted] = useState(false);
   const [showModal, setShowModal]       = useState(false);
   const [areaSize, setAreaSize]         = useState({ width: 0, height: 0 });
-  const scaleAnim                       = useState(new Animated.Value(1))[0];
+  
+  // Store individual animations for each friend
+  const scaleAnims = useRef<Map<string, Animated.Value>>(new Map());
 
   const friends = initialFriends.map(f => ({ ...f, found: foundIds.has(f.id) }));
 
@@ -118,9 +98,16 @@ export default function FindFriendsGame({
     const friend = friends.find(f => f.id === friendId);
     if (!friend || friend.found) return;
 
+    // Get or create animation for this friend
+    let anim = scaleAnims.current.get(friendId);
+    if (!anim) {
+      anim = new Animated.Value(1);
+      scaleAnims.current.set(friendId, anim);
+    }
+
     Animated.sequence([
-      Animated.timing(scaleAnim, { toValue: 1.4, duration: 120, useNativeDriver: true }),
-      Animated.timing(scaleAnim, { toValue: 0,   duration: 180, useNativeDriver: true }),
+      Animated.timing(anim, { toValue: 1.4, duration: 120, useNativeDriver: true }),
+      Animated.timing(anim, { toValue: 0,   duration: 180, useNativeDriver: true }),
     ]).start();
 
     setFoundIds(prev => new Set([...prev, friendId]));
@@ -130,149 +117,223 @@ export default function FindFriendsGame({
     setTimeout(() => setMessage(''), 1800);
   };
 
+  const handleCloseModal = () => {
+    setShowModal(false);
+    onComplete(true, foundCount);
+    if (onClose) {
+      onClose();
+    }
+  };
+
+  const WorldBush = ({
+    x,
+    y,
+    size,
+    friend,
+    onTap,
+  }: {
+    x: number;
+    y: number;
+    size: number;
+    friend?: Friend;
+    onTap?: (friendId: string) => void;
+  }) => {
+    if (!friend || friend.found) return null;
+    
+    // Get this friend's animation
+    let anim = scaleAnims.current.get(friend.id);
+    if (!anim) {
+      anim = new Animated.Value(1);
+      scaleAnims.current.set(friend.id, anim);
+    }
+
+    return (
+      <View
+        style={{
+          position: 'absolute',
+          left: `${x}%`,
+          top: `${y}%`,
+          width: size,
+          height: size,
+          zIndex: 10,
+        }}
+      >
+        {/* Tappable Character - placed ABOVE the bush */}
+        <TouchableOpacity
+          style={{
+            position: 'absolute',
+            bottom: size * 0.6,
+            left: 200,
+            right: 0,
+            alignItems: 'center',
+            zIndex: 0,
+          }}
+          onPress={() => onTap?.(friend.id)}
+          activeOpacity={0.7}
+        >
+          <Animated.Image
+            source={friend.image}
+            style={{
+              transform: [{ scale: anim }],
+            }}
+          />
+          {/* Optional name tag */}
+          <View style={styles.nameTag}>
+            <Text style={styles.nameTagText}>{friend.name}</Text>
+          </View>
+        </TouchableOpacity>
+
+        {/* Bush behind the character */}
+        <View style={{ position: 'absolute', bottom: 0, left: 0, right: 0, zIndex: 1 }}>
+          <Bush size={size} />
+        </View>
+      </View>
+    );
+  };
+  
   // Ground level (where characters stand) — 76% down the game area
   const GROUND_LEVEL_PCT = 72;
 
   return (
-  <View style={styles.container}>
-
-    {/* Close button */}
-    {onClose && (
-      <TouchableOpacity onPress={onClose} style={styles.closeBtn}>
-        <Text style={styles.closeBtnText}>✕</Text>
-      </TouchableOpacity>
-    )}
-
-    {/* Pause overlay */}
-    {paused && (
-      <View style={styles.pauseOverlay} pointerEvents="box-only">
-        <Text style={styles.pauseText}>⏸ Paused</Text>
-      </View>
-    )}
-
-    {/* ── Game Area — transparent, SceneStage shows through ── */}
-    <View
-      style={styles.gameArea}
-      onLayout={e => setAreaSize({ width: e.nativeEvent.layout.width, height: e.nativeEvent.layout.height })}
-    >
-      {/* Bushes still render — they're decorative game elements */}
-      {areaSize.width > 0 && (
-        <>
-          <Bush
-            size={56}
-            x={areaSize.width * 0.08}
-            y={areaSize.height * (GROUND_LEVEL_PCT / 100) - 52}
-            variant="round"
-          />
-          <Bush
-            size={64}
-            x={areaSize.width * 0.72}
-            y={areaSize.height * (GROUND_LEVEL_PCT / 100) - 58}
-            variant="flowering"
-          />
-          <Bush
-            size={48}
-            x={areaSize.width * 0.46}
-            y={areaSize.height * (GROUND_LEVEL_PCT / 100) - 44}
-            variant="round"
-          />
-        </>
+    <View style={styles.container}>
+      {/* Close button - hide when modal is showing */}
+      {onClose && !showModal && (
+        <TouchableOpacity onPress={onClose} style={styles.closeBtn}>
+          <Text style={styles.closeBtnText}>✕</Text>
+        </TouchableOpacity>
       )}
 
-      {/* Friends */}
-      {friends.map((friend, idx) =>
-        !friend.found ? (
-          <TouchableOpacity
-            key={friend.id}
-            activeOpacity={0.85}
-            onPress={() => handleFriendTap(friend.id)}
-            style={[
-              styles.friendAnchor,
-              {
-                left: `${friend.x}%`,
-                top:  `${friend.y}%`,
-              },
-            ]}
-          >
-            <View style={styles.numBadge}>
-              <Text style={styles.numText}>{idx + 1}</Text>
-            </View>
-            <Animated.Image
-              source={friend.image}
-              style={[styles.friendSprite, { transform: [{ scale: scaleAnim }] }]}
-              resizeMode="contain"
-            />
-            <View style={styles.nameTag}>
-              <Text style={styles.nameTagText}>{friend.name}</Text>
-            </View>
-          </TouchableOpacity>
-        ) : null
-      )}
-
-      {/* Toast message */}
-      {message !== '' && (
-        <View style={styles.toast}>
-          <Text style={styles.toastText}>{message}</Text>
+      {/* Pause overlay */}
+      {paused && (
+        <View style={styles.pauseOverlay} pointerEvents="box-only">
+          <Text style={styles.pauseText}>⏸ Paused</Text>
         </View>
       )}
 
-      {/* Counter badge */}
-      <View style={styles.counterBadge}>
-        <Text style={styles.counterBadgeText}>
-          {foundCount}/{friends.length}
-        </Text>
-      </View>
-    </View>
+      {/* Game Area */}
+      <View
+        style={styles.gameArea}
+        onLayout={e =>
+          setAreaSize({
+            width: e.nativeEvent.layout.width,
+            height: e.nativeEvent.layout.height,
+          })
+        }
+      >
+        {areaSize.height > 0 && (
+          <>
+            <PixelScene areaWidth={areaSize.width} areaHeight={areaSize.height} />
+            
+            {/* Render each friend in their own bush */}
+            {friends.map((friend, index) => {
+              // Define positions for each friend
+              const positions = [
+                { x: 8, y: GROUND_LEVEL_PCT-20, size: 400 },   // Friend 0
+                { x: 72, y: GROUND_LEVEL_PCT-20, size: 400 },  // Friend 1
+                { x: 46, y: GROUND_LEVEL_PCT-20, size: 200 },  // Friend 2
+                { x: 25, y: GROUND_LEVEL_PCT, size: 250 },  // Friend 3 (if exists)
+                { x: 85, y: GROUND_LEVEL_PCT, size: 220 },  // Friend 4 (if exists)
+              ];
+              
+              const pos = positions[index] || { x: 10 + (index * 20), y: GROUND_LEVEL_PCT, size: 200 };
+              
+              return (
+                <WorldBush
+                  key={friend.id}
+                  x={pos.x}
+                  y={pos.y}
+                  size={pos.size}
+                  friend={friend}
+                  onTap={handleFriendTap}
+                />
+              );
+            })}
+          </>
+        )}
 
-    {/* ── Footer HUD ── */}
-    <View style={styles.hud}>
-      <Text style={styles.hudInstruction}>{instruction}</Text>
-      <View style={styles.hudRow}>
-        <Text style={styles.hudFoundLabel}>Found:</Text>
-        <View style={styles.hudIcons}>
-          {friends.map(f =>
-            f.found ? (
-              <Image key={f.id} source={f.image} style={styles.hudIcon} />
-            ) : (
-              <View key={f.id} style={styles.hudIconEmpty} />
-            )
-          )}
-        </View>
-      </View>
-    </View>
-
-    {/* ── Completion Modal ── */}
-    <Modal animationType="fade" transparent visible={showModal} onRequestClose={() => {}}>
-      <View style={styles.modalOverlay}>
-        <View style={styles.modalBox}>
-          <View style={styles.modalPixelBorder} />
-          <Text style={styles.modalTitle}>Mission Complete!</Text>
-          <Text style={styles.modalBody}>You found all {friends.length} friends!</Text>
-          <View style={styles.modalIcons}>
-            {friends.map((f, i) => (
-              <Image key={i} source={f.image} style={styles.modalIcon} />
-            ))}
+        {/* Toast */}
+        {message !== '' && (
+          <View style={styles.toast}>
+            <Text style={styles.toastText}>{message}</Text>
           </View>
-          <TouchableOpacity
-            style={styles.modalBtn}
-            onPress={() => { setShowModal(false); onComplete(true, foundCount); }}
-          >
-            <Text style={styles.modalBtnText}>Continue →</Text>
-          </TouchableOpacity>
+        )}
+
+        {/* Counter */}
+        <View style={styles.counterBadge}>
+          <Text style={styles.counterBadgeText}>
+            {foundCount}/{friends.length}
+          </Text>
         </View>
       </View>
-    </Modal>
-  </View>
-);
+
+      {/* HUD */}
+      <View style={styles.hud}>
+        <Text style={styles.hudInstruction}>{instruction}</Text>
+        <View style={styles.hudRow}>
+          <Text style={styles.hudFoundLabel}>Found:</Text>
+          <View style={styles.hudIcons}>
+            {friends.map(f =>
+              f.found ? (
+                <Image key={f.id} source={f.image} style={styles.hudIcon} />
+              ) : (
+                <View key={f.id} style={styles.hudIconEmpty} />
+              )
+            )}
+          </View>
+        </View>
+      </View>
+
+      {/* Success Modal with X button */}
+      <Modal
+        visible={showModal}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={handleCloseModal}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalBox}>
+            {/* X button inside modal */}
+            <TouchableOpacity 
+              onPress={handleCloseModal} 
+              style={styles.modalCloseBtn}
+            >
+              <Text style={styles.modalCloseBtnText}>✕</Text>
+            </TouchableOpacity>
+            
+            <Text style={styles.modalEmoji}>🎉</Text>
+            <Text style={styles.modalTitle}>Mission Complete!</Text>
+            <Text style={styles.modalBody}>
+              You found all {friends.length} friends!
+            </Text>
+            <View style={styles.modalIcons}>
+              {friends.map(f => (
+                <Image key={f.id} source={f.image} style={styles.modalIcon} />
+              ))}
+            </View>
+            <TouchableOpacity onPress={handleCloseModal} style={styles.modalBtn}>
+              <Text style={styles.modalBtnText}>✨ Continue ✨</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
+    </View>
+  );
 }
 
 // ─── Styles ───────────────────────────────────────────────────────────────────
 const styles = StyleSheet.create({
   container: {
-     flex: 1,
-  backgroundColor: AppColors.lilac,
-  height: '100%',
-
+    flex: 1,
+    backgroundColor: 'transparent',
+    height: '100%',
+  },
+  completionOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(0,0,0,0.75)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: 200,
+    elevation: 200,
   },
   embeddedContainer: {
     borderRadius: 0,
@@ -310,12 +371,12 @@ const styles = StyleSheet.create({
   friendAnchor: {
     position: 'absolute',
     alignItems: 'center',
-    zIndex: 20,
-    // No background, no border — characters sit directly in the scene
+    zIndex: 5,
+    elevation: 5,
   },
   friendSprite: {
-    width: 72,
-    height: 72,
+    // width: 72,
+    // height: 72,
   },
   numBadge: {
     backgroundColor: AppColors.lilac,
@@ -390,12 +451,12 @@ const styles = StyleSheet.create({
 
   // HUD footer
   hud: {
-    backgroundColor: AppColors.lilac,
-    borderTopWidth: 3,
-    borderTopColor: AppColors.blue,
-    paddingHorizontal: 16,
-    paddingVertical: 10,
+    position: 'absolute',
+    bottom: 10,
+    left: 0,
+    right: 0,
     alignItems: 'center',
+    backgroundColor: 'transparent',
   },
   hudInstruction: {
     color: AppColors.blue,
@@ -427,15 +488,16 @@ const styles = StyleSheet.create({
   // Modal
   modalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.75)',
+    backgroundColor: 'rgba(0,0,0,0.85)',
     justifyContent: 'center',
     alignItems: 'center',
+    zIndex: 1000,
   },
   modalBox: {
     backgroundColor: AppColors.lilac,
-    borderWidth: 3,
+    borderWidth: 4,
     borderColor: AppColors.blue,
-    borderRadius: 6,
+    borderRadius: 8,
     padding: 28,
     alignItems: 'center',
     shadowColor: AppColors.blue,
@@ -443,6 +505,25 @@ const styles = StyleSheet.create({
     shadowOpacity: 1,
     shadowRadius: 0,
     elevation: 10,
+    position: 'relative',
+  },
+  modalCloseBtn: {
+    position: 'absolute',
+    top: 10,
+    right: 10,
+    width: 30,
+    height: 30,
+    borderRadius: 4,
+    backgroundColor: AppColors.blue,
+    alignItems: 'center',
+    justifyContent: 'center',
+    zIndex: 1001,
+  },
+  modalCloseBtnText: {
+    color: AppColors.lilac,
+    fontSize: 16,
+    fontWeight: 'bold',
+    fontFamily: 'monospace',
   },
   modalPixelBorder: {
     position: 'absolute',
@@ -450,33 +531,41 @@ const styles = StyleSheet.create({
     height: 4,
     backgroundColor: AppColors.lilac,
   },
-  modalEmoji:  { fontSize: 52, marginBottom: 10 },
+  modalEmoji: { fontSize: 52, marginBottom: 10 },
   modalTitle: {
     ...AppFonts.title,
-    fontSize: 48, fontWeight: 'bold', color: AppColors.blue,
-     marginBottom: 8,
+    fontSize: 28, 
+    fontWeight: 'bold', 
+    color: AppColors.blue,
+    marginBottom: 8,
+    fontFamily: 'monospace',
   },
   modalBody: {
     ...AppFonts.body,
-    fontSize: 32, color: AppColors.blue,
-    textAlign: 'center', marginBottom: 16,
+    fontSize: 16, 
+    color: AppColors.blue,
+    textAlign: 'center', 
+    marginBottom: 16,
+    fontFamily: 'monospace',
   },
-  modalIcons: { flexDirection: 'row', gap: 10, marginBottom: 20 },
+  modalIcons: { flexDirection: 'row', gap: 10, marginBottom: 20, flexWrap: 'wrap', justifyContent: 'center' },
   modalIcon: {
     width: 46, height: 46, borderRadius: 3,
     borderWidth: 2, borderColor: AppColors.blue,
   },
   modalBtn: {
     backgroundColor: AppColors.lilac,
-    borderRadius: 3,
-    paddingHorizontal: 16,
+    borderRadius: 4,
+    paddingHorizontal: 20,
     paddingVertical: 10,
-    borderWidth: 2,
+    borderWidth: 3,
     borderColor: AppColors.blue,
   },
   modalBtnText: {
     ...AppFonts.body,
     color: AppColors.blue,
-    fontSize: 24,
+    fontSize: 18,
+    fontWeight: 'bold',
+    fontFamily: 'monospace',
   },
 });

@@ -20,7 +20,7 @@ const NavBar: React.FC<NavBarProps> = ({ userName }) => {
         <TouchableOpacity>
           <Text style={styles.navLink}>Community</Text>
         </TouchableOpacity>
-        <TouchableOpacity>
+        <TouchableOpacity onPress={() => router.push('/diary/Diary')}>
           <Text style={styles.navLink}>Diary</Text>
         </TouchableOpacity>
       </View>

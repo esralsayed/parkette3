@@ -1,54 +1,49 @@
-
-import { AppColors, AppFonts, ButtonStyles, CardStyles, Spacing } from '@/constants/theme';
+import { AppColors, AppFonts, Spacing } from '@/constants/theme';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useRouter } from 'expo-router';
 import React, { useState } from 'react';
-import { Alert, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import {
+  Alert,
+  Image,
+  StyleSheet,
+  Text,
+  TextInput,
+  View,
+} from 'react-native';
+import PrimaryButton from './components/style/buttonHovered';
+import LinkText from './components/style/LinksHover';
 
-const API_URL = 'http://localhost:5000/api/auth'; // Update this for production
+const API_URL = 'http://localhost:5000/api/auth';
 
 export default function Login() {
   const router = useRouter();
-  const [userType, setUserType] = useState('parent'); // 'parent' or 'child'
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
+  const [focusedField, setFocusedField] = useState<string | null>(null);
 
   const handleLogin = async () => {
     if (!username || !password) {
       Alert.alert('Error', 'Please fill in all fields');
       return;
     }
-
     setLoading(true);
     try {
       const response = await fetch(`${API_URL}/login`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          username,
-          password,
-          role: userType,
-        }),
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username, password }),
       });
-
       const data = await response.json();
-console.log('Login response:', data);
       if (response.ok) {
-        // Store token and user data
         await AsyncStorage.setItem('token', data.token);
         await AsyncStorage.setItem('user', JSON.stringify(data.user));
-
         Alert.alert('Success', 'Login successful!');
-        // Navigate to dashboard
         router.replace('/dashboard');
       } else {
         Alert.alert('Error', data.message || 'Login failed');
       }
     } catch (error) {
-      console.error('Login error:', error);
       Alert.alert('Error', 'Network error. Please try again.');
     } finally {
       setLoading(false);
@@ -57,47 +52,76 @@ console.log('Login response:', data);
 
   return (
     <View style={styles.container}>
-      <Text style={[styles.title, AppFonts.header]}>Login</Text>
-      <View style={[styles.userTypeContainer, CardStyles.default]}>
-        <TouchableOpacity
-          style={[styles.userTypeButton, userType === 'parent' && styles.selected]}
-          onPress={() => setUserType('parent')}
-        >
-          <Text style={AppFonts.button2}>Parent</Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={[styles.userTypeButton, userType === 'child' && styles.selected]}
-          onPress={() => setUserType('child')}
-        >
-          <Text style={AppFonts.button2}>Child</Text>
-        </TouchableOpacity>
+      {/* Header section with cat and title */}
+      <View style={styles.headerContainer}>
+        <Image 
+          source={require('../assets/images/chapters/Cat.png')}
+          style={styles.catImage}
+        />
+        <Text style={[AppFonts.header, styles.headerTitle]}>Login</Text>
       </View>
-      <TextInput
-        style={[styles.input, CardStyles.default]}
-        placeholder="Username"
-        value={username}
-        onChangeText={setUsername}
-        autoCapitalize="none"
-      />
-      <TextInput
-        style={[styles.input, CardStyles.default]}
-        placeholder="Password"
-        value={password}
-        onChangeText={setPassword}
-        secureTextEntry
-      />
-      <TouchableOpacity
-        style={[styles.button, ButtonStyles.primary, { backgroundColor: AppColors.blue }, loading && styles.disabled]}
-        onPress={handleLogin}
-        disabled={loading}
-      >
-        <Text style={[styles.buttonText, AppFonts.button2]}>
-          {loading ? 'Logging In...' : 'Login'}
-        </Text>
-      </TouchableOpacity>
-      <TouchableOpacity onPress={() => router.push('/welcome')}>
-        <Text style={[styles.link, AppFonts.bodySmall]}>Back to Welcome</Text>
-      </TouchableOpacity>
+
+      {/* Card */}
+      <View style={styles.card}>
+        <View style={styles.cornerTL} />
+        <View style={styles.cornerBR} />
+
+        {/* Username Field */}
+        <View style={styles.field}>
+          <Text style={styles.label}>USERNAME</Text>
+          <TextInput
+            style={[
+              styles.input,
+              focusedField === 'username' && styles.inputFocused
+            ]}
+            placeholder="Username"
+            placeholderTextColor={AppColors.lilac}
+            value={username}
+            onChangeText={setUsername}
+            autoCapitalize="none"
+            onFocus={() => setFocusedField('username')}
+            onBlur={() => setFocusedField(null)}
+          />
+        </View>
+
+        {/* Password Field */}
+        <View style={styles.field}>
+          <Text style={styles.label}>PASSWORD</Text>
+          <TextInput
+            style={[
+              styles.input,
+              focusedField === 'password' && styles.inputFocused
+            ]}
+            placeholder="Password"
+            placeholderTextColor={AppColors.lilac}
+            value={password}
+            onChangeText={setPassword}
+            secureTextEntry
+            onFocus={() => setFocusedField('password')}
+            onBlur={() => setFocusedField(null)}
+          />
+        </View>
+
+        <PrimaryButton
+          title="LOGIN"
+          onPress={handleLogin}
+          loading={loading}
+        />
+
+        {/* Back links section */}
+        <View style={styles.linksContainer}>
+          <LinkText
+            title="New to the game? Signup!"
+            onPress={() => router.push('/signup')}
+          />
+
+          <LinkText
+            title="back to welcome?"
+            variant="secondary"
+            onPress={() => router.push('/welcome')}
+          />
+        </View>
+      </View>
     </View>
   );
 }
@@ -105,48 +129,94 @@ console.log('Login response:', data);
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    backgroundColor: AppColors.lilac,
     justifyContent: 'center',
     alignItems: 'center',
     padding: Spacing.lg,
-    backgroundColor: AppColors.lilac,
   },
-  title: {
-    color: AppColors.blue,
-    marginBottom: Spacing.lg,
-  },
-  userTypeContainer: {
+  headerContainer: {
     flexDirection: 'row',
-    marginBottom: Spacing.lg,
-    backgroundColor: 'white',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    width: '100%',
+    maxWidth: 420,
+    marginBottom: Spacing.sm,
   },
-  userTypeButton: {
-    padding: Spacing.md,
-    marginHorizontal: Spacing.sm,
-    borderRadius: ButtonStyles.icon.borderRadius,
+  catImage: {
+    width: 130,
+    height: 130,
   },
-  selected: {
+  headerTitle: {
+    color: AppColors.blue,
+    letterSpacing: 2,
+    textAlign: 'right',
+    fontSize: 28,
+  },
+  card: {
+    width: '100%',
+    maxWidth: 420,
+    backgroundColor: 'rgba(255,255,255,0.18)',
+    borderWidth: 3,
+    borderColor: AppColors.blue,
+    borderStyle: 'dashed',
+    borderRadius: 18,
+    padding: Spacing.lg,
+    shadowColor: '#b0b8e8',
+    shadowOffset: { width: 4, height: 4 },
+    shadowOpacity: 1,
+    shadowRadius: 0,
+    elevation: 4,
+  },
+  cornerTL: {
+    position: 'absolute',
+    top: -5,
+    left: -5,
+    width: 10,
+    height: 10,
     backgroundColor: AppColors.blue,
+    borderRadius: 2,
+  },
+  cornerBR: {
+    position: 'absolute',
+    bottom: -5,
+    right: -5,
+    width: 10,
+    height: 10,
+    backgroundColor: AppColors.blue,
+    borderRadius: 2,
+  },
+  field: {
+    marginBottom: Spacing.md,
+  },
+  label: {
+    color: AppColors.blue,
+    letterSpacing: 1.5,
+    marginBottom: 6,
+    opacity: 0.8,
   },
   input: {
     width: '100%',
+    backgroundColor: 'rgba(255,255,255,0.85)',
+    borderWidth: 2,
+    borderColor: AppColors.blue,
+    borderRadius: 8,
     padding: Spacing.md,
-    marginBottom: Spacing.md,
-    backgroundColor: 'white',
     color: AppColors.blue,
   },
-  button: {
-    width: '80%',
+  inputFocused: {
+    borderColor: '#4a6adc',
+    backgroundColor: '#ffffff',
+    transform: [{ scale: 1.02 }],
+    shadowColor: AppColors.blue,
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.4,
+    shadowRadius: 6,
+    elevation: 4,
+  },
+  linksContainer: {
+    flexDirection: 'column',
     alignItems: 'center',
-    marginVertical: Spacing.sm,
-  },
-  disabled: {
-    backgroundColor: '#ccc',
-  },
-  buttonText: {
-    color: 'white',
-  },
-  link: {
-    color: AppColors.blue,
-    marginTop: Spacing.lg,
+    gap: Spacing.sm,
+    marginTop: Spacing.sm,
   },
 });

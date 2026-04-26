@@ -221,10 +221,12 @@ const progress = levelService.getProgress();
     if (!step || step.type !== 'task' || showHowToPlay) return null;
 
     const gameType = step.gameType ?? step.taskType;
+    console.log(gameType, 'inside levelplayer');
     switch (gameType) {
-      case 'image_choice':
+      case 'slide_choice':
         return (
            <ImageChoiceGame
+            gameType={gameType}
             instruction={step.instruction ?? step.content?.instruction ?? 'Choose the right one!'}
             options={step.content?.options ?? []}
             onComplete={(correct, selectedId, chosenText, correctText) =>
@@ -274,7 +276,7 @@ const progress = levelService.getProgress();
             { icon: '🌟', label: 'Find them all!' },
           ],
         };
- case 'image_choice':
+ case 'slide_choice':
         return {
           title: 'Make a Choice',
           instructions: step.instruction ?? 'Look at the options and tap the one you think is right!',
