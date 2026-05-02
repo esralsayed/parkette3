@@ -91,3 +91,4 @@ ParentSchema.methods.comparePassword = async function (candidatePassword) {
 
 export const Parent = mongoose.model("Parent", ParentSchema);
 export const User = mongoose.model("User", userSchema);
+export const avatar = mongoose.model("Avatar", avatarSchema); 

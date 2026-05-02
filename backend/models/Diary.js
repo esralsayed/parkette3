@@ -37,24 +37,25 @@ const DiarySchema = new Schema (
     diaryTitle : {
       text: String, 
       defaultStyle:{
-        fontFamily: String,
-        fontSize: String,
-        color:String
+        fontFamily: {type: String, default: "Game Paused DEMO" }, 
+        fontSize: {type: Number, default: 32},
+        color: {type: String, default: "#003E8F" },
       },
       letters: [
       {
         letter: String, 
         style:{
-        fontFamily: String,
-        fontSize: String,
-        alignment:String,
-        color:String
+        fontFamily: {type: String, default: "Game Paused DEMO" }, 
+        fontSize: {type: Number, default: 32},
+        alignment:{ type: String, default: "center" },
+        color: {type: String, default: "#003E8F" },
+
         },
         position:{x:Number, y:Number}
       }
     ]
     }, //so i can access every letter separte
-    theme: {type: String}, // either lilac or blue
+    theme: {type: String, enum: ["lilac", "blue"], default:"lilac"}, // either lilac or blue
     stickers: [{
       id: String,
       x: Number,
@@ -82,5 +83,5 @@ const DiarySchema = new Schema (
 //   return favs;
 // };
 
-
 export default mongoose.model("Diary", DiarySchema);
+export const DiaryEntry = mongoose.model("DiaryEntry", DiaryEntrySchema);
