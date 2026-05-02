@@ -51,4 +51,14 @@ export const SCENE_REGISTRY: Record<string, SceneDefinition> = {
 
     ], // Game takes over the whole scene
   },
+
+  'park_slide' : {
+    atmosphere: 'day', 
+    elements: [
+      { kind: 'character', image: require('../../assets/images/chapters/friend2.png'),  slot: 'far-right',    size: 'medium' },
+      { kind: 'character', image: require('../../assets/images/maingirl.png'), slot: 'center', size: 'medium' },
+      { kind: 'tree',      variant: 'oak',  slot: 'center-right',  size: 'large', depth: 'near' },
+      { kind: 'tree',      variant: 'oak',  slot: 'far-left',  size: 'large', depth: 'near' },
+    ]
+  }
 };

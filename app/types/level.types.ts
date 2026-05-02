@@ -1,5 +1,7 @@
 // frontend/types/level.types.ts
 // This should MATCH your backend schema
+
+
 // First, define DialogStep (since it's used in LevelData)
 export interface DialogStep {
   type: 'narrate' | 'dialog' | 'task';
@@ -8,7 +10,7 @@ export interface DialogStep {
   sceneKey?: string; // NEW — link to scene config for this step
   
   // Task-specific fields
-  taskType?: 'choice' | 'tap_object' | 'drag_drop' | 'speak';
+  taskType?: 'choice' | 'tap_object' | 'drag_drop' | 'speak' | 'image_choice';
   gameType?: string; // e.g. "FindFriendsGame"
   instruction?: string;
   content?: any;
@@ -24,9 +26,7 @@ export interface DialogStep {
 }
 
 export interface DifficultyVariant {
-  narrative?: string;
-  taskContent?: any;
-  instruction?: string;
+  dialog: DialogStep[];
 }
 
 export interface LevelData {

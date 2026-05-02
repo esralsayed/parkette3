@@ -11,13 +11,15 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
+ 
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
 export interface ImageChoiceOption {
   id: string;
   label: string;
-  image: ImageSourcePropType;
+  /** Either a require()'d image source OR a string key like 'slide1' | 'slide2' | 'slide3' */
+  image: ImageSourcePropType | string;
   correct: boolean;
   feedback?: string;
 }
@@ -25,6 +27,8 @@ export interface ImageChoiceOption {
 interface ImageChoiceGameProps {
   instruction?: string;
   options: ImageChoiceOption[];
+  /** gameType drives which SVG components to render when image is a string key */
+  gameType?: 'slide_choice' | string;
   onComplete: (correct: boolean, selectedId: string, chosenText: string, correctText: string) => void;
 }
 
@@ -33,8 +37,11 @@ interface ImageChoiceGameProps {
 export default function ImageChoiceGame({
   instruction = 'Choose the right one!',
   options,
+  gameType,
   onComplete,
 }: ImageChoiceGameProps) {
+  console.log(gameType, "inside image choice")
+
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [phase, setPhase] = useState<'picking' | 'feedback'>('picking');
 
@@ -48,13 +55,11 @@ export default function ImageChoiceGame({
     setSelectedId(opt.id);
     setPhase('feedback');
 
-    // Bounce the tapped card
     Animated.sequence([
       Animated.timing(scales[index], { toValue: 1.08, duration: 100, useNativeDriver: true }),
       Animated.timing(scales[index], { toValue: 1,    duration: 150, useNativeDriver: true }),
     ]).start();
 
-    // For correct answers advance quickly, wrong answers let levelPlayer show feedback popup
     setTimeout(() => {
       onComplete(opt.correct, opt.id, opt.label, correctOption.label);
     }, opt.correct ? 1200 : 800);
@@ -77,6 +82,17 @@ export default function ImageChoiceGame({
           let borderColor = AppColors.blue;
           if (showResult) borderColor = isCorrect ? '#27AE60' : '#E05555';
 
+          // Decide how to render the card interior
+          const renderCardContent = () => {
+            return (
+              <Image
+                source={opt.image as ImageSourcePropType}
+                style={styles.cardImage}
+                resizeMode="cover"
+              />
+            );
+          };
+
           return (
             <Animated.View
               key={opt.id}
@@ -92,8 +108,7 @@ export default function ImageChoiceGame({
                   isSelected && styles.cardSelected,
                 ]}
               >
-                {/* Image fills the square */}
-                <Image source={opt.image} style={styles.cardImage} resizeMode="cover" />
+                {renderCardContent()}
 
                 {/* Result overlay */}
                 {showResult && (
@@ -106,7 +121,7 @@ export default function ImageChoiceGame({
                 )}
               </TouchableOpacity>
 
-              {/* Label sits below the card, outside so shadow isn't clipped */}
+              {/* Label sits below the card */}
               <View style={[
                 styles.labelBar,
                 isSelected && { backgroundColor: borderColor, borderColor },
@@ -132,7 +147,6 @@ const styles = StyleSheet.create({
     gap: 4,
   },
 
-  // Instruction — same dashed style as HowToPlay divider
   instructionBanner: {
     backgroundColor: AppColors.lilac,
     borderWidth: 2,
@@ -150,7 +164,6 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
 
-  // Cards row
   cardsRow: {
     flexDirection: 'row',
     gap: 16,
@@ -163,7 +176,6 @@ const styles = StyleSheet.create({
     gap: 6,
   },
 
-  // Card — matches HowToPlay stepCard style: white bg, blue border, blue shadow
   card: {
     width: CARD_SIZE,
     height: CARD_SIZE,
@@ -185,8 +197,13 @@ const styles = StyleSheet.create({
     width: '100%',
     height: '100%',
   },
+  svgWrapper: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#F0F8FF',
+  },
 
-  // Correct/wrong tint overlay
   resultOverlay: {
     ...StyleSheet.absoluteFillObject,
     alignItems: 'center',
@@ -200,7 +217,6 @@ const styles = StyleSheet.create({
     color: '#fff',
   },
 
-  // Label sits below card, same pill style as HowToPlay charLabel
   labelBar: {
     backgroundColor: AppColors.lilac,
     borderRadius: 6,

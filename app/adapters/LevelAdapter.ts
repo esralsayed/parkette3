@@ -33,6 +33,8 @@ export interface GameCharacter {
   sprite?: ImageSourcePropType;  // Local image asset
   position: CharacterPosition;   // Where on screen they stand
   voiceId?: string;              // For text-to-speech
+  scale?: number;
+  side: 'left' | 'right' ;
 }
 
 export interface GameStep {
@@ -43,7 +45,7 @@ export interface GameStep {
   speaker?: string;
   speakerId?: string;            // ID to lookup character sprite
   instruction?: string;
-  taskType?: 'choice' | 'tap_object' | 'drag_drop' | 'speak';
+  taskType?: 'choice' | 'tap_object' | 'drag_drop' | 'speak' | 'image_choice';
   gameType?: string;            // e.g. "FindFriendsGame"
   content?: any;
   correctFeedback?: string;
@@ -71,16 +73,27 @@ export class LevelAdapter {
     difficulty: 'easy' | 'medium' | 'hard' = 'medium'
   ): Promise<GameLevel> {
     
-    // Get difficulty variant if it exists
-    const variant = dbLevel.difficultyVariants?.[difficulty];
+  const variant = dbLevel.difficultyVariants?.[difficulty];
+  
+  // Check if variant exists AND has dialog
+  const hasStoredVariant = variant && Array.isArray(variant.dialog) && variant.dialog.length > 0;
+  
+  let dialogToUse = dbLevel.dialog;
 
-    if (difficulty === 'easy') {
-    console.log('🤖 AI SIMPLIFICATION ENABLED - Simplifying level content');
+  if (hasStoredVariant) {
+    // Use pre-generated variant dialog
+    dialogToUse = variant.dialog;
+    console.log(`✅ Using stored ${difficulty} variant dialog`);
+  } else if (difficulty === 'easy') {
+    // Only use AI for easy mode if no stored variant
+    console.log('⚠️ No stored easy variant — falling back to live AI simplification');
     const simplified = await this.simplifyLevel(dbLevel);
-    console.log('✅ Level simplified successfully');
     return simplified;
+  } else {
+    // For medium/hard without variants, use the base dialog
+    console.log(`📝 No stored ${difficulty} variant, using base dialog`);
   }
-    
+
     // Transform the dialog steps with difficulty applied
     const adaptedSteps = this.adaptDialogSteps(dbLevel.dialog, variant, difficulty);
     
@@ -211,6 +224,16 @@ private static adaptDialogSteps(
         }))
       };
     }
+
+    if (step.taskType === 'image_choice' && step.content?.options) {
+  adaptedStep.content = {
+    ...step.content,
+    options: step.content.options.map((opt: any) => ({
+      ...opt,
+      image: this.resolveImage(opt.image),
+    })),
+  };
+}
       // Apply difficulty-specific adaptations
       if (step.type === 'task') {
         this.adaptTaskForDifficulty(adaptedStep, difficulty);
@@ -304,30 +327,40 @@ step.content.options = step.content.options.map((opt: { text: string; correct: b
       spritePath?: string;
       position: CharacterPosition;
       voiceId?: string;
+      scale?:number; 
+      side: 'left' | 'right'
     }> = {
       'child': {
         displayName: 'Me',
         spritePath: 'child/child-normal.png',
         position: 'center-left',
-        voiceId: 'en-US-child'
+        voiceId: 'en-US-child',
+        scale: 1.0,
+        side: 'left'
       },
       'mother': {
         displayName: 'Mom',
         spritePath: 'mother/mom-normal.png',
         position: 'center-right',
-        voiceId: 'en-US-female'
+        voiceId: 'en-US-female',
+        scale: 1.8,
+        side: 'right'
       },
       'friend': {
         displayName: 'Friend',
         spritePath: 'friend/friend-normal.png',
         position: 'right',
-        voiceId: 'en-US-male'
+        voiceId: 'en-US-male', 
+        scale: 1.1,
+        side: 'right'
       },
       'stranger': {
         displayName: 'Stranger',
         spritePath: 'stranger/stranger-normal.png',
         position: 'center',
-        voiceId: 'en-US-female-professional'
+        voiceId: 'en-US-female-professional',
+        scale: 1.0,
+        side: 'right'
       },
     };
     
@@ -346,7 +379,9 @@ step.content.options = step.content.options.map((opt: { text: string; correct: b
         displayName: config.displayName,
         sprite: config.spritePath ? this.loadSprite(config.spritePath) : undefined,
        position: config.position,
-        voiceId: config.voiceId
+        voiceId: config.voiceId,
+        scale: config.scale, 
+        side: config.side
       };
     });
   }
@@ -378,6 +413,21 @@ step.content.options = step.content.options.map((opt: { text: string; correct: b
       return null;
     }
   }
+
+  private static IMAGE_MAP: Record<string, any> = {
+  slide1: require('../../assets/images/chapters/slide1.png'),
+  slide2: require('../../assets/images/chapters/slide3.png'),
+  slide3: require('../../assets/images/chapters/slide2.png'),
+};
+
+private static resolveImage(key: string | undefined): any {
+  if (!key) return undefined;
+
+  if (typeof key !== 'string') return key;
+
+  const cleaned = key.toLowerCase().trim();
+  return this.IMAGE_MAP[cleaned] ?? { uri: key };
+}
   
   private static loadSprite(path: string): ImageSourcePropType {
     // In a real React Native app, you'd have actual require statements

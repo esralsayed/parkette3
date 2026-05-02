@@ -142,4 +142,16 @@ levelroutes.delete("/:id", async (req, res) => {
   }
 });
 
+// POST /admin/levels/:id/generate-variants
+levelroutes.post('/admin/levels/:id/generate-variants', async (req, res) => {
+  const level = await Level.findById(req.params.id);
+  const variants = await generateVariantsForLevel(level);
+  await Level.findByIdAndUpdate(level._id, {
+    'difficultyVariants.easy.dialog': variants.easy.dialog,
+    'difficultyVariants.medium.dialog': variants.medium.dialog,
+    'difficultyVariants.hard.dialog': variants.hard.dialog,
+  });
+  res.json({ success: true });
+});
+
 export default levelroutes;
