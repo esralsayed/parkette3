@@ -2,68 +2,67 @@
 //  diaryApi.ts  –  All diary-related API calls live here
 //  Add new endpoints below as the feature grows.
 // ─────────────────────────────────────────────────────────────
+import type { JSONContent } from '@tiptap/react';
 
 const BASE_URL = 'http://localhost:5000/api/diary';
 
 // ── Types ──────────────────────────────────────────────────────
 
-export interface DiarySticker {
-  id: String;
-  x: Number;       // 0–1 ratio of cover width
-  y: Number;       // 0–1 ratio of cover height
-}
-
 export interface DiaryCustomLetter {
-  letter: String;
-  fontFamily: String;
-  color: String;
-  fontSize: Number;
+  letter: string
+  style: {
+    fontFamily: string
+    fontSize: number
+    alignment: string
+    color: string
+  }
+  position: { x: number; y: number }
 }
 
-export interface DiaryCover {
-  color: "lilac" | "blue";
-  stickers: DiarySticker[];
-  customLetters: DiaryCustomLetter[];
-}
-
-export interface DiaryStats {
-  totalDays: Number;
-  missedDays: Number;
-  favoriteDays: String[]; // ISO date strings
-}
-
-export interface Diary {
-  id: String;
-  userId: String;
-  ownerName: String; 
-  cover: DiaryCover;
-  stats: DiaryStats;
-  createdAt: String;
-  updatedAt: String;
+export interface DiarySticker {
+  id: string
+  x: number
+  y: number
 }
 
 export interface DiaryEntry {
-  diaryId: String;
-  date: String;               // ISO date string
-  isFavorite: Boolean;
-  content: {
-    textBlocks: {
-      content: string;
-      fontFamily: string;
-      fontSize: number;
-      color: string;
-      alignment: "left" | "center" | "right";
-    }[];
-    drawings: {
-      strokeType: "pen" | "brush";
-      strokeSize: number;
-      color: string;
-      points: [number, number][];
-    }[];
-    stickers: DiarySticker[];
-    fillColor: string;
-  };
+  _id: string //has to match backenddddd
+  diaryId: string
+  date: string
+  isFavorite: boolean
+  content: JSONContent
+  drawings: {
+    strokeType: "pen" | "brush"
+    strokeSize: "big" | "small"
+    strokeColor: "lilac" | "blue"
+    points: { x: number; y: number }[]
+  }[]
+  stickers: DiarySticker[]
+  fillColor: string
 }
+
+export interface DiaryStats {
+  totalDays: number;
+  missedDays: number;
+  favoriteDays: string[]; // ISO date strings
+}
+
+export interface Diary {
+  _id: string           // MongoDB uses _id not id
+  userId: string
+  diaryTitle: {
+    text: string
+    defaultStyle: {
+      fontFamily: string
+      fontSize: number
+      color: string
+    }
+    letters: DiaryCustomLetter[]
+  }
+  theme: "lilac" | "blue"   // ← top level, NOT inside cover
+  stickers: DiarySticker[]  // ← top level, NOT inside cover
+}
+
 
 // ── Helpers ────────────────────────────────────────────────────
 
@@ -93,68 +92,31 @@ async function apiFetch<T>(
  * Fetches the diary document for the authenticated child.
  * Called on page load to render the diary cover.
  */
-export async function getDiary(childId: string): Promise<Diary> {
-  return apiFetch<Diary>(`/children/${childId}/diary`);
+export async function getDiary(userId: String): Promise<Diary> {
+  return apiFetch<Diary>(`/${userId}/`);
 }
 
-// ── 2. Record a diary-opened event ────────────────────────────
-/**
- * Called when the child clicks/taps the diary cover.
- * Logs the interaction for learning analytics and
- * returns the most recent (or today's) entry.
- */
-export async function openDiary(
-  diaryId: string
-): Promise<{ entry: DiaryEntry | null; streakDays: number }> {
-  return apiFetch(`/diaries/${diaryId}/open`, { method: "POST" });
-}
-
-// ── 3. (Placeholder) Get all entries ──────────────────────────
-/**
- * Fetches paginated diary entries.
- * Used in the entries list / calendar view.
- */
-export async function getDiaryEntries(
-  diaryId: string,
-  page = 1,
-  limit = 20
-): Promise<{ entries: DiaryEntry[]; total: number }> {
-  return apiFetch(`/diaries/${diaryId}/entries?page=${page}&limit=${limit}`);
-}
-
-// ── 4. (Placeholder) Save / update the diary cover ────────────
-/**
- * Persists cover customisation (color, stickers, custom letters).
- * Called when the child exits the cover editor.
- */
-export async function updateDiaryCover(
-  diaryId: string,
-  cover: DiaryCover
-): Promise<Diary> {
-  return apiFetch(`/diaries/${diaryId}/cover`, {
-    method: "PATCH",
-    body: JSON.stringify({ cover }),
+export async function saveChangesCover(diaryId: String, body: object) {
+  return apiFetch(`/save/${diaryId}/cover` , {method: "PUT",
+    body: JSON.stringify(body)
   });
 }
 
-// ── 5. (Placeholder) Save a diary entry ───────────────────────
-/**
- * Creates or replaces today's diary entry.
- * Called on auto-save or when the child taps "Done".
- */
-export async function saveDiaryEntry(
-  diaryId: string,
-  entry: Omit<DiaryEntry, "entryId" | "diaryId">
-): Promise<DiaryEntry> {
-  return apiFetch(`/diaries/${diaryId}/entries`, {
-    method: "POST",
-    body: JSON.stringify(entry),
-  });
+export async function saveDiaryEntry(diaryId: String, body: object){
+  console.log(" are we in repo?"); 
+  return apiFetch(`/entry/${diaryId}/save` , {
+    method: "POST" , body: JSON.stringify(body)
+  }); 
 }
 
-// ── 6. (Placeholder) Toggle favourite on an entry ─────────────
+export async function getEntryByDate(diaryId: string, date: Date) {
+  return apiFetch<{ entry: DiaryEntry; isNew: boolean }>(
+    `/${diaryId}/entry?date=${date.toISOString()}`
+  );
+}
+
 export async function toggleFavourite(
-  diaryId: string,
+  diaryId: String,
   entryId: string,
   isFavorite: boolean
 ): Promise<DiaryEntry> {
