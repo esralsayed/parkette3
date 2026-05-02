@@ -1,13 +1,21 @@
 import bcrypt from "bcryptjs";
 import mongoose, { Schema } from "mongoose";
 
+const petSchema = new Schema({
+  color:    String,
+  accessory: String, // "bow", "hat", "scarf"
+  name:     String,  // pet's name chosen by the user
+}, { _id: false });
+
 const avatarSchema = new Schema({
   hair: String,
   skin: String,
   top: String,
   bottom: String,
   shoes: String,
-  accessory: String
+  accessory: String,
+  pet:       { type: petSchema, default: () => ({}) }, // ← nested here
+
 }, { _id: false });
 
 const userSchema = new Schema({

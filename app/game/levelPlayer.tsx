@@ -6,6 +6,7 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useCallback, useEffect, useState } from 'react';
 import {
   ActivityIndicator,
+  SafeAreaViewBase,
   StyleSheet,
   Text,
   TouchableOpacity,
@@ -330,7 +331,7 @@ const progress = levelService.getProgress();
   const howToPlayContent = isTaskStep ? getHowToPlayContent(step) : null;
 
   return (
-    <View style={styles.container}>
+    <SafeAreaViewBase style={styles.container}>
       <NavBar userName={userName} />
 
       {phase === 'playing' && (
@@ -395,7 +396,7 @@ const progress = levelService.getProgress();
           catImageSource={catImage}
         />
       )}
-    </View>
+    </SafeAreaViewBase>
   );
 }
 
