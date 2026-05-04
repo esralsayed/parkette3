@@ -1,6 +1,17 @@
+import Settings from "@/assets/svgs/diary/Settings.svg";
+import Brush from "@/assets/svgs/diary/brush.svg";
+import Face from "@/assets/svgs/diary/face.svg";
+import Heart from "@/assets/svgs/diary/heart.svg";
+import HeartFill from "@/assets/svgs/diary/heartfull.svg";
+import IDK from "@/assets/svgs/diary/idk.svg";
+import Missed from "@/assets/svgs/diary/missed.svg";
+import Redo from "@/assets/svgs/diary/redo.svg";
 import Spine2 from "@/assets/svgs/diary/spine2.svg";
-import { AppColors } from "@/constants/theme";
-import React, { useCallback, useRef, useState } from 'react';
+import Undo from "@/assets/svgs/diary/undo.svg";
+
+
+import { AppColors, AppFonts, AppFontSizes } from "@/constants/theme";
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
   Dimensions,
   NativeSyntheticEvent,
@@ -12,6 +23,7 @@ import {
   View,
 } from 'react-native';
 import Svg, { ClipPath, Defs, Line, Path, Rect } from 'react-native-svg';
+import { DiaryStats, FavoriteEntry, getDiaryStats, getFavouriteEntries } from "../repositories/Diary";
 import { usePage } from './usePage';
 
 const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
@@ -58,10 +70,24 @@ export function DiarySpread({ diaryId }: DiarySpreadProps) {
   const {
     lines, setLines, updateLine, saveNow,
     isSaving, loadEntryForDate, isFavourite, toggleFavorite,
-    goToPrevDay, goToNextDay, canGoNext,
+    goToPrevDay, goToNextDay, canGoNext, currentDate,
   } = usePage({ diaryId });
 
   const [view, setView] = useState<'entry' | 'settings'>('entry');
+  const [activeBookmark, setActiveBookmark] = useState<BookmarkKey | null>(null);
+  const [stats, setStats] = useState<DiaryStats>({ totalDays: 0, missedDays: 0, favoriteDates: [] });
+  const [showFavorites, setShowFavorites] = useState(false);
+  const [favoriteEntries, setFavoriteEntries] = useState<FavoriteEntry[]>([]);
+
+  useEffect(() => {
+    if (!diaryId) return;
+    getDiaryStats(diaryId).then(setStats).catch(console.error);
+  }, [diaryId]);
+
+const handleBookmarkPress = useCallback((key: BookmarkKey) => {
+  setActiveBookmark(prev => prev === key ? null : key); // toggle
+}, []);
+
   const inputRefs = useRef<(TextInput | null)[]>(Array(TOTAL_LINES).fill(null));
 
   //handles overflow of text onto next line
@@ -97,32 +123,37 @@ export function DiarySpread({ diaryId }: DiarySpreadProps) {
 );
 
 // ─── Bookmark shape (pointed bottom) ─────────────────────────────────────────
-const Bookmark = ({ color, icon }: { color: string; icon: string }) => (
-  <View style={[bookmarkStyles.wrap, { backgroundColor: color }]}>
-    {/* Pointed bottom via a View triangle trick */}
-    <Text style={bookmarkStyles.icon}>{icon}</Text>
-    <View style={[bookmarkStyles.point, { borderTopColor: color }]} />
-  </View>
+// ─── Bookmark ─────────────────────────────────────────────────────────────────
+type BookmarkKey = 'face' | 'brush' | 'idk' | 'undo' | 'redo';
+
+const Bookmark = ({ icon, bookmarkKey, onPress }: { 
+  icon: React.ReactNode; 
+  bookmarkKey: BookmarkKey;
+  onPress: (key: BookmarkKey) => void;
+}) => (
+  <TouchableOpacity onPress={() => onPress(bookmarkKey)} activeOpacity={0.7}>
+    <View style={bookmarkStyles.cell}>
+      {icon}
+    </View>
+  </TouchableOpacity>
 );
 
 const bookmarkStyles = StyleSheet.create({
-  wrap: {
-    width: BOOKMARK_W,
+  cell: {
+    width: 50,
+    height: 50,
+    borderWidth: 1.5,
+    borderColor: AppColors.blue,
+    borderRadius: 10,
+    padding: 10,
     alignItems: 'center',
-    paddingTop: 6,
-    paddingBottom: 2,
-    borderBottomLeftRadius: 0,
-    borderBottomRightRadius: 0,
-  },
-  icon: { fontSize: 14 },
-  point: {
-    width: 0,
-    height: 0,
-    borderLeftWidth: BOOKMARK_W / 2,
-    borderRightWidth: BOOKMARK_W / 2,
-    borderTopWidth: 10,
-    borderLeftColor: 'transparent',
-    borderRightColor: 'transparent',
+    justifyContent: 'center',
+    backgroundColor: AppColors.lilac,
+    shadowColor: AppColors.blue,
+    shadowOffset: { width: 4, height: 4 },
+    shadowOpacity: 1,
+    shadowRadius: 0,
+    elevation: 4,
   },
 });
 
@@ -183,12 +214,46 @@ const RightPageSVG = () => {
   );
 };
 
+// ─── Page Header (Day + Date labels) ─────────────────────────────────────────
+const PageHeader = ({ date }: { date: Date }) => (
+  <View pointerEvents="none" style={StyleSheet.absoluteFillObject}>
+    <Text style={headerStyles.day}>
+      {date.toLocaleDateString('en-US', { weekday: 'long' })}
+    </Text>
+    <Text style={headerStyles.date}>
+      {date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+    </Text>
+  </View>
+);
+
+const headerStyles = StyleSheet.create({
+  day: {
+    ...AppFonts.body,
+    position: 'absolute',
+    left: 12 + CONTENT_PAD_X,
+    top: HEADER_LINE_Y1 - AppFontSizes.body,
+    fontSize: AppFontSizes.body,
+    color: NAVY,
+    opacity: 0.8,
+  },
+  date: {
+    ...AppFonts.body,
+    position: 'absolute',
+    right: 12 + CONTENT_PAD_X,
+    top: HEADER_LINE_Y2 - AppFontSizes.body,
+    fontSize: AppFontSizes.body,
+    color: NAVY,
+    opacity: 0.8,
+    textAlign: 'right',
+  },
+});
+
 // ─── Settings page SVGs ───────────────────────────────────────────────────────
 const SettingsLeftSVG = () => {
-  const w = PAGE_W, h = PAGE_H, r = CORNER_R;
+const w = PAGE_W, h = PAGE_H, r = CORNER_R;
   return (
     <Svg width={w} height={h} viewBox={`0 0 ${w} ${h}`}>
-      <Rect x={BORDER_W/2} y={BORDER_W/2} width={w - BORDER_W/2} height={h - BORDER_W}
+      <Rect x={0} y={BORDER_W/2} width={w - BORDER_W/2} height={h - BORDER_W}
         rx={r} ry={r} fill={PAGE_BG} stroke={NAVY} strokeWidth={BORDER_W} />
     </Svg>
   );
@@ -199,7 +264,7 @@ const SettingsRightSVG = () => {
   return (
     <Svg width={w} height={h} viewBox={`0 0 ${w} ${h}`}>
       <Rect x={0} y={BORDER_W/2} width={w - BORDER_W/2} height={h - BORDER_W}
-        rx={r} ry={r} fill={NAVY} stroke={NAVY} strokeWidth={BORDER_W} />
+        rx={r} ry={r} fill={PAGE_BG} stroke={NAVY} strokeWidth={BORDER_W} />
     </Svg>
   );
 };
@@ -207,15 +272,7 @@ const SettingsRightSVG = () => {
 // ─── Heart SVG ────────────────────────────────────────────────────────────────
 const HeartIcon = ({ filled, onPress }: { filled: boolean; onPress: () => void }) => (
   <TouchableOpacity onPress={onPress} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }} activeOpacity={0.7}>
-    <Svg width={24} height={22} viewBox="0 0 32 29">
-      <Path
-        d="M16 27S3 18.5 3 10C3 6.13 6.13 3 10 3C12.21 3 14.18 4.05 16 5.8C17.82 4.05 19.79 3 22 3C25.87 3 29 6.13 29 10C29 18.5 16 27 16 27Z"
-        fill={filled ? NAVY : 'none'}
-        stroke={NAVY}
-        strokeWidth={2.5}
-        strokeLinejoin="round"
-      />
-    </Svg>
+    <Heart />
   </TouchableOpacity>
 );
 
@@ -227,20 +284,15 @@ const NavArrow = ({
     onPress={onPress}
     disabled={disabled}
     activeOpacity={0.7}
-    style={[navStyles.btn, disabled && navStyles.disabled]}
+    style={[disabled && navStyles.disabled]}
   >
-    <Svg width={28} height={28} viewBox="0 0 32 32">
-      {/* Circle background */}
-      <Path
-        d="M16 2C8.27 2 2 8.27 2 16C2 23.73 8.27 30 16 30C23.73 30 30 23.73 30 16C30 8.27 23.73 2 16 2Z"
-        fill={NAVY}
-      />
+    <Svg width={40} height={40} viewBox="0 0 32 32">
       {direction === 'left' ? (
         // Left chevron
         <Path
           d="M19 9L12 16L19 23"
           fill="none"
-          stroke={PAGE_BG}
+          stroke={NAVY}
           strokeWidth={2.5}
           strokeLinecap="round"
           strokeLinejoin="round"
@@ -250,7 +302,7 @@ const NavArrow = ({
         <Path
           d="M13 9L20 16L13 23"
           fill="none"
-          stroke={PAGE_BG}
+          stroke={NAVY}
           strokeWidth={2.5}
           strokeLinecap="round"
           strokeLinejoin="round"
@@ -271,56 +323,101 @@ const SettingsContent = ({
   missedDays = 0,
   totalDays = 0,
   favoriteDates = [],
+  onFavoritePress,
 }: {
   totalEntries?: number;
   missedDays?: number;
   totalDays?: number;
   favoriteDates?: string[];
+  onFavoritePress?: () => void
 }) => (
   <View style={settingsStyles.wrap}>
     <Text style={settingsStyles.title}>My Diary Stats</Text>
 
     <View style={settingsStyles.row}>
-      <Text style={settingsStyles.label}>📖  Total entries</Text>
+      <Face />
+      <Text style={settingsStyles.label}>Total Entries:</Text>
       <Text style={settingsStyles.value}>{totalEntries}</Text>
     </View>
 
     <View style={settingsStyles.row}>
-      <Text style={settingsStyles.label}>📅  Missed days</Text>
+            <Missed />
+
+      <Text style={settingsStyles.label}>Missed Days:</Text>
       <Text style={settingsStyles.value}>{missedDays}/{totalDays}</Text>
     </View>
 
-    <View style={settingsStyles.row}>
-      <Text style={settingsStyles.label}>❤️  Favorite days</Text>
-      <Text style={settingsStyles.value}>{favoriteDates.length}</Text>
-    </View>
+    <TouchableOpacity
+      style={settingsStyles.row}
+      onPress={onFavoritePress}
+      activeOpacity={0.7}
+    >
+      <HeartFill />
+      <Text style={settingsStyles.label}>Favorite days:</Text>
+      <Text style={settingsStyles.value}>{favoriteDates.length} →</Text>
+  </TouchableOpacity>
 
-    {favoriteDates.length > 0 && (
-      <View style={settingsStyles.favList}>
-        {favoriteDates.map((d, i) => (
-          <Text key={i} style={settingsStyles.favDate}>
-            {new Date(d).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
-          </Text>
-        ))}
-      </View>
-    )}
   </View>
 );
 
 const settingsStyles = StyleSheet.create({
   wrap: { flex: 1, padding: 18, justifyContent: 'center' },
-  title: { fontSize: 17, fontWeight: '700', color: NAVY, marginBottom: 20 },
+  title: { ...AppFonts.subhead, fontSize: AppFontSizes.body, color: NAVY, marginBottom: 20 },
   row: {
     flexDirection: 'row', justifyContent: 'space-between',
     alignItems: 'center', marginBottom: 14,
     borderBottomWidth: 1, borderBottomColor: NAVY, paddingBottom: 8, opacity: 0.9,
   },
-  label: { fontSize: 13, color: NAVY },
-  value: { fontSize: 15, fontWeight: '700', color: NAVY },
+  label: { ...AppFonts.body, fontSize: AppFontSizes.body, color: NAVY },
+  value: { ...AppFonts.body, fontSize: AppFontSizes.body, fontWeight: '700', color: NAVY },
   favList: { flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginTop: 8 },
   favDate: {
     fontSize: 11, color: NAVY, backgroundColor: `${NAVY}22`,
     paddingHorizontal: 6, paddingVertical: 2, borderRadius: 6,
+  },
+});
+
+const FavoritesRightPage = ({ favoriteEntries }: { favoriteEntries: FavoriteEntry[] }) => (
+  <View style={favStyles.wrap}>
+    <Text style={favStyles.title}>My favorite days</Text>
+    {favoriteEntries.length === 0 ? (
+      <Text style={favStyles.empty}>no favorites yet 🤍</Text>
+    ) : (
+      favoriteEntries.map((e, i) => {
+        const firstLine = e.content?.leftPage?.find(l => l.trim() !== '') ?? '';
+        return (
+          <View key={i} style={favStyles.row}>
+            <Text style={favStyles.snippet} numberOfLines={1} ellipsizeMode="tail">
+              {firstLine || '...'}
+            </Text>
+            <Text style={favStyles.date}>
+              {new Date(e.Date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+            </Text>
+          </View>
+        );
+      })
+    )}
+  </View>
+);
+
+const favStyles = StyleSheet.create({
+  wrap: { flex: 1, padding: 18, paddingTop: 24 },
+  title: { ...AppFonts.subhead, fontSize: AppFontSizes.body, color: NAVY, marginBottom: 16 },
+  empty: { ...AppFonts.body, fontSize: AppFontSizes.bodySmall, color: `${NAVY}88`, fontStyle: 'italic' },
+  row: {
+    flexDirection: 'row', alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 10,
+    borderBottomWidth: 1, borderBottomColor: `${NAVY}22`, paddingBottom: 6,
+    gap: 8,
+  },
+  snippet: {
+    ...AppFonts.body, fontSize: AppFontSizes.bodySmall,
+    color: NAVY, opacity: 0.85, flex: 1,
+  },
+  date: {
+    ...AppFonts.body, fontSize: AppFontSizes.bodySmall,
+    color: NAVY, opacity: 0.5,
   },
 });
 
@@ -380,8 +477,13 @@ const settingsStyles = StyleSheet.create({
 
       {/* ── Navigation row above spread ── */}
       <View style={styles.navRow}>
+        <View style={styles.navCell}>
         <NavArrow direction="left" onPress={goToPrevDay} />
-        <View style={styles.navCenter}>
+        </View>
+        <Text style={styles.navDateText}>
+          {currentDate.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}
+        </Text>
+        <View style={styles.navRight}>
           {canGoNext ? (
             <NavArrow direction="right" onPress={goToNextDay} />
           ) : (
@@ -394,7 +496,20 @@ const settingsStyles = StyleSheet.create({
 
         {/* ── Left bookmarks (attached to left page outer edge) ── */}
         <View style={styles.leftBookmarks}>
-          <Bookmark color={NAVY} icon="⚙️" />
+          <TouchableOpacity onPress={() => {
+            setView(v => {
+              const next = v === 'settings' ? 'entry' : 'settings';
+              if (next === 'settings' && diaryId) {
+                setShowFavorites(false);
+                getFavouriteEntries(diaryId).then(setFavoriteEntries).catch(console.error);
+              }
+              return next;
+            });
+          }}>           
+              <View style={styles.cell}>
+                <Settings style={styles.settingsIcon} />
+              </View>
+          </TouchableOpacity>
         </View>
 
         <View style={styles.spread}>
@@ -412,17 +527,20 @@ const settingsStyles = StyleSheet.create({
             }}
           >
             <View style={StyleSheet.absoluteFillObject} pointerEvents="none">
+              {!isSettings && <PageHeader date={currentDate} />}
               {isSettings ? <SettingsLeftSVG /> : <LeftPageSVG />}
             </View>
 
             {isSettings ? (
               // Settings stats on left page
               <SettingsContent
-                totalEntries={totalEntries}
-                missedDays={missedDays}
-                totalDays={totalDays}
-                favoriteDates={favoriteDates}
-              />
+              totalEntries={stats.totalDays - stats.missedDays}
+              missedDays={stats.missedDays}
+              totalDays={stats.totalDays}
+              favoriteDates={stats.favoriteDates}
+              onFavoritePress={() => setShowFavorites(true)}
+
+            />
             ) : (
               <View style={styles.inputLayer}>{renderInputs(0)}</View>
             )}
@@ -430,7 +548,9 @@ const settingsStyles = StyleSheet.create({
             {/* Heart — bottom right of left page */}
             {!isSettings && (
               <View style={styles.heartLeft}>
+                <View style={styles.cell}>
                 <HeartIcon filled={isFavourite} onPress={toggleFavorite} />
+                </View>
               </View>
             )}
           </View>
@@ -444,15 +564,22 @@ const settingsStyles = StyleSheet.create({
             }}
           >
             <View style={StyleSheet.absoluteFillObject} pointerEvents="none">
+              {!isSettings && <PageHeader date={currentDate} />}
               {isSettings ? <SettingsRightSVG /> : <RightPageSVG />}
             </View>
+
+            {isSettings && showFavorites && (
+              <FavoritesRightPage favoriteEntries={favoriteEntries} />
+            )}
 
             {!isSettings && (
               <>
                 <View style={styles.inputLayer}>{renderInputs(1)}</View>
                 {/* Heart — bottom right of right page */}
                 <View style={styles.heartRight}>
+                  <View style={styles.cell}>
                   <HeartIcon filled={isFavourite} onPress={toggleFavorite} />
+                  </View>
                 </View>
               </>
             )}
@@ -465,16 +592,24 @@ const settingsStyles = StyleSheet.create({
 
         </View>
 
-        {/* ── Right bookmarks (attached to right page outer edge) ── */}
+        {/* ── Right bookmarks ── */}
         <View style={styles.rightBookmarks}>
-          <TouchableOpacity onPress={() => setView(v => v === 'settings' ? 'entry' : 'settings')}>
-            <Bookmark color={NAVY} icon="⚙️" />
-          </TouchableOpacity>
-          <Bookmark color={NAVY} icon="🔖" />
-          <Bookmark color={NAVY} icon="✏️" />
+          <Bookmark icon={<Face />}  bookmarkKey="face"  onPress={handleBookmarkPress} />
+          <Bookmark icon={<Brush />} bookmarkKey="brush" onPress={handleBookmarkPress} />
+          <Bookmark icon={<IDK />}   bookmarkKey="idk"   onPress={handleBookmarkPress} />
+          <Bookmark icon={<Undo />}  bookmarkKey="undo"  onPress={handleBookmarkPress} />
+          <Bookmark icon={<Redo />}  bookmarkKey="redo"  onPress={handleBookmarkPress} />
         </View>
 
-      </View>
+      </View>{/* spreadRow */}
+
+      {/* ── Bottom popup ── */}
+      {activeBookmark && (
+        <View style={styles.popup}>
+          <Text style={styles.popupLabel}>{activeBookmark}</Text>
+          {/* TODO: add bookmark-specific content here */}
+        </View>
+      )}
     </View>
   );
 }
@@ -498,7 +633,31 @@ const styles = StyleSheet.create({
     marginBottom: 8,
     paddingHorizontal: 4,
   },
-  navCenter: { flex: 1, alignItems: 'flex-end' },
+  navCell: {
+  width: 40,
+  height: 40,
+  borderWidth: 1.5,
+  borderColor: AppColors.blue,
+  borderRadius: 10,
+  alignItems: 'center',
+  justifyContent: 'center',
+  backgroundColor: AppColors.lilac,
+  shadowColor: AppColors.blue,
+  shadowOffset: { width: 3, height: 3 },
+  shadowOpacity: 1,
+  shadowRadius: 0,
+  elevation: 4,
+},
+  navCenter: { flex: 1, alignItems: 'center' },
+  navRight: { alignItems: 'flex-end' },
+  navDateText: {
+    flex: 1,
+    textAlign: 'center',
+    fontSize: 12,
+    color: NAVY,
+    fontWeight: '600',
+    opacity: 0.8,
+  },
   tomorrowText: {
     fontSize: 11,
     color: `${NAVY}88`,
@@ -519,6 +678,28 @@ const styles = StyleSheet.create({
     marginLeft: 4,
     marginTop: 10,
     gap: 6,
+  },
+    cell: {
+    flex: 1,
+    aspectRatio: 1,
+    borderWidth: 1.5,
+    borderColor: AppColors.blue,
+    borderRadius: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: AppColors.lilac,
+    padding: 10,
+
+    shadowColor: AppColors.blue,
+    shadowOffset: { width: 6, height: 5 },
+    shadowOpacity: 1,
+    shadowRadius: 0,
+    elevation: 4,
+
+  },
+
+  settingsIcon:{
+    padding: 10
   },
 
   spread: {
@@ -542,6 +723,29 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
     marginLeft: PAGE_GAP / 2,
     zIndex: 2,
+  },
+
+  popup: {
+    width: SPREAD_WIDTH,
+    alignSelf: 'center',
+    marginTop: 10,
+    minHeight: 64,
+    backgroundColor: AppColors.lilac,
+    borderWidth: 1.5,
+    borderColor: AppColors.blue,
+    borderRadius: 14,
+    padding: 12,
+    shadowColor: AppColors.blue,
+    shadowOffset: { width: 4, height: 4 },
+    shadowOpacity: 1,
+    shadowRadius: 0,
+    elevation: 4,
+  },
+  popupLabel: {
+    fontSize: 12,
+    color: NAVY,
+    opacity: 0.5,
+    textAlign: 'center',
   },
 
   // ── Shadows ──
@@ -572,11 +776,12 @@ const styles = StyleSheet.create({
     top: 0, left: CONTENT_PAD_X, right: CONTENT_PAD_X, bottom: 0,
   },
   lineInput: {
+    ...AppFonts.body,
     position: 'absolute',
     left: 0,
     width: INPUT_W,
     height: INPUT_H,
-    fontSize: FONT_SIZE,
+    fontSize: AppFontSizes.bodySmall,
     color: NAVY,
     backgroundColor: 'transparent',
     padding: 0, margin: 0, borderWidth: 0,
@@ -588,10 +793,12 @@ const styles = StyleSheet.create({
     position: 'absolute',
     bottom: 10,
     right: 10,
+    zIndex: 10,
   },
   heartRight: {
     position: 'absolute',
     bottom: 10,
     right: 10,
+    zIndex: 10,
   },
 });

@@ -1,4 +1,4 @@
-import { AppColors, AppFonts, Spacing } from '@/constants/theme';
+import { AppColors, AppFonts, AppFontSizes, Spacing } from '@/constants/theme';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useRouter } from 'expo-router';
 import React, { useState } from 'react';
@@ -150,7 +150,7 @@ const styles = StyleSheet.create({
     color: AppColors.blue,
     letterSpacing: 2,
     textAlign: 'right',
-    fontSize: 28,
+    fontSize: AppFontSizes.title,
   },
   card: {
     width: '100%',

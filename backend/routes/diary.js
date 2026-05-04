@@ -73,7 +73,6 @@ diaryroutes.delete("/admin", async (req,res) => {
 
         //fetch the diary
         const diary = await Diary.deleteOne({userId: userId}); //creating a diary
-        console.log("deleted the diary?",diary); 
         res.json(diary); 
     } catch(err){
     console.error("Error deleting diary:", err);
@@ -157,7 +156,6 @@ diaryroutes.post("/entry/:diaryId/save", async (req, res) => {
       { new: true, upsert: true }
     );
 
-    console.log(entry);
     res.status(201).json({ message: "Entry saved", entry });
   } catch (err) {
     console.error("Error saving entry:", err);
@@ -177,9 +175,9 @@ diaryroutes.get("/:diaryId/entry", async (req, res) => {
     if (!diary) return res.status(404).json({ message: "Diary not found" });
 
     // Build a date range for today (midnight → midnight) so time doesn't matter
-    const startOfDay = new Date();
+    const startOfDay = new Date(date);
     startOfDay.setHours(0, 0, 0, 0);
-    const endOfDay = new Date();
+    const endOfDay = new Date(date);
     endOfDay.setHours(23, 59, 59, 999);
 
     const existing = await DiaryEntry.findOne({
@@ -187,7 +185,6 @@ diaryroutes.get("/:diaryId/entry", async (req, res) => {
       Date: { $gte: startOfDay, $lte: endOfDay },
     });
 
-    console.log(existing); 
     if (existing) return res.json({ entry: existing, isNew: false });
 
     // No entry yet — return a scaffold (don't save it until user actually writes)
@@ -201,6 +198,87 @@ diaryroutes.get("/:diaryId/entry", async (req, res) => {
     res.json({ entry: scaffold, isNew: true });
   } catch (err) {
     console.error("Error fetching today's entry:", err);
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
+// PATCH /api/diary/:diaryId/entry/:entryId/favourite
+diaryroutes.patch("/:diaryId/entry/:entryId/favourite", async (req, res) => {
+  try {
+    console.log("body: ", req.body);
+    const { diaryId, entryId } = req.params;
+    const { favorite } = req.body;
+    //const favorite = isFavorite === true || isFavorite === "true"; // ← force boolean
+ 
+    if (!diaryId || !entryId)
+      return res.status(400).json({ message: "diaryId and entryId required" });
+ 
+    const entry = await DiaryEntry.findOneAndUpdate(
+      {
+        _id: new mongoose.Types.ObjectId(entryId),
+        diaryId: new mongoose.Types.ObjectId(diaryId),
+      },
+      { $set: { favorite: favorite } },
+      { new: true }
+    );
+ 
+    if (!entry)
+      return res.status(404).json({ message: "Entry not found" });
+ 
+    res.json(entry);
+  } catch (err) {
+    console.error("Error toggling favourite:", err);
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
+// GET /api/diary/:diaryId/stats
+diaryroutes.get("/:diaryId/stats", async (req, res) => {
+  try {
+    console.log("are you here? backendd" ); 
+    const { diaryId } = req.params;
+
+    // Get the diary's creation date as the "start"
+    const diary = await Diary.findById(diaryId);
+    if (!diary) return res.status(404).json({ message: "Diary not found" });
+
+    const allEntries = await DiaryEntry.find({
+      diaryId: new mongoose.Types.ObjectId(diaryId)
+    }).select("Date favorite");
+
+    // Total days since diary was created up to today
+const start = new Date(diary._id.getTimestamp());
+    start.setHours(0, 0, 0, 0);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const totalDays = Math.floor((today - start) / (1000 * 60 * 60 * 24)) + 1;
+
+    const totalEntries = allEntries.length;
+    const missedDays = totalDays - totalEntries;
+    const favoriteDates = allEntries
+      .filter(e => e.favorite === true)
+      .map(e => e.Date.toISOString());
+
+      console.log(totalDays, totalEntries, missedDays, favoriteDates)
+    res.json({ totalDays, totalEntries, missedDays, favoriteDates });
+  } catch (err) {
+    console.error("Error fetching stats:", err);
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
+// GET /api/diary/:diaryId/favourites
+diaryroutes.get("/:diaryId/favourites", async (req, res) => {
+  try {
+    const { diaryId } = req.params;
+    const entries = await DiaryEntry.find({
+      diaryId: new mongoose.Types.ObjectId(diaryId),
+      favorite: true,
+    }).select("Date content").sort({ Date: -1 });
+
+    res.json(entries);
+  } catch (err) {
+    console.error("Error fetching favourites:", err);
     res.status(500).json({ message: "Server error" });
   }
 });

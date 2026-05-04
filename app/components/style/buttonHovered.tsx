@@ -1,4 +1,4 @@
-import { AppColors, AppFonts, Spacing } from '@/constants/theme';
+import { AppColors, AppFonts, AppFontSizes, Spacing } from '@/constants/theme';
 import React from 'react';
 import { Pressable, StyleSheet, Text } from 'react-native';
 
@@ -70,11 +70,12 @@ const styles = StyleSheet.create({
   text: {
     color: AppColors.blue,
     letterSpacing: 3,
+    fontSize: AppFontSizes.bodySmall
   },
 
   textHover: {
     color: AppColors.lilac,
-    fontSize:28
+    fontSize:24
   },
 
   disabled: {

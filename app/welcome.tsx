@@ -1,4 +1,4 @@
-import { AppColors, AppFonts, ButtonStyles, CardStyles, Spacing } from '@/constants/theme';
+import { AppColors, AppFonts, AppFontSizes, ButtonStyles, CardStyles, Spacing } from '@/constants/theme';
 import { useRouter } from 'expo-router';
 import React from 'react';
 import {
@@ -416,11 +416,13 @@ const styles = StyleSheet.create({
   btnActionText: {
     color: AppColors.blue,
     ...AppFonts.button2,
+    fontSize: AppFontSizes.button
   },
     btnActionText2: {
     color: AppColors.blue,
     ...AppFonts.button2,
     alignSelf: 'center',
+    fontSize: AppFontSizes.button2
   },
   btnAction2: {
         ...ButtonStyles.action,
@@ -505,6 +507,7 @@ const styles = StyleSheet.create({
 
   heroTitle: {
     ...AppFonts.title,
+    fontSize: AppFontSizes.super,
     color: AppColors.blue,
     lineHeight: 60,
     marginBottom: Spacing.lg,

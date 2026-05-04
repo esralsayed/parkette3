@@ -26,10 +26,10 @@ export interface DiarySticker {
 }
 
 export interface DiaryEntry {
-  _id: string //has to match backenddddd
+  _id: string
   diaryId: string
   date: string
-  isFavorite: boolean
+  favorite: boolean
   content: JSONContent
   drawings: {
     strokeType: "pen" | "brush"
@@ -44,11 +44,11 @@ export interface DiaryEntry {
 export interface DiaryStats {
   totalDays: number;
   missedDays: number;
-  favoriteDays: string[]; // ISO date strings
+  favoriteDates: string[]; // ISO date strings
 }
 
 export interface Diary {
-  _id: string           // MongoDB uses _id not id
+  _id: string
   userId: string
   diaryTitle: {
     text: string
@@ -59,8 +59,8 @@ export interface Diary {
     }
     letters: DiaryCustomLetter[]
   }
-  theme: "lilac" | "blue"   // ← top level, NOT inside cover
-  stickers: DiarySticker[]  // ← top level, NOT inside cover
+  theme: "lilac" | "blue"
+  stickers: DiarySticker[]
 }
 
 
@@ -88,42 +88,59 @@ async function apiFetch<T>(
 }
 
 // ── 1. Get the diary for the current child ─────────────────────
-/**
- * Fetches the diary document for the authenticated child.
- * Called on page load to render the diary cover.
- */
-export async function getDiary(userId: String): Promise<Diary> {
-  return apiFetch<Diary>(`/${userId}/`);
+export async function getDiary(userId: string): Promise<Diary> {
+  return apiFetch<Diary>(`/${userId}`);  // removed trailing slash
 }
 
-export async function saveChangesCover(diaryId: String, body: object) {
-  return apiFetch(`/save/${diaryId}/cover` , {method: "PUT",
-    body: JSON.stringify(body)
+// ── 2. Save cover changes ──────────────────────────────────────
+export async function saveChangesCover(diaryId: string, body: object) {
+  return apiFetch(`/save/${diaryId}/cover`, {
+    method: "PUT",
+    body: JSON.stringify(body),
   });
 }
 
-export async function saveDiaryEntry(diaryId: String, body: object){
-  console.log(" are we in repo?"); 
-  return apiFetch(`/entry/${diaryId}/save` , {
-    method: "POST" , body: JSON.stringify(body)
-  }); 
+// ── 3. Save a diary entry ──────────────────────────────────────
+export async function saveDiaryEntry(diaryId: string, body: object) {
+  return apiFetch(`/entry/${diaryId}/save`, {
+    method: "POST",
+    body: JSON.stringify(body),
+  });
 }
 
+// ── 4. Get entry by date ───────────────────────────────────────
 export async function getEntryByDate(diaryId: string, date: Date) {
   return apiFetch<{ entry: DiaryEntry; isNew: boolean }>(
     `/${diaryId}/entry?date=${date.toISOString()}`
   );
 }
 
+// ── 5. Toggle favourite ────────────────────────────────────────
+// Route: PATCH /api/diary/:diaryId/entry/:entryId/favourite
 export async function toggleFavourite(
-  diaryId: String,
+  diaryId: string,
   entryId: string,
-  isFavorite: boolean
+  favorite: boolean
 ): Promise<DiaryEntry> {
-  return apiFetch(`/diaries/${diaryId}/entries/${entryId}/favourite`, {
+  return apiFetch(`/${diaryId}/entry/${entryId}/favourite`, {
     method: "PATCH",
-    body: JSON.stringify({ isFavorite }),
+    body: JSON.stringify({ favorite }),
   });
+}
+
+export async function getDiaryStats(diaryId: string): Promise<DiaryStats> {
+  console.log("are u here?")
+  return apiFetch<DiaryStats>(`/${diaryId}/stats`);
+}
+
+export interface FavoriteEntry {
+  _id: string;
+  Date: string;
+  content: { leftPage: string[]; rightPage: string[] };
+}
+
+export async function getFavouriteEntries(diaryId: string): Promise<FavoriteEntry[]> {
+  return apiFetch<FavoriteEntry[]>(`/${diaryId}/favourites`);
 }
 
 // ── More endpoints go here ─────────────────────────────────────

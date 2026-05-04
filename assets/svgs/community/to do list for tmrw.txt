@@ -1,0 +1,5 @@
+to do list for tmrw: 
+1- design the my friends page, with its backend
+2- finish designing the avatar page 
+3- attempt the community user stories
+4- fix up diary

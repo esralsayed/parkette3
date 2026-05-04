@@ -48,32 +48,36 @@ export const Colors = {
 export const AppFonts = {
   title: {
     fontFamily: 'Game Paused DEMO', // Title font
-    fontSize: 80, // 100 pts
   },
   header: {
     fontFamily: 'Game Paused DEMO', // Header font
-    fontSize: 54, // 54 pts
   },
   subhead: {
     fontFamily: 'Game Paused DEMO', // Subhead font
-    fontSize: 36, // 36 pts
   },
   body: {
     fontFamily: 'PixelPurl', // Body font
-    fontSize: 32, // 42 pts
   },
   bodySmall: {
     fontFamily: 'yoster', // Body stranger font
-    fontSize: 23, // 23 pts
   },
   button2:{
     fontFamily: 'Game Paused DEMO',
-    fontSize: 24,
   },
   button:{
     fontFamily: 'PixelPurl',
-    fontSize: 30,
   }
+};
+
+export const AppFontSizes = {
+  super: 72,
+  title:     52,
+  header:    54,
+  subhead:   36,
+  body:      32,
+  bodySmall: 23,
+  button:    30,
+  button2:   24,
 };
 
 // Button Styles

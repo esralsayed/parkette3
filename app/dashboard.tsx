@@ -14,6 +14,7 @@ import {
   View,
 } from 'react-native';
 import { Calendar as RnCalendar } from 'react-native-calendars';
+import Footer from './components/Footer';
 import NavBar from './components/navbar';
 
 const { width } = Dimensions.get('window');
@@ -140,35 +141,9 @@ const footerCols = [
   { title: 'You', links: ['Diary', 'Profile', 'Settings'] },
 ];
 
-const Footer = () => (
-  <View style={styles.footer}>
-    <Text style={styles.footerBrand}>Parkette</Text>
-    <Text style={styles.footerBrandDesc}>
-      Your playful home for games, community, and personal journaling. Built with love
-      for park enthusiasts everywhere.
-    </Text>
-    <View style={styles.footerGrid}>
-      {footerCols.map((col) => (
-        <View key={col.title} style={styles.footerCol}>
-          <Text style={styles.footerColTitle}>{col.title.toUpperCase()}</Text>
-          {col.links.map((link) => (
-            <Text key={link} style={styles.footerLink}>{link}</Text>
-          ))}
-        </View>
-      ))}
-    </View>
-    <View style={styles.footerBottom}>
-      <Text style={styles.footerCopy}>© 2026 Parkette. All rights reserved.</Text>
-      <View style={styles.footerSocials}>
-        {['𝕏', 'in', 'ig'].map((s) => (
-          <View key={s} style={styles.socialDot}>
-            <Text style={styles.socialDotText}>{s}</Text>
-          </View>
-        ))}
-      </View>
-    </View>
-  </View>
-);
+// const Footer = () => (
+// <Footer />
+// );
 
 // ─── MAIN SCREEN ─────────────────────────────────────────
 export default function dashboard() {
@@ -236,11 +211,13 @@ export default function dashboard() {
     <View style={styles.root}>
       <StatusBar barStyle="light-content" backgroundColor={AppColors.blue} />
       <NavBar userName={userName} />
-      <ScrollView showsVerticalScrollIndicator={false}>
+      <ScrollView showsVerticalScrollIndicator={false}
+      style={styles.main}>
         <HeroSection userName={userName} onOpenCalendar={() => setCalendarVisible(true)} />
+          <View></View>
+          <View></View>
         {/* <GameSection />
         <CommunitySection /> */}
-        <Footer />
       </ScrollView>
 
       <Modal visible={calendarVisible} animationType="slide" transparent>
@@ -272,6 +249,8 @@ export default function dashboard() {
           </View>
         </View>
       </Modal>
+    <Footer />
+
     </View>
   );
 }
@@ -281,6 +260,11 @@ const styles = StyleSheet.create({
   root: {
     flex: 1,
     backgroundColor: AppColors.lilacLight,
+  },
+
+  main:{
+    flex: 1,
+    flexDirection: 'column'
   },
 
   btnAction: {

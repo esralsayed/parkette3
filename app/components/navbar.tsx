@@ -17,7 +17,7 @@ const NavBar: React.FC<NavBarProps> = ({ userName }) => {
         <TouchableOpacity onPress={() => router.push('/game/main')}>
           <Text style={styles.navLink}>Game</Text>
         </TouchableOpacity>
-        <TouchableOpacity>
+        <TouchableOpacity onPress={() => router.push('/community/main')}>
           <Text style={styles.navLink}>Community</Text>
         </TouchableOpacity>
         <TouchableOpacity onPress={() => router.push('/diary/Diary')}>

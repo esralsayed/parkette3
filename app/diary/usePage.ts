@@ -77,7 +77,7 @@ const saveNow = useCallback(() => {
 //   try {
 //     const { entry, isNew } = await getTodayEntry(diaryId);
 //     setEntry(entry); 
-//     setIsFavourite(entry.isFavorite ?? false);
+//     setIsFavourite(entry.favorite ?? false);
 //     if (!isNew) {
 //       // flatten the two pages back into the lines array
 //       setLines([...entry.content.leftPage, ...entry.content.rightPage]);
@@ -92,7 +92,7 @@ const loadEntryForDate = useCallback(async (date: Date) => {
   try {
     const { entry, isNew } = await getEntryByDate(diaryId, date);
     setEntry(entry);
-    setIsFavourite(entry.isFavorite ?? false);
+    setIsFavourite(entry.favorite ?? false);
     if (!isNew) {
       setLines([...entry.content.leftPage, ...entry.content.rightPage]);
     } else {
@@ -115,24 +115,27 @@ const toggleFavorite = useCallback(async () => {
 const [currentDate, setCurrentDate] = useState(new Date());
 
 const goToPrevDay = useCallback(() => {
-  const prev = new Date(currentDate);
-  prev.setDate(prev.getDate() - 1);
-  setCurrentDate(prev);
-}, [currentDate]);
+  setCurrentDate(prev => {
+    const d = new Date(prev);
+    d.setDate(d.getDate() - 1);
+    return d;
+  });
+}, []);
 
 const goToNextDay = useCallback(() => {
-  const next = new Date(currentDate);
-  next.setDate(next.getDate() + 1);
-  setCurrentDate(next);
-}, [currentDate]);
+  setCurrentDate(prev => {
+    const d = new Date(prev);
+    d.setDate(d.getDate() + 1);
+    return d;
+  });
+}, []);
 
 const isToday = currentDate.toDateString() === new Date().toDateString();
 const canGoNext = !isToday; // can't go past today
 
 useEffect(() => {
   loadEntryForDate(currentDate);
-}, [currentDate]);
+}, [currentDate, loadEntryForDate]);
 
-return { lines, setLines, updateLine, saveNow, isSaving, lastSaved, loadEntryForDate, toggleFavorite, goToNextDay, goToPrevDay, isFavourite, canGoNext }
+return { lines, setLines, updateLine, saveNow, isSaving, lastSaved, loadEntryForDate, toggleFavorite, goToNextDay, goToPrevDay, isFavourite, canGoNext, currentDate }
 }
-
