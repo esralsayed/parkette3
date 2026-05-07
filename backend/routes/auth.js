@@ -83,6 +83,7 @@ router.post("/login", async (req, res) => {
         username: user.username,
         role,
         email: user.email,
+        friendCode: user.friendCode
       }
     });
   } catch (error) {

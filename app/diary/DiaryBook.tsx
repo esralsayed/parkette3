@@ -1,11 +1,11 @@
 import Spiral from "@/assets/svgs/diary/Zig Zig.svg";
 import { AppColors, AppFonts } from '@/constants/theme';
 import React, { useState } from 'react';
-import { ActivityIndicator, Dimensions, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, StyleSheet, Text, TouchableOpacity, useWindowDimensions, View } from 'react-native';
 import Svg, { Rect } from 'react-native-svg';
 import { DiaryCustomLetter } from "../repositories/Diary";
 import { PlacedSticker, STICKER_DEFS } from "./toolBarActions";
-const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
+const { width: screenWidth, height:screenHeight } = useWindowDimensions();
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 interface DiaryBookProps {
@@ -162,6 +162,8 @@ export function DiaryBook({
   isStickerMode,
   onStickerRemove
 }: DiaryBookProps) {
+  if (!screenHeight || !screenWidth) return null; 
+
   const isBlue = theme === 'blue';
   const coverBg = isBlue ? AppColors.blue : AppColors.lilac;
   const borderCol = AppColors.blue;

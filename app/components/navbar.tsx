@@ -1,18 +1,43 @@
 import { AppColors, AppFonts, Spacing } from '@/constants/theme';
 import { useRouter } from 'expo-router';
-import React from 'react';
-import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import React, { useRef, useState } from 'react';
+import {
+  Image,
+  Modal,
+  Pressable,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from 'react-native';
 
 interface NavBarProps {
   userName?: string;
+  onLogout?: () => void;
 }
 
-const NavBar: React.FC<NavBarProps> = ({ userName }) => {
+const NavBar: React.FC<NavBarProps> = ({ userName, onLogout }) => {
   const router = useRouter();
+  const [showDropdown, setShowDropdown] = useState(false);
+  const [avatarLayout, setAvatarLayout] = useState({ x: 0, y: 0, width: 0, height: 0 });
+  const avatarRef = useRef<View>(null);
+
+  const handleAvatarPress = () => {
+    avatarRef.current?.measureInWindow((x, y, width, height) => {
+      setAvatarLayout({ x, y, width, height });
+      setShowDropdown(true);
+    });
+  };
+
+  const handleLogout = () => {
+    setShowDropdown(false);
+    onLogout?.();
+  };
 
   return (
     <View style={styles.navbar}>
       <Text style={styles.navLogo}>Parkette</Text>
+
       <View style={styles.navLinks}>
         <TouchableOpacity onPress={() => router.push('/game/main')}>
           <Text style={styles.navLink}>Game</Text>
@@ -24,10 +49,25 @@ const NavBar: React.FC<NavBarProps> = ({ userName }) => {
           <Text style={styles.navLink}>Diary</Text>
         </TouchableOpacity>
       </View>
+
       <View style={styles.navActions}>
         {userName ? (
-          <Text style={styles.navLogin}>Hi {userName}</Text>
+          // ── Logged-in: "Hi! Name" + profile pic avatar
+          <TouchableOpacity
+            ref={avatarRef}
+            style={styles.userArea}
+            onPress={handleAvatarPress}
+            activeOpacity={0.85}
+          >
+            <Text style={styles.hiText}>Hi! {userName.split(' ')[0]}</Text>
+            <Image
+              source={require('../../assets/images/profilepic.png')}
+              style={styles.avatarImage}
+              resizeMode="cover"
+            />
+          </TouchableOpacity>
         ) : (
+          // ── Logged-out
           <>
             <TouchableOpacity onPress={() => router.push('/login')}>
               <Text style={styles.navLogin}>Login</Text>
@@ -41,6 +81,45 @@ const NavBar: React.FC<NavBarProps> = ({ userName }) => {
           </>
         )}
       </View>
+
+      {/* ── Logout dropdown */}
+      <Modal
+        visible={showDropdown}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setShowDropdown(false)}
+      >
+        <Pressable style={styles.modalOverlay} onPress={() => setShowDropdown(false)}>
+          <View
+            style={[
+              styles.dropdown,
+              {
+                top: avatarLayout.y + avatarLayout.height + 8,
+                right: 16,
+              },
+            ]}
+          >
+            {/* Header with avatar + name */}
+            <View style={styles.dropdownHeader}>
+              <Image
+                source={require('../../assets/images/profilepic.png')}
+                style={styles.dropdownAvatar}
+                resizeMode="cover"
+              />
+              <View>
+                <Text style={styles.dropdownHi}>Hi! {userName}</Text>
+                <Text style={styles.dropdownSubtext}>My Account</Text>
+              </View>
+            </View>
+
+            <View style={styles.dropdownDivider} />
+
+            <TouchableOpacity style={styles.dropdownItem} onPress={handleLogout}>
+              <Text style={styles.dropdownLogout}>Log out</Text>
+            </TouchableOpacity>
+          </View>
+        </Pressable>
+      </Modal>
     </View>
   );
 };
@@ -65,7 +144,7 @@ const styles = StyleSheet.create({
     color: AppColors.lilac,
     fontSize: 24,
     fontFamily: AppFonts.title.fontFamily,
-    padding: Spacing.md
+    padding: Spacing.md,
   },
   navLinks: {
     flexDirection: 'row',
@@ -101,6 +180,84 @@ const styles = StyleSheet.create({
     color: AppColors.blue,
     fontSize: 16,
     fontFamily: AppFonts.title.fontFamily,
+  },
+
+  // ── Logged-in user area (tappable row)
+  userArea: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  hiText: {
+    color: AppColors.lilac,
+    fontSize: 16,
+    fontFamily: AppFonts.title.fontFamily, // matches heroTitle font
+  },
+  avatarImage: {
+    width: 38,
+    height: 38,
+    borderRadius: 19,
+    borderWidth: 2,
+    borderColor: AppColors.lilac,
+  },
+
+  // ── Dropdown
+  modalOverlay: {
+    flex: 1,
+  },
+  dropdown: {
+    position: 'absolute',
+    backgroundColor: AppColors.lilac,      // matches dashboard card color
+    borderRadius: 16,
+    minWidth: 200,
+    shadowColor: AppColors.blue,
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.18,
+    shadowRadius: 12,
+    elevation: 10,
+    overflow: 'hidden',
+    borderWidth: 1.5,
+    borderColor: AppColors.blue,
+  },
+  dropdownHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    padding: 16,
+    backgroundColor: AppColors.lilacLight,
+  },
+  dropdownAvatar: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    borderWidth: 2,
+    borderColor: AppColors.blue,
+  },
+  dropdownHi: {
+    color: AppColors.blue,
+    fontSize: 16,
+    fontFamily: AppFonts.title.fontFamily,  // same heroTitle style
+  },
+  dropdownSubtext: {
+    color: AppColors.blue,
+    fontSize: 12,
+    fontFamily: AppFonts.bodySmall.fontFamily,
+    opacity: 0.6,
+    marginTop: 1,
+  },
+  dropdownDivider: {
+    height: 1.5,
+    backgroundColor: AppColors.blue,
+    opacity: 0.15,
+  },
+  dropdownItem: {
+    padding: 16,
+  },
+  dropdownLogout: {
+    color: '#e53935',
+    fontSize: 15,
+    fontFamily: AppFonts.title.fontFamily,
+    fontWeight: '600',
   },
 });
 

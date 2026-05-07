@@ -1,20 +1,20 @@
 import Bow from "@/assets/svgs/avatar/bow.svg";
 import Feet from '@/assets/svgs/avatar/Feet.svg';
 import Hair from "@/assets/svgs/avatar/hair.svg";
-import Bald from "@/assets/svgs/avatar/hairs/rinabald.svg";
 import Pants from "@/assets/svgs/avatar/Pnats.svg";
 import Skin from "@/assets/svgs/avatar/Skin tone.svg";
 import Top from "@/assets/svgs/avatar/Top.svg";
+import Bald2 from '@/assets/svgs/diary/bald2.png';
 import { AppColors, AppFonts, AppFontSizes, Spacing } from "@/constants/theme";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { router } from "expo-router";
-import React, { useState } from "react";
-import { Dimensions, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import React, { useEffect, useState } from "react";
+import { Image, ScrollView, StyleSheet, Text, TouchableOpacity, useWindowDimensions, View } from "react-native";
 import Footer from "../components/Footer";
 import NavBar from "../components/navbar";
-import { Window } from "./AvatarWindows";
+import { AvatarLayer, RENDERED_H, RENDERED_W, Window } from "./AvatarWindows";
 import { useAvatar } from "./useAvatar";
-const { width : screenWidth, height:screenHeight } = Dimensions.get("window");
-//copy from diary tool bar actionss
+
 
 interface ActionOption {
   id: string;
@@ -48,10 +48,32 @@ const [showLabel, setShowLabel] = useState(false);
     )
 }
 
+function Buttons({ actions }: { actions: ActionOption[] }) {
+    return (
+        <View style={{ flexDirection: "column", alignItems: "center", gap: 100, marginTop: 20 }}>
+            {actions.map((action) => (
+                <ActionButton key={action.id} action={action} />
+            ))}
+        </View>
+    );
+}
+
     
 export default function CommunityLanding() {
+const [name, setName] = useState('');
 
-const {handleAccessory, handleBottom, handleHair, handleSkin, handleTop, handleFeet, activeWindow, closeWindow} = useAvatar(); 
+  useEffect(() => {
+    AsyncStorage.getItem('user').then((userStr) => {
+      if (userStr) {
+        const user = JSON.parse(userStr);
+        setName(user.name);
+      }
+    });
+  }, []);
+const { width: screenWidth, height:screenHeight } = useWindowDimensions();
+const {handleAccessory, handleBottom, handleHair, handleSkin, handleTop, handleFeet, activeWindow, closeWindow, selectedHair, selectedSkin, setSelectedHair,setSelectedSkin,
+  saving, saveError, saveAll
+} = useAvatar(); 
 
 const ACTION_OPTIONS: ActionOption[] =  [
 { id: 'hair', label: 'hair' , icon: <Hair style={[{left:5}]} />, onPress: handleHair },
@@ -62,15 +84,7 @@ const ACTION_OPTIONS: ActionOption[] =  [
 { id: 'bow', label: 'accessory' , icon: <Bow />, onPress: handleAccessory }, 
 ]
 
-console.log("in main",activeWindow);
-const Buttons = () => (
-    <View style={[{flexDirection:"column" , alignItems: "center" , gap:100, marginTop: 20}]}>
-        {ACTION_OPTIONS.map((action) => (
-            <ActionButton key={action.id} action={action} />
-        ))}
-    </View>
-
-);
+console.log("inside main1", selectedHair); 
 
   return (
     <ScrollView style={styles.container}>
@@ -82,32 +96,53 @@ const Buttons = () => (
             </View>
             <View style={[{flexDirection:'row', alignContent: 'center', justifyContent:'space-between'}]}>
                 <View>
-                    <Buttons />
+                   <Buttons actions={ACTION_OPTIONS} />
                 </View>
-                <View>
-                    <Bald />
+                <View style={{ width: RENDERED_W, height: RENDERED_H, position: 'relative' }}>
+                <Image
+                  source={Bald2}
+                  style={{ 
+                    position: 'absolute', 
+                    top: 0, 
+                    left: 0,
+                    width: RENDERED_W, 
+                    height: RENDERED_H 
+                  }}
+                  resizeMode="contain"
+                />
+                  <AvatarLayer selectedId={selectedSkin} layerKey="skin" />
+                  <AvatarLayer selectedId={selectedHair} layerKey="hair" />
                 </View>
                 <View style={[{flexDirection:"column"}]}>
                     <View>
                         {activeWindow && (
                         <Window
                         onClose={() => closeWindow(activeWindow)}
-                        activeWindow={activeWindow} />
+                        activeWindow={activeWindow}
+                        onSelect={(id) => {
+                          console.log("inside main" , id);
+                          if (activeWindow === 'hair') setSelectedHair(id); 
+                          if (activeWindow === 'skin') setSelectedSkin(id); 
+                        }} />
                         )}
                     </View>
                     <View></View>
                 </View>
             </View>
             <View style={[{flexDirection: 'row', justifyContent:'space-between' , marginTop: 150}]}>
-                <Text style={styles.pinText}>Name:</Text>
+                <Text style={styles.pinText}>Name: {name}</Text>
                 <TouchableOpacity style={styles.pin} 
                 onPress={() => router.push('/community/main')}>
                     <Text style={styles.pinText}>Back to menu</Text>
                 </TouchableOpacity>
+                <TouchableOpacity style={styles.pin} onPress={saveAll} disabled={saving}>
+                <Text style={styles.pinText}>{saving ? 'Saving...' : 'Save'}</Text>
+              </TouchableOpacity>
                 <Text style={styles.pinText}>Pet:</Text>
             </View>
         </View>
       </View>
+      {saveError && <Text style={{ color: 'red' }}>{saveError}</Text>}
 
       <Footer />
     </ScrollView>
@@ -160,74 +195,6 @@ const styles = StyleSheet.create({
     alignContent: 'center',
     left: 12,
     top: 12
-  },
-
-   window: {
-    flexDirection: "column",
-    borderWidth: 5,
-    borderColor: AppColors.blue,
-    borderRadius: 24,
-    backgroundColor: AppColors.lilac,
-    overflow: 'hidden',
-    width: screenWidth * 0.25,
-  },
-  upperWindow: {
-    flexDirection: "row",
-    backgroundColor: AppColors.blue,
-    paddingVertical: 4,
-    paddingHorizontal: 8,
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  windowText: {
-    ...AppFonts.body,
-    color: AppColors.lilac,
-    fontSize: screenWidth * 0.025,
-    letterSpacing: 0.5,
-    paddingLeft:10
-  },
-  windowX: {
-    ...AppFonts.body,
-    fontSize: screenWidth * 0.025,
-    color: AppColors.blue,
-
-  },
-  close: {
-    width: screenWidth * 0.035,
-    height: screenWidth * 0.023,
-    backgroundColor: AppColors.lilac,
-    borderRadius: 10,
-    borderWidth: 1,
-    borderColor: AppColors.blue,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  shadowCircle: {},
-  lowerWindow: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    alignItems: 'center',
-    paddingVertical: screenWidth * 0.025,
-    paddingHorizontal: screenWidth * 0.01,
-    backgroundColor: AppColors.lilac,
-  },
-  leftWindow: {
-    flex: 1,
-    alignItems: 'center',
-  },
-  circleStack: {
-  width: screenWidth * 0.08,   // match your SVG width
-  height: screenWidth * 0.08,  // match your SVG height
-  position: 'relative',
-},
-  rightWindow: {
-    flex: 1,
-    alignItems: 'center',
-    alignSelf: 'stretch',  // full height
-  },
-  divider:{
-    width: 2,
-    backgroundColor: AppColors.blue
   },
     labelBubble: {
     position: 'absolute',

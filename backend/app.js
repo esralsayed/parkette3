@@ -6,6 +6,7 @@ import express from "express";
 import { connectDB } from "./db.js";
 import airouter from "./routes/ai.js";
 import authRoutes from "./routes/auth.js";
+import avatarRoutes from "./routes/avatar.js";
 import chapterroutes from "./routes/chapters.js";
 import communityroutes from "./routes/community.js";
 import diaryroutes from "./routes/diary.js";
@@ -31,6 +32,7 @@ app.use("/api/performance", performanceRouter);
 app.use("/api/ai", airouter);
 app.use("/api/diary",diaryroutes);
 app.use("/api/community" , communityroutes);
+app.use("/api/avatar", avatarRoutes); 
 
 // Health check
 app.get("/api/health", (req, res) => {

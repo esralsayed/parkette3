@@ -4,7 +4,7 @@ import type { Diary } from "@/app/repositories/Diary";
 import { AppColors, AppFonts } from "@/constants/theme";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useEffect, useState } from "react";
-import { ActivityIndicator, Dimensions, StyleSheet, Text, View } from "react-native";
+import { ActivityIndicator, StyleSheet, Text, useWindowDimensions, View } from "react-native";
 import NavBar from "../components/navbar";
 import { getDiary } from "../repositories/Diary";
 import { DiaryBook } from "./DiaryBook";
@@ -12,10 +12,10 @@ import { ExpandableActionBar } from "./Diarytoolbar";
 import { DiarySpread } from "./OpenDiary";
 import { ColoredWindow, StickersWindow, TextWindow } from "./toolBarActions";
 import { useDiaryToolbar } from "./useToolBar";
-
-const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
+const { width: screenWidth, height:screenHeight } = useWindowDimensions();
 
 export default function DiaryLandingPage() {
+  if (!screenHeight || !screenWidth) return null; 
   const [diary, setDiary] = useState<Diary | null>(null);
   const [loading, setLoading] = useState(true);
   const [opening, setOpening] = useState(false);

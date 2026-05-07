@@ -2,9 +2,9 @@ import Circle1 from '@/assets/svgs/diary/circle1.svg';
 import Circle2 from '@/assets/svgs/diary/circle2.svg';
 import { AppColors, AppFonts } from "@/constants/theme";
 import React, { useState } from "react";
-import { Dimensions, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { StyleSheet, Text, TouchableOpacity, useWindowDimensions, View } from 'react-native';
+const { width: screenWidth, height:screenHeight } = useWindowDimensions();
 
-const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
 
 interface WindowProps {
   onClose?: () => void;
@@ -12,6 +12,8 @@ interface WindowProps {
 }
 
 export function ColoredWindow({ onClose, onColorPicked }: WindowProps) {
+  if (!screenHeight || !screenWidth) return null; 
+
   const [selectedColor, setSelectedColor] = useState<'lilac' | 'blue' | null>(null);
 
   const pickColor = (color: 'lilac' | 'blue') => {
@@ -161,6 +163,8 @@ export function TextWindow({
   onAlignment,
   onColor,
 }: TextWindowProps) {
+    if (!screenHeight || !screenWidth) return null; 
+
   return (
     <View style={styles.window}>
 
@@ -422,6 +426,7 @@ export function StickersWindow({
   for (let i = 0; i < STICKER_DEFS.length; i += 2) {
     rows.push(STICKER_DEFS.slice(i, i + 2));
   }
+  if (!screenHeight || !screenWidth) return null; 
 
   return (
     <View style={styles3.window}>

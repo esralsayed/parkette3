@@ -1,5 +1,7 @@
 import bcrypt from "bcryptjs";
+import crypto from "crypto";
 import mongoose, { Schema } from "mongoose";
+
 
 const petSchema = new Schema({
   color:    String,
@@ -40,7 +42,12 @@ const userSchema = new Schema({
       },
     },
 
-     friends: [{ type: Schema.Types.ObjectId, ref: "User" }],
+    friends: [{ type: Schema.Types.ObjectId, ref: "User" }],
+    friendCode: {                                              // ← add this
+    type: String,
+    unique: true,
+    default: () => crypto.randomBytes(3).toString('hex').toUpperCase()
+  },
     communityEnabled: { type: Boolean, default: false }, // requires parent permission
  
     isActive: { type: Boolean, default: true },

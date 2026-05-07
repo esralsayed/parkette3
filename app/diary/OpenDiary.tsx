@@ -13,20 +13,19 @@ import Undo from "@/assets/svgs/diary/undo.svg";
 import { AppColors, AppFonts, AppFontSizes } from "@/constants/theme";
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
-  Dimensions,
   NativeSyntheticEvent,
   StyleSheet,
   Text,
   TextInput,
   TextInputKeyPressEventData,
   TouchableOpacity,
-  View,
+  useWindowDimensions,
+  View
 } from 'react-native';
 import Svg, { ClipPath, Defs, Line, Path, Rect } from 'react-native-svg';
 import { DiaryStats, FavoriteEntry, getDiaryStats, getFavouriteEntries } from "../repositories/Diary";
 import { usePage } from './usePage';
-
-const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
+const { width: screenWidth, height:screenHeight } = useWindowDimensions();
 
 // ─── Sizes ────────────────────────────────────────────────────────────────────
 const SPREAD_WIDTH   = screenWidth * 0.82;
@@ -72,6 +71,7 @@ export function DiarySpread({ diaryId }: DiarySpreadProps) {
     isSaving, loadEntryForDate, isFavourite, toggleFavorite,
     goToPrevDay, goToNextDay, canGoNext, currentDate,
   } = usePage({ diaryId });
+  if (!screenHeight || !screenWidth) return null; 
 
   const [view, setView] = useState<'entry' | 'settings'>('entry');
   const [activeBookmark, setActiveBookmark] = useState<BookmarkKey | null>(null);
