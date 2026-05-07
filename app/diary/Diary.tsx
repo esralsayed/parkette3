@@ -12,10 +12,9 @@ import { ExpandableActionBar } from "./Diarytoolbar";
 import { DiarySpread } from "./OpenDiary";
 import { ColoredWindow, StickersWindow, TextWindow } from "./toolBarActions";
 import { useDiaryToolbar } from "./useToolBar";
-const { width: screenWidth, height:screenHeight } = useWindowDimensions();
 
 export default function DiaryLandingPage() {
-  if (!screenHeight || !screenWidth) return null; 
+  const { width: screenWidth, height:screenHeight } = useWindowDimensions();
   const [diary, setDiary] = useState<Diary | null>(null);
   const [loading, setLoading] = useState(true);
   const [opening, setOpening] = useState(false);
@@ -31,7 +30,8 @@ export default function DiaryLandingPage() {
    } = useDiaryToolbar(diaryId,backendTheme,  diary?.stickers ?? []);
 
   const [openDiary, setOpenDiary] = useState(false); 
-  
+  if (!screenHeight || !screenWidth) return null; 
+
 
 
   useEffect(() => {
@@ -135,7 +135,12 @@ useEffect(() => {
       <NavBar />
       {/* Window anchored to top right of page */}
     {activeWindow === 'color' && (
-      <View style={styles.colorWindowAnchor}>
+      <View style={[{
+          position: 'absolute',
+          top: screenHeight * 0.1,    // 10% from top — sits below navbar
+          right: screenWidth *0.05 ,  // 4% from right edge
+          zIndex: 50,
+      }]}>
         <ColoredWindow
           onClose={()=>closeWindow("color")}
           onColorPicked={handleColorPicked}
@@ -143,7 +148,12 @@ useEffect(() => {
       </View>
     )}
     {activeWindow === 'text' && (
-  <View style={styles.colorWindowAnchor}>
+  <View style={[{
+          position: 'absolute',
+          top: screenHeight * 0.1,    // 10% from top — sits below navbar
+          right: screenWidth *0.05 ,  // 4% from right edge
+          zIndex: 50,
+      }]}>
     <TextWindow
       onClose={() => closeWindow('text')}
       selectedLetter={selectedLetter}
@@ -155,7 +165,12 @@ useEffect(() => {
   </View>
 )}
 {activeWindow === 'stickers' && (
-  <View style={styles.colorWindowAnchor}>
+  <View style={[{
+          position: 'absolute',
+          top: screenHeight * 0.1,    // 10% from top — sits below navbar
+          right: screenWidth *0.05 ,  // 4% from right edge
+          zIndex: 50,
+      }]}>
     <StickersWindow
       onClose={() => closeWindow('stickers')}
       onStickerSelected={handleStickerSelected}
@@ -204,12 +219,6 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: AppColors.lilac,
   },
-  colorWindowAnchor: {
-  position: 'absolute',
-  top: screenHeight * 0.1,    // 10% from top — sits below navbar
-  right: screenWidth *0.05 ,  // 4% from right edge
-  zIndex: 50,
-},
   main: {
     flex: 1,
     alignItems: 'center',

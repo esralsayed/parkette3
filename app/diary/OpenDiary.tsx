@@ -25,15 +25,8 @@ import {
 import Svg, { ClipPath, Defs, Line, Path, Rect } from 'react-native-svg';
 import { DiaryStats, FavoriteEntry, getDiaryStats, getFavouriteEntries } from "../repositories/Diary";
 import { usePage } from './usePage';
-const { width: screenWidth, height:screenHeight } = useWindowDimensions();
 
 // ─── Sizes ────────────────────────────────────────────────────────────────────
-const SPREAD_WIDTH   = screenWidth * 0.82;
-const SPREAD_HEIGHT  = screenHeight * 0.52;
-const SPINE_W        = screenWidth * 0.055;
-const PAGE_GAP       = screenWidth * 0.03;
-const PAGE_W         = (SPREAD_WIDTH - PAGE_GAP) / 2;
-const PAGE_H         = SPREAD_HEIGHT;
 const SHADOW_X       = 6;
 const SHADOW_Y       = 6;
 const BOOKMARK_W     = 28;
@@ -48,17 +41,7 @@ const BORDER_W       = 4;
 const CORNER_R       = 14;
 const FONT_SIZE      = 13;
 const LINE_COUNT     = 9;
-const TOTAL_LINES    = LINE_COUNT * 2;
-const HEADER_H       = PAGE_H * 0.18;
-const LINE_PADDING_V = PAGE_H * 0.06;
-const LINE_SPACING   = (PAGE_H - HEADER_H - LINE_PADDING_V) / (LINE_COUNT - 1);
-const INPUT_H        = LINE_SPACING;
-const CONTENT_PAD_X  = 14;
-const INPUT_W        = PAGE_W - CONTENT_PAD_X * 2 - BORDER_W;
-const DAY_LINE_W     = PAGE_W * 0.38;
-const DATE_LINE_W    = PAGE_W * 0.32;
-const HEADER_LINE_Y1 = PAGE_H * 0.10;
-const HEADER_LINE_Y2 = PAGE_H * 0.16;
+
 
 interface DiarySpreadProps {
   diaryId: string | null;
@@ -71,13 +54,31 @@ export function DiarySpread({ diaryId }: DiarySpreadProps) {
     isSaving, loadEntryForDate, isFavourite, toggleFavorite,
     goToPrevDay, goToNextDay, canGoNext, currentDate,
   } = usePage({ diaryId });
-  if (!screenHeight || !screenWidth) return null; 
+  const { width: screenWidth, height:screenHeight } = useWindowDimensions();
+  const SPREAD_WIDTH   = screenWidth * 0.82;
+  const SPREAD_HEIGHT  = screenHeight * 0.52;
+  const SPINE_W        = screenWidth * 0.055;
+  const PAGE_GAP       = screenWidth * 0.03;
+  const PAGE_W         = (SPREAD_WIDTH - PAGE_GAP) / 2;
+  const PAGE_H         = SPREAD_HEIGHT;
+  const TOTAL_LINES    = LINE_COUNT * 2;
+  const HEADER_H       = PAGE_H * 0.18;
+  const LINE_PADDING_V = PAGE_H * 0.06;
+  const LINE_SPACING   = (PAGE_H - HEADER_H - LINE_PADDING_V) / (LINE_COUNT - 1);
+  const INPUT_H        = LINE_SPACING;
+  const CONTENT_PAD_X  = 14;
+  const INPUT_W        = PAGE_W - CONTENT_PAD_X * 2 - BORDER_W;
+  const DAY_LINE_W     = PAGE_W * 0.38;
+  const DATE_LINE_W    = PAGE_W * 0.32;
+  const HEADER_LINE_Y1 = PAGE_H * 0.10;
+  const HEADER_LINE_Y2 = PAGE_H * 0.16;
 
   const [view, setView] = useState<'entry' | 'settings'>('entry');
   const [activeBookmark, setActiveBookmark] = useState<BookmarkKey | null>(null);
   const [stats, setStats] = useState<DiaryStats>({ totalDays: 0, missedDays: 0, favoriteDates: [] });
   const [showFavorites, setShowFavorites] = useState(false);
   const [favoriteEntries, setFavoriteEntries] = useState<FavoriteEntry[]>([]);
+    if (!screenHeight || !screenWidth) return null; 
 
   useEffect(() => {
     if (!diaryId) return;
@@ -461,7 +462,7 @@ const favStyles = StyleSheet.create({
           }}
           blurOnSubmit={false}
           returnKeyType={globalIndex < TOTAL_LINES - 1 ? 'next' : 'done'}
-          style={[styles.lineInput, { top: topOffset }]}
+          style={[styles.lineInput, { top: topOffset, width: INPUT_W, height: INPUT_H,  }]}
           multiline={false}
           scrollEnabled={false}
           underlineColorAndroid="transparent"
@@ -476,7 +477,7 @@ const favStyles = StyleSheet.create({
     <View style={styles.outerWrapper}>
 
       {/* ── Navigation row above spread ── */}
-      <View style={styles.navRow}>
+      <View style={[styles.navRow , { width: SPREAD_WIDTH}]}>
         <View style={styles.navCell}>
         <NavArrow direction="left" onPress={goToPrevDay} />
         </View>
@@ -512,15 +513,29 @@ const favStyles = StyleSheet.create({
           </TouchableOpacity>
         </View>
 
-        <View style={styles.spread}>
+        <View style={[styles.spread , {width:SPREAD_WIDTH, height:PAGE_H}]}>
 
           {/* ── Shadows ── */}
-          <View style={styles.shadowLeft} pointerEvents="none"><ShadowLeftSVG /></View>
-          <View style={styles.shadowRight} pointerEvents="none"><ShadowRightSVG /></View>
+          <View style={[styles.shadowLeft , {
+            width: PAGE_W, height: PAGE_H,
+            }]} pointerEvents="none"
+          >
+            <ShadowLeftSVG />
+          </View>
+
+          <View style={[styles.shadowRight , {
+            width: PAGE_W, height: PAGE_H,
+            left: PAGE_W + PAGE_GAP - SHADOW_X, top: SHADOW_Y,
+            }]} pointerEvents="none"
+            >
+            <ShadowRightSVG />
+            </View>
 
           {/* ── Left Page ── */}
           <View
-            style={styles.leftPageContainer}
+            style={[styles.leftPageContainer , 
+              {width: PAGE_W,
+              height: PAGE_H, marginRight: PAGE_GAP / 2,}]}
             onStartShouldSetResponder={() => {
               if (!isSettings) focusFirstEmptyOnPage(0);
               return false;
@@ -542,7 +557,9 @@ const favStyles = StyleSheet.create({
 
             />
             ) : (
-              <View style={styles.inputLayer}>{renderInputs(0)}</View>
+              <View style={[styles.inputLayer , {
+                top: 0, left: CONTENT_PAD_X, right: CONTENT_PAD_X, bottom: 0,
+              }]}>{renderInputs(0)}</View>
             )}
 
             {/* Heart — bottom right of left page */}
@@ -557,7 +574,11 @@ const favStyles = StyleSheet.create({
 
           {/* ── Right Page ── */}
           <View
-            style={styles.rightPageContainer}
+            style={[styles.rightPageContainer , {
+                  width: PAGE_W,
+                  height: PAGE_H,
+                  marginLeft: PAGE_GAP / 2,
+            }]}
             onStartShouldSetResponder={() => {
               if (!isSettings) focusFirstEmptyOnPage(1);
               return false;
@@ -586,7 +607,10 @@ const favStyles = StyleSheet.create({
           </View>
 
           {/* ── Spine ── */}
-          <View style={styles.spine}>
+          <View style={[styles.spine , {
+                left: PAGE_W + PAGE_GAP / 2 - SPINE_W / 2,
+                  width: SPINE_W, height: PAGE_H,
+          }]}>
             <Spine2 width={SPINE_W} height={PAGE_H} />
           </View>
 
@@ -605,7 +629,7 @@ const favStyles = StyleSheet.create({
 
       {/* ── Bottom popup ── */}
       {activeBookmark && (
-        <View style={styles.popup}>
+        <View style={[styles.popup , {width: SPREAD_WIDTH}]}>
           <Text style={styles.popupLabel}>{activeBookmark}</Text>
           {/* TODO: add bookmark-specific content here */}
         </View>
@@ -628,7 +652,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    width: SPREAD_WIDTH,
     alignSelf: 'center',
     marginBottom: 8,
     paddingHorizontal: 4,
@@ -703,30 +726,21 @@ const styles = StyleSheet.create({
   },
 
   spread: {
-    width: SPREAD_WIDTH,
-    height: PAGE_H,
     flexDirection: 'row',
     alignSelf: 'center',
   },
 
   // ── Real pages ──
   leftPageContainer: {
-    width: PAGE_W,
-    height: PAGE_H,
     overflow: 'hidden',
-    marginRight: PAGE_GAP / 2,
     zIndex: 2,
   },
   rightPageContainer: {
-    width: PAGE_W,
-    height: PAGE_H,
     overflow: 'hidden',
-    marginLeft: PAGE_GAP / 2,
     zIndex: 2,
   },
 
   popup: {
-    width: SPREAD_WIDTH,
     alignSelf: 'center',
     marginTop: 10,
     minHeight: 64,
@@ -751,21 +765,16 @@ const styles = StyleSheet.create({
   // ── Shadows ──
   shadowLeft: {
     position: 'absolute',
-    width: PAGE_W, height: PAGE_H,
     left: -SHADOW_X, top: SHADOW_Y,
     zIndex: 1, overflow: 'hidden',
   },
   shadowRight: {
     position: 'absolute',
-    width: PAGE_W, height: PAGE_H,
-    left: PAGE_W + PAGE_GAP - SHADOW_X, top: SHADOW_Y,
     zIndex: 1, overflow: 'hidden',
   },
 
   spine: {
     position: 'absolute',
-    left: PAGE_W + PAGE_GAP / 2 - SPINE_W / 2,
-    width: SPINE_W, height: PAGE_H,
     zIndex: 999,
     alignItems: 'center',
     justifyContent: 'space-evenly',
@@ -773,14 +782,11 @@ const styles = StyleSheet.create({
 
   inputLayer: {
     position: 'absolute',
-    top: 0, left: CONTENT_PAD_X, right: CONTENT_PAD_X, bottom: 0,
   },
   lineInput: {
     ...AppFonts.body,
     position: 'absolute',
     left: 0,
-    width: INPUT_W,
-    height: INPUT_H,
     fontSize: AppFontSizes.bodySmall,
     color: NAVY,
     backgroundColor: 'transparent',

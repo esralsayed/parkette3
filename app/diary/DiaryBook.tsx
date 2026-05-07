@@ -5,7 +5,6 @@ import { ActivityIndicator, StyleSheet, Text, TouchableOpacity, useWindowDimensi
 import Svg, { Rect } from 'react-native-svg';
 import { DiaryCustomLetter } from "../repositories/Diary";
 import { PlacedSticker, STICKER_DEFS } from "./toolBarActions";
-const { width: screenWidth, height:screenHeight } = useWindowDimensions();
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 interface DiaryBookProps {
@@ -95,6 +94,7 @@ const PixelTitle = ({
   isTextMode?: boolean;
   letters?: DiaryCustomLetter[];
 }) => {
+  const { width: screenWidth, height:screenHeight } = useWindowDimensions();
   const rotations =       [-4,  3, -2,  5, -3,  2, -5,  4, -1,  3];
   const verticalOffsets = [  4, -6,  6, -4,  1, -1,  4, -7,  2, -7];
   const baseFontSize = screenWidth * 0.05;
@@ -162,8 +162,10 @@ export function DiaryBook({
   isStickerMode,
   onStickerRemove
 }: DiaryBookProps) {
-  if (!screenHeight || !screenWidth) return null; 
-
+  const { width: screenWidth, height:screenHeight } = useWindowDimensions();
+  const BOOK_WIDTH = screenWidth * 0.28;
+  const BOOK_HEIGHT = screenWidth * 0.26;
+  const SPINE_WIDTH = screenWidth * 0.1;
   const isBlue = theme === 'blue';
   const coverBg = isBlue ? AppColors.blue : AppColors.lilac;
   const borderCol = AppColors.blue;
@@ -175,20 +177,26 @@ const secondWord = ownerName.split(' ')[1];  // e.g. "Diary"
 // Add inside DiaryBook, before return:
 const [selectedPlacedIndex, setSelectedPlacedIndex] = useState<number | null>(null);
 console.log("isStickerMode inside DiaryBook:", isStickerMode);
+if (!screenHeight || !screenWidth) return null; 
 
   return (
     <TouchableOpacity
       activeOpacity={0.85}
       onPress={isStickerMode ? undefined : onPress}
       accessibilityLabel="Open your diary"
-      style={styles.wrapper}
+      style={[styles.wrapper ,  {
+        width: BOOK_WIDTH,
+        height: BOOK_HEIGHT,}]}
     >
       {/* Shadow layers */}
-      <View style={[styles.shadowLayer3, { borderColor: shadowCol }]} />
-      <View style={[styles.shadowLayer2, { borderColor: shadowCol, backgroundColor: shadowCol }]} />
+      <View style={[styles.shadowLayer3, { borderColor: shadowCol,     width: BOOK_WIDTH,
+    height: BOOK_HEIGHT, }]} />
+      <View style={[styles.shadowLayer2, { borderColor: shadowCol, backgroundColor: shadowCol, width: BOOK_WIDTH,
+    height: BOOK_HEIGHT, }]} />
 
       {/* Book cover — no overflow hidden, spine sits on top */}
-      <View style={[styles.book, { backgroundColor: coverBg, borderColor: borderCol }]}>
+      <View style={[styles.book, { backgroundColor: coverBg, borderColor: borderCol,     width: BOOK_WIDTH,
+    height: BOOK_HEIGHT, }]}>
         <View
         style={styles.cover}
         onStartShouldSetResponder={() => isStickerMode ?? false}
@@ -274,29 +282,23 @@ console.log("isStickerMode inside DiaryBook:", isStickerMode);
       </View>
 
       {/* Spine overlaid on top-left of book */}
-      <View style={[styles.spine]}>
+      <View style={[styles.spine, {height: BOOK_HEIGHT, paddingVertical: BOOK_HEIGHT * 0.05}]}>
         <Spiral />
       </View>
     </TouchableOpacity>
   );
 }
 
-const BOOK_WIDTH = screenWidth * 0.28;
-const BOOK_HEIGHT = screenWidth * 0.26;
-const SPINE_WIDTH = screenWidth * 0.1;
+
 const BORDER = 3;
 const SHADOW_OFFSET = 12;
 
 const styles = StyleSheet.create({
   wrapper: {
-    width: BOOK_WIDTH,
-    height: BOOK_HEIGHT,
     position: 'relative',
   },
   shadowLayer2: {
     position: 'absolute',
-    width: BOOK_WIDTH,
-    height: BOOK_HEIGHT,
     borderRadius: 16,
     borderWidth: BORDER,
     top: SHADOW_OFFSET,
@@ -304,8 +306,6 @@ const styles = StyleSheet.create({
   },
   shadowLayer3: {
     position: 'absolute',
-    width: BOOK_WIDTH,
-    height: BOOK_HEIGHT,
     borderRadius: 16,
     borderWidth: BORDER,
     backgroundColor: 'transparent',
@@ -314,8 +314,6 @@ const styles = StyleSheet.create({
   },
   book: {
     position: 'absolute',
-    width: BOOK_WIDTH,
-    height: BOOK_HEIGHT,
     borderRadius: 16,
     borderWidth: BORDER,
     overflow: 'hidden',   // safe now — spine is outside
@@ -325,11 +323,9 @@ const styles = StyleSheet.create({
     left: -20,
     top: 0,
     width: 20,
-    height: BOOK_HEIGHT,
     alignItems: 'center',
     justifyContent: 'space-evenly',  // evenly distributes coils regardless of book size
     flexDirection: 'column',
-    paddingVertical: BOOK_HEIGHT * 0.05,
     zIndex: 10,           // sits on top of book
   },
 cover: {

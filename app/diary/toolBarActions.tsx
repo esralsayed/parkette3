@@ -3,7 +3,6 @@ import Circle2 from '@/assets/svgs/diary/circle2.svg';
 import { AppColors, AppFonts } from "@/constants/theme";
 import React, { useState } from "react";
 import { StyleSheet, Text, TouchableOpacity, useWindowDimensions, View } from 'react-native';
-const { width: screenWidth, height:screenHeight } = useWindowDimensions();
 
 
 interface WindowProps {
@@ -12,9 +11,9 @@ interface WindowProps {
 }
 
 export function ColoredWindow({ onClose, onColorPicked }: WindowProps) {
-  if (!screenHeight || !screenWidth) return null; 
-
+  const { width: screenWidth, height:screenHeight } = useWindowDimensions();
   const [selectedColor, setSelectedColor] = useState<'lilac' | 'blue' | null>(null);
+  if (!screenHeight || !screenWidth) return null; 
 
   const pickColor = (color: 'lilac' | 'blue') => {
     setSelectedColor(color);
@@ -22,17 +21,17 @@ export function ColoredWindow({ onClose, onColorPicked }: WindowProps) {
   };
 
   return (
-    <View style={styles.window}>
+    <View style={[styles.window , {width: screenWidth * 0.25}]}>
       <View style={styles.upperWindow}>
-        <Text style={styles.windowText}>Colors</Text>
-        <TouchableOpacity onPress={onClose} style={styles.close}>
-          <Text style={styles.windowX}>X</Text>
+        <Text style={[styles.windowText , {fontSize: screenWidth * 0.025}]}>Colors</Text>
+        <TouchableOpacity onPress={onClose} style={[styles.close , {width: screenWidth * 0.035, height: screenWidth * 0.023,}]}>
+          <Text style={[styles.windowX , {fontSize: screenWidth * 0.025}]}>X</Text>
         </TouchableOpacity>
       </View>
-      <View style={styles.lowerWindow}>
+      <View style={[styles.lowerWindow , {paddingVertical: screenWidth * 0.025,paddingHorizontal: screenWidth * 0.01,}]}>
         <View style={styles.leftWindow}>
           <TouchableOpacity onPress={() => pickColor('lilac')}>
-            <View style={styles.circleStack}>
+            <View style={[styles.circleStack , {  width: screenWidth * 0.08,height: screenWidth * 0.08,}]}>
                 <Circle2 style={{ position: 'absolute', top: 5, left: 6 }} />  {/* shadow */}
                 <Circle1 style={{zIndex:10}} />  {/* front */}
             </View>
@@ -60,7 +59,6 @@ const styles = StyleSheet.create({
     borderRadius: 24,
     backgroundColor: AppColors.lilac,
     overflow: 'hidden',
-    width: screenWidth * 0.25,
   },
   upperWindow: {
     flexDirection: "row",
@@ -73,19 +71,15 @@ const styles = StyleSheet.create({
   windowText: {
     ...AppFonts.body,
     color: AppColors.lilac,
-    fontSize: screenWidth * 0.025,
     letterSpacing: 0.5,
     paddingLeft:10
   },
   windowX: {
     ...AppFonts.body,
-    fontSize: screenWidth * 0.025,
     color: AppColors.blue,
 
   },
   close: {
-    width: screenWidth * 0.035,
-    height: screenWidth * 0.023,
     backgroundColor: AppColors.lilac,
     borderRadius: 10,
     borderWidth: 1,
@@ -98,8 +92,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-around',
     alignItems: 'center',
-    paddingVertical: screenWidth * 0.025,
-    paddingHorizontal: screenWidth * 0.01,
     backgroundColor: AppColors.lilac,
   },
   leftWindow: {
@@ -107,8 +99,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   circleStack: {
-  width: screenWidth * 0.08,   // match your SVG width
-  height: screenWidth * 0.08,  // match your SVG height
   position: 'relative',
 },
   rightWindow: {
@@ -163,28 +153,29 @@ export function TextWindow({
   onAlignment,
   onColor,
 }: TextWindowProps) {
-    if (!screenHeight || !screenWidth) return null; 
+  const { width: screenWidth, height:screenHeight } = useWindowDimensions();
+  if (!screenHeight || !screenWidth) return null; 
 
   return (
-    <View style={styles.window}>
+    <View style={[styles.window , {width: screenWidth * 0.28}]}>
 
       {/* Header */}
       <View style={styles.upperWindow}>
-        <Text style={styles.windowText}>Text</Text>
-        <TouchableOpacity onPress={onClose} style={styles.close}>
-          <Text style={styles.windowX}>X</Text>
+        <Text style={[styles.windowText , {fontSize: screenWidth * 0.025,}]}>Text</Text>
+        <TouchableOpacity onPress={onClose} style={[styles.close , {width: screenWidth * 0.035 ,height: screenWidth * 0.023}]}>
+          <Text style={[styles.windowX, {fontSize: screenWidth * 0.025}]}>X</Text>
         </TouchableOpacity>
       </View>
 
       {/* Font family */}
-      <View style={styles2.section}>
+      <View style={[styles2.section , {padding: screenWidth * 0.012, gap: screenWidth * 0.008}]}>
         {FONT_OPTIONS.map((f) => (
           <TouchableOpacity
             key={f.value}
             onPress={() => onFontFamily(f.value)}
-            style={[styles2.fontButton, selectedLetter?.style.fontFamily === f.value && styles2.selected]}
+            style={[styles2.fontButton, {paddingVertical: screenWidth * 0.008,} , selectedLetter?.style.fontFamily === f.value && styles2.selected]}
           >
-            <Text style={styles2.fontButtonText}>{f.label}</Text>
+            <Text style={[styles2.fontButtonText , {fontSize: screenWidth * 0.018}]}>{f.label}</Text>
           </TouchableOpacity>
         ))}
       </View>
@@ -192,15 +183,15 @@ export function TextWindow({
       <View style={styles2.divider} />
 
       {/* Font size grid */}
-      <View style={styles2.sizeGrid}>
+      <View style={[styles2.sizeGrid , {flexWrap: 'wrap', padding: screenWidth * 0.008, gap: screenWidth * 0.006,}]}>
         {SIZE_OPTIONS.map((s) => (
           <TouchableOpacity
             key={s.value}
             onPress={() => onFontSize(s.value)}
-            style={[styles2.sizeButton, selectedLetter?.style.fontSize === s.value && styles2.selected]}
+            style={[styles2.sizeButton, {paddingHorizontal: screenWidth * 0.012, paddingVertical: screenWidth * 0.006,} , selectedLetter?.style.fontSize === s.value && styles2.selected]}
           >
-            <Text style={styles2.sizeLabel}>{s.label}</Text>
-            <Text style={styles2.sizeValue}>{s.value}</Text>
+            <Text style={[styles2.sizeLabel , {fontSize: screenWidth * 0.016,}]}>{s.label}</Text>
+            <Text style={[styles2.sizeValue , {fontSize: screenWidth * 0.016}]}>{s.value}</Text>
           </TouchableOpacity>
         ))}
       </View>
@@ -208,15 +199,18 @@ export function TextWindow({
       <View style={styles2.divider} />
 
       {/* Alignment + Color */}
-      <View style={styles2.bottomRow}>
-        <View style={styles2.alignmentGroup}>
+      <View style={[styles2.bottomRow , {padding: screenWidth * 0.01, gap: screenWidth * 0.008,}]}>
+        <View style={[styles2.alignmentGroup , {    gap: screenWidth * 0.006,}]}>
           {ALIGNMENT_OPTIONS.map((a) => (
             <TouchableOpacity
               key={a.value}
               onPress={() => onAlignment(a.value)}
-              style={[styles2.alignButton, selectedLetter?.style.alignment === a.value && styles2.selected]}
+              style={[styles2.alignButton, {
+                    width: screenWidth * 0.032,
+    height: screenWidth * 0.032,
+              } , selectedLetter?.style.alignment === a.value && styles2.selected]}
             >
-              <Text style={styles2.alignIcon}>{a.icon}</Text>
+              <Text style={[styles2.alignIcon , {    fontSize: screenWidth * 0.018,}]}>{a.icon}</Text>
             </TouchableOpacity>
           ))}
         </View>
@@ -224,14 +218,16 @@ export function TextWindow({
         <View style={styles2.verticalDivider} />
 
         <View style={styles2.colorGroup}>
-          <Text style={styles2.colorLabel}>Colors</Text>
-          <View style={styles2.circleStack}>
+          <Text style={[styles2.colorLabel, {    fontSize: screenWidth * 0.016,}]}>Colors</Text>
+          <View style={[styles2.circleStack , {    width: screenWidth * 0.05,
+    height: screenWidth * 0.05,}]}>
             <Circle2 width={screenWidth * 0.04} height={screenWidth * 0.04} style={{ position: 'absolute', top: 2, left: 2 }} />
             <Circle1 width={screenWidth * 0.04} height={screenWidth * 0.04}
             style={{zIndex:10}} />
           </View>
           <TouchableOpacity onPress={() => onColor('blue')}>
-            <View style={styles2.circleStack}>
+            <View style={[styles2.circleStack, {    width: screenWidth * 0.05,
+    height: screenWidth * 0.05,}]}>
               <Circle2 width={screenWidth * 0.04} height={screenWidth * 0.04} style={{ position: 'absolute', top: 2, left: 2 }} />
               <Circle2 width={screenWidth * 0.04} height={screenWidth * 0.04}
               style={{zIndex:10}} />
@@ -252,7 +248,6 @@ const styles2 = StyleSheet.create({
     borderRadius: 8,
     backgroundColor: AppColors.lilac,
     overflow: 'hidden',
-    width: screenWidth * 0.28,
   },
   upperWindow: {
     flexDirection: 'row',
@@ -265,17 +260,13 @@ const styles2 = StyleSheet.create({
   windowText: {
     ...AppFonts.body,
     color: AppColors.lilac,
-    fontSize: screenWidth * 0.025,
     letterSpacing: 0.5,
   },
   windowX: {
     ...AppFonts.body,
-    fontSize: screenWidth * 0.025,
     color: AppColors.blue,
   },
   close: {
-    width: screenWidth * 0.035,
-    height: screenWidth * 0.023,
     backgroundColor: AppColors.lilac,
     borderRadius: 3,
     borderWidth: 1,
@@ -291,20 +282,16 @@ const styles2 = StyleSheet.create({
   section: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    padding: screenWidth * 0.012,
-    gap: screenWidth * 0.008,
   },
   fontButton: {
     flex: 1,
     borderWidth: 1.5,
     borderColor: AppColors.blue,
     borderRadius: 6,
-    paddingVertical: screenWidth * 0.008,
     alignItems: 'center',
   },
   fontButtonText: {
     ...AppFonts.body,
-    fontSize: screenWidth * 0.018,
     color: AppColors.blue,
   },
   selected: {
@@ -312,9 +299,6 @@ const styles2 = StyleSheet.create({
   },
   sizeGrid: {
     flexDirection: 'row',
-    flexWrap: 'wrap',
-    padding: screenWidth * 0.008,
-    gap: screenWidth * 0.006,
   },
   sizeButton: {
     width: '48%',
@@ -324,40 +308,30 @@ const styles2 = StyleSheet.create({
     borderWidth: 1.5,
     borderColor: AppColors.blue,
     borderRadius: 6,
-    paddingHorizontal: screenWidth * 0.012,
-    paddingVertical: screenWidth * 0.006,
   },
   sizeLabel: {
     ...AppFonts.body,
-    fontSize: screenWidth * 0.016,
     color: AppColors.blue,
   },
   sizeValue: {
     ...AppFonts.body,
-    fontSize: screenWidth * 0.016,
     color: AppColors.blue,
   },
   bottomRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    padding: screenWidth * 0.01,
-    gap: screenWidth * 0.008,
   },
   alignmentGroup: {
     flexDirection: 'row',
-    gap: screenWidth * 0.006,
   },
   alignButton: {
     borderWidth: 1.5,
     borderColor: AppColors.blue,
     borderRadius: 4,
-    width: screenWidth * 0.032,
-    height: screenWidth * 0.032,
     alignItems: 'center',
     justifyContent: 'center',
   },
   alignIcon: {
-    fontSize: screenWidth * 0.018,
     color: AppColors.blue,
   },
   verticalDivider: {
@@ -373,13 +347,10 @@ const styles2 = StyleSheet.create({
   },
   colorLabel: {
     ...AppFonts.body,
-    fontSize: screenWidth * 0.016,
     color: AppColors.blue,
   },
   circleStack: {
     position: 'relative',
-    width: screenWidth * 0.05,
-    height: screenWidth * 0.05,
   },
 });
 
@@ -426,20 +397,22 @@ export function StickersWindow({
   for (let i = 0; i < STICKER_DEFS.length; i += 2) {
     rows.push(STICKER_DEFS.slice(i, i + 2));
   }
+  const { width: screenWidth, height:screenHeight } = useWindowDimensions();
   if (!screenHeight || !screenWidth) return null; 
 
   return (
-    <View style={styles3.window}>
+    <View style={[styles3.window , {    width: screenWidth * 0.25,}]}>
       <View style={styles3.upperWindow}>
-        <Text style={styles3.windowText}>Stickers</Text>
-        <TouchableOpacity onPress={onClose} style={styles3.close}>
-          <Text style={styles3.windowX}>X</Text>
+        <Text style={[styles3.windowText , {    fontSize: screenWidth * 0.025,}]}>Stickers</Text>
+        <TouchableOpacity onPress={onClose} style={[styles3.close , {    width: screenWidth * 0.035,
+    height: screenWidth * 0.023,}]}>
+          <Text style={[styles3.windowX , {fontSize: screenWidth * 0.025,}]}>X</Text>
         </TouchableOpacity>
       </View>
 
-      <View style={styles3.grid}>
+      <View style={[{ padding: screenWidth * 0.012, gap: screenWidth * 0.008,}]}>
         {rows.map((row, rowIndex) => (
-          <View key={rowIndex} style={styles3.row}>
+          <View key={rowIndex} style={[{flexDirection: 'row',gap: screenWidth * 0.008,marginBottom: screenWidth * 0.008,}]}>
             {row.map((sticker) => {
               const StickerComponent = sticker.component;
               const isSelected = selectedStickerId === sticker.id;
@@ -458,8 +431,8 @@ export function StickersWindow({
       </View>
 
       {selectedStickerId && (
-        <View style={styles3.hint}>
-          <Text style={styles3.hintText}>Tap on the diary cover to place it</Text>
+        <View style={[styles3.hint, {padding: screenWidth * 0.01,}]}>
+          <Text style={[styles3.hintText , {    fontSize: screenWidth * 0.014,}]}>Tap on the diary cover to place it</Text>
         </View>
       )}
     </View>
@@ -474,7 +447,6 @@ const styles3 = StyleSheet.create({
     borderRadius: 8,
     backgroundColor: AppColors.lilac,
     overflow: 'hidden',
-    width: screenWidth * 0.25,
   },
   upperWindow: {
     flexDirection: 'row',
@@ -487,32 +459,19 @@ const styles3 = StyleSheet.create({
   windowText: {
     ...AppFonts.body,
     color: AppColors.lilac,
-    fontSize: screenWidth * 0.025,
     letterSpacing: 0.5,
   },
   windowX: {
     ...AppFonts.body,
-    fontSize: screenWidth * 0.025,
     color: AppColors.blue,
   },
   close: {
-    width: screenWidth * 0.035,
-    height: screenWidth * 0.023,
     backgroundColor: AppColors.lilac,
     borderRadius: 10,
     borderWidth: 1,
     borderColor: AppColors.blue,
     alignItems: 'center',
     justifyContent: 'center',
-  },
-  grid: {
-    padding: screenWidth * 0.012,
-    gap: screenWidth * 0.008,
-  },
-  row: {
-    flexDirection: 'row',
-    gap: screenWidth * 0.008,
-    marginBottom: screenWidth * 0.008,
   },
   cell: {
     flex: 1,
@@ -528,14 +487,12 @@ const styles3 = StyleSheet.create({
     backgroundColor: AppColors.blue,
   },
   hint: {
-    padding: screenWidth * 0.01,
     alignItems: 'center',
     borderTopWidth: 1,
     borderTopColor: AppColors.blue,
   },
   hintText: {
     ...AppFonts.body,
-    fontSize: screenWidth * 0.014,
     color: AppColors.blue,
   },
 });
