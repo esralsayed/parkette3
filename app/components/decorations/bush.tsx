@@ -4,9 +4,10 @@ import Svg, { Rect } from 'react-native-svg';
 
 interface BushProps {
   size?: number;
+  style? : any
 }
 
-export default function Bush({ size = 80 }: BushProps) {
+export default function Bush({ size = 80, style }: BushProps) {
   const block = size / 8;
   const color = AppColors.blue;
   const colorFlower = AppColors.lilac;
@@ -92,7 +93,7 @@ const flower = (cx: number, cy: number) => {
 };
 
   return (
-    <Svg width={size} height={size} viewBox={`0 0 ${size} ${size}`}>
+    <Svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} style={style}>
       {/* bush body */}
       {pixels}
 

@@ -75,7 +75,7 @@ export const AppFontSizes = {
   header:    54,
   subhead:   36,
   body:      32,
-  bodySmall: 23,
+  bodySmall: 20,
   button:    30,
   button2:   24,
 };

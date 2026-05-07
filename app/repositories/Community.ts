@@ -32,8 +32,9 @@ export async function getCommunitySession(friendIds: string[]) {
   const headers = await getHeaders();
 
   const query = friendIds.join(',');
+  console.log('is query sending', query)
   const response = await fetch(
-    `${API_URL}/community/session/${userId}?friendIds=${query}`,
+    `${API_URL}/session/${userId}?friendIds=${query}`,
     { headers }
   );
   if (!response.ok) throw new Error('Failed to load session');

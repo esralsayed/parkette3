@@ -5,7 +5,9 @@ import {
   getFriendRequests,
   getFriends, getMyFriendCode, removeFriend
 } from '@/app/repositories/Community';
+import { router } from 'expo-router';
 import { useEffect, useState } from 'react';
+import { useSessionStore } from './sessionStore';
 
 interface Friend {
   _id: string;
@@ -25,11 +27,12 @@ interface Session {
 
 export function useCommunity() {
   const [friends, setFriends] = useState<Friend[]>([]);
-  const [session, setSession] = useState<Session | null>(null);
+  //const [session, setSession] = useState<Session | null>(null);
   const [myFriendCode, setMyFriendCode] = useState<string>('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [requests, setRequests] = useState<Friend[]>([]);
+  const { setSession } = useSessionStore(); 
 
 async function loadRequests() {
   try {
@@ -94,12 +97,16 @@ async function handleDeny(friendId: string) {
   }
 
   async function startSession(friendIds: string[]) {
+    console.log("is friends id sending?", friendIds);
     setLoading(true);
     try {
       const data = await getCommunitySession(friendIds);
       setSession(data.session);
+      console.log(data.session);
+      router.push(`/community/communityLanding`); 
     } catch (e: any) {
       setError(e.message);
+      throw e; 
     } finally {
       setLoading(false);
     }
@@ -131,7 +138,6 @@ async function handleDeny(friendId: string) {
 
   return {
     friends,
-    session,
     myFriendCode,
     loading,
     error,

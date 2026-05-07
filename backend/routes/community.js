@@ -25,6 +25,8 @@ communityroutes.get("/friends/:userId", async (req, res) => {
 // 2. GET community session with chosen friends
 communityroutes.get("/session/:userId", async (req, res) => {
   try {
+    console.log("info", req.query); 
+
     const { userId } = req.params;
     const { friendIds } = req.query; // e.g. ?friendIds=id1,id2
 
@@ -126,7 +128,6 @@ communityroutes.post("/friends/remove", async (req, res) => {
 // GET pending friend requests for a user
 communityroutes.get("/friends/requests/:userId", async (req, res) => {
   try {
-    console.log("ARE WE HERE?")
     const { userId } = req.params;
 
     const user = await User.findById(userId);
@@ -138,8 +139,6 @@ communityroutes.get("/friends/requests/:userId", async (req, res) => {
       friends: userId,           // they added me
       _id: { $nin: user.friends, $ne: userId } // but I haven't added them
     }).select('_id name username level avatar.skin avatar.hair friendCode');
-
-    console.log(requests);
 
     return res.status(200).json({ requests });
   } catch (err) {
