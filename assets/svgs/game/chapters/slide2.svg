@@ -1,0 +1,58 @@
+<svg width="400" height="400" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg" shape-rendering="crispEdges">
+  <rect width="32" height="32" fill="none" />
+
+  <!-- Broken Ladder Structure (Left) -->
+  <rect x="4" y="10" width="2" height="18" fill="#003E8F" /> <!-- Left side post -->
+  
+  <rect x="8" y="10" width="2" height="10" fill="#003E8F" /> <!-- Broken right side post, upper part -->
+  <!-- GAP in right post -->
+  <rect x="8" y="24" width="2" height="4" fill="#003E8F" /> <!-- Broken right side post, lower part -->
+  
+  <!-- Disconnected/Broken Steps -->
+  <rect x="6" y="14" width="2" height="2" fill="#E7E1FF" /> <!-- Step 1 -->
+  <!-- Step 2 is 'floating' below -->
+  <rect x="5" y="20" width="2" height="2" fill="#E7E1FF" /> <!-- Displaced Step 2 -->
+  <rect x="6" y="22" width="2" height="2" fill="#E7E1FF" /> <!-- Step 3 -->
+  <rect x="6" y="26" width="2" height="2" fill="#E7E1FF" /> <!-- Step 4 -->
+
+  <!-- Broken Top Platform (Upper middle) -->
+  <rect x="4" y="8" width="6" height="2" fill="#003E8F" /> <!-- Partially present left platform -->
+  <!-- GAP between platform halves -->
+  <rect x="12" y="8" width="2" height="2" fill="#003E8F" /> <!-- Small fragment of right platform -->
+  
+  <rect x="6" y="6" width="4" height="2" fill="#003E8F" /> <!-- Present roof bit -->
+  
+  <!-- Debris/Flying Blocks around broken ladder and platform -->
+  <rect x="11" y="7" width="2" height="1" fill="#003E8F" />
+  <rect x="10" y="21" width="1" height="2" fill="#003E8F" />
+  <rect x="9" y="19" width="1" height="1" fill="#E7E1FF" />
+
+  <!-- Fragmented Slide Chute (Diagonal) -->
+  <rect x="12" y="10" width="4" height="4" fill="#003E8F" /> <!-- Fragment 1 -->
+  <rect x="12" y="10" width="2" height="2" fill="#E7E1FF" /> <!-- Step/Rail 1 -->
+  
+  <!-- GAP 1 in chute -->
+  
+  <rect x="17" y="13" width="3" height="4" fill="#003E8F" /> <!-- Fragment 2, slightly displaced -->
+  <rect x="17" y="13" width="2" height="2" fill="#E7E1FF" /> <!-- Step/Rail 2 -->
+  
+  <rect x="20" y="18" width="4" height="4" fill="#003E8F" /> <!-- Fragment 3 -->
+  <rect x="20" y="18" width="2" height="2" fill="#E7E1FF" /> <!-- Step/Rail 3 -->
+  
+  <!-- GAP 2 in chute -->
+  
+  <rect x="25" y="21" width="5" height="4" fill="#003E8F" /> <!-- Fragment 4, final slide part -->
+  <rect x="25" y="21" width="4" height="2" fill="#E7E1FF" /> <!-- Final Step/Rail 4 -->
+  
+  <!-- Debris/Flying Blocks around fragmented chute -->
+  <rect x="16" y="11" width="2" height="1" fill="#003E8F" />
+  <rect x="19" y="17" width="1" height="1" fill="#E7E1FF" />
+  <rect x="24" y="20" width="2" height="1" fill="#003E8F" />
+  <rect x="29" y="25" width="1" height="1" fill="#003E8F" />
+
+  <!-- Broken Stand Post (Bottom right) -->
+  <rect x="18" y="20" width="2" height="2" fill="#003E8F" /> <!-- Small upper fragment of post -->
+  <!-- GAP in stand post -->
+  <rect x="18" y="24" width="2" height="4" fill="#003E8F" /> <!-- Lower part of post -->
+  
+</svg>

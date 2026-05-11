@@ -20,6 +20,16 @@ const avatarSchema = new Schema({
 
 }, { _id: false });
 
+const TokenEntrySchema = new Schema(
+  {
+    amount:    { type: Number, required: true },
+    reason:    { type: String },           // e.g. "chapter_complete", "bonus"
+    chapterId: { type: Schema.Types.ObjectId, ref: "Chapter" },
+    earnedAt:  { type: Date, default: Date.now },
+  },
+  { _id: false }
+);
+
 const userSchema = new Schema({
   name: { type: String, required: true },
   username: { type: String, required: true, unique: true },
@@ -41,7 +51,8 @@ const userSchema = new Schema({
         default: "beginner",
       },
     },
-
+    tokens:      { type: Number, default: 0 },
+    tokenLedger: { type: [TokenEntrySchema], default: [] }, 
     friends: [{ type: Schema.Types.ObjectId, ref: "User" }],
     friendCode: {                                              // ← add this
     type: String,
@@ -50,7 +61,7 @@ const userSchema = new Schema({
   },
     communityEnabled: { type: Boolean, default: false }, // requires parent permission
  
-    isActive: { type: Boolean, default: true },
+  isActive: { type: Boolean, default: true },
   createdAt: { type: Date, default: Date.now }
 });
 

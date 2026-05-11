@@ -1,8 +1,11 @@
 // adapters/LevelAdapter.ts
 
 import { ImageSourcePropType } from 'react-native';
-import { AISimplificationService } from '../services/AISimplification';
 import { DialogStep, DifficultyVariant, LevelData } from '../types/level.types';
+
+import Slide2 from '../../assets/svgs/game/chapters/slide1.svg';
+import Slide1 from '../../assets/svgs/game/chapters/slide2.svg';
+import Slide3 from '../../assets/svgs/game/chapters/slide3.svg';
 
 // ──────────────────────────────────────────────────────────
 // TARGET INTERFACES (What your React components expect)
@@ -21,7 +24,7 @@ export interface GameLevel {
 export interface GameScene {
   id: string;
   name?: string;                 // Scene name (e.g., "Kitchen", "Bedroom")
-  background: ImageSourcePropType | null;  // Can be require() or {uri: '...'}
+  background: React.FC<any> | ImageSourcePropType | null; // Allow SVG components
   characters: GameCharacter[];
   steps: GameStep[];
 }
@@ -64,8 +67,6 @@ type CharacterPosition = 'left' | 'center-left' | 'center-right' | 'right' | 'ce
 // ──────────────────────────────────────────────────────────
 
 export class LevelAdapter {
-  private static aiService = new AISimplificationService();
-
   
   // Main public method - entry point for all transformations
   static async toGameLevel(
@@ -87,8 +88,6 @@ export class LevelAdapter {
   } else if (difficulty === 'easy') {
     // Only use AI for easy mode if no stored variant
     console.log('⚠️ No stored easy variant — falling back to live AI simplification');
-    const simplified = await this.simplifyLevel(dbLevel);
-    return simplified;
   } else {
     // For medium/hard without variants, use the base dialog
     console.log(`📝 No stored ${difficulty} variant, using base dialog`);
@@ -114,67 +113,6 @@ export class LevelAdapter {
     };
   }
 
-
-  //ai simplication
-// adapters/LevelAdapter.ts
-
-private static async simplifyLevel(rawLevel: any): Promise<GameLevel> {
-  console.log('🤖 simplifyLevel: Starting AI simplification');
-  
-  // First, convert to GameLevel to get the structure
-  let gameLevel = this.convertToGameLevel(rawLevel);
-  
-  console.log('📊 Original game level created with', gameLevel.scenes[0]?.steps.length, 'steps');
-  
-  // Simplify all text in the level
-  for (const scene of gameLevel.scenes) {
-    for (const step of scene.steps) {
-      // Simplify step text
-      if (step.text) {
-        const original = step.text;
-        step.text = await this.aiService.simplifyText(step.text, 'easy');
-        console.log(`📝 Simplified text: "${original}" → "${step.text}"`);
-      }
-      
-      // Simplify instruction for tasks
-      if (step.instruction) {
-        step.instruction = await this.aiService.simplifyText(step.instruction, 'easy');
-      }
-      
-      // Simplify choice options
-      if (step.taskType === 'choice' && step.content?.options) {
-        for (const option of step.content.options) {
-          if (option.text) {
-            option.text = await this.aiService.simplifyText(option.text, 'easy');
-          }
-        }
-      }
-    }
-  }
-  
-  console.log('✅ simplifyLevel: AI simplification complete');
-  return gameLevel;
-}
-    private static convertToGameLevel(rawLevel: any): GameLevel {
-  // Convert to proper GameLevel structure
-  const adaptedSteps = this.adaptDialogSteps(rawLevel.dialog, undefined, 'easy');
-  
-  return {
-    id: `level_${rawLevel.order}`,
-    title: rawLevel.title,
-    order: rawLevel.order,
-    currentDifficulty: 'easy',
-    scenes: [{
-      id: `${rawLevel._id}_scene_main`,
-      background: this.convertBackgroundImage(rawLevel.scene?.backgroundImage),
-      characters: this.extractCharacters(rawLevel.scene?.characters || []),
-      steps: adaptedSteps
-    }],
-    reward: rawLevel.reward || { stars: 3 },
-    maxRetries: rawLevel.maxRetries ?? 3,
-  };
-}
-
   // ──────────────────────────────────────────────────────────
   // 1. Dialog Step Adaptation (Most Important)
   // ──────────────────────────────────────────────────────────
@@ -189,8 +127,6 @@ private static adaptDialogSteps(
   
   for (let i = 0; i < dialog.length; i++) {
     const step = dialog[i];
-    console.log("Raw step from DB level adapter:", step); // Debug log
-    console.log("Raw taskType value leveladapter:", step.taskType); // Check if this exists
 
     const adaptedStep: GameStep = {
       id: `step_${i}`,
@@ -205,8 +141,6 @@ private static adaptDialogSteps(
       correctFeedback: step.correctFeedback,
       wrongFeedback: step.wrongFeedback,
     };
-
-    console.log("Adapted step taskType level adapter:", adaptedStep.taskType);
 
     
     // For tap_object tasks, add the objects to find with sprites
@@ -235,9 +169,9 @@ private static adaptDialogSteps(
   };
 }
       // Apply difficulty-specific adaptations
-      if (step.type === 'task') {
-        this.adaptTaskForDifficulty(adaptedStep, difficulty);
-      }
+      // if (step.type === 'task') {
+      //   this.adaptTaskForDifficulty(adaptedStep, difficulty);
+      // }
       
       // Add speaker metadata for character lookup
       if (step.speaker) {
@@ -259,62 +193,6 @@ private static adaptDialogSteps(
   // ──────────────────────────────────────────────────────────
   // 2. Task Difficulty Adaptation
   // ──────────────────────────────────────────────────────────
-  
-  private static adaptTaskForDifficulty(step: GameStep, difficulty?: string): void {
-    if (difficulty === 'easy') {
-      // EASY MODE: More help, more time, simpler content
-      
-      // Add hints to feedback
-      if (step.correctFeedback) {
-        step.correctFeedback = `🌟 ${step.correctFeedback} Great job!`;
-      }
-      if (step.wrongFeedback) {
-        step.wrongFeedback = `💡 ${step.wrongFeedback} Try looking for the green button!`;
-      }
-      
-      // Add time limit if none exists
-      step.metadata = {
-        ...step.metadata,
-        timeLimit: 60,  // 60 seconds for easy mode
-        hints: ['Look for visual clues', 'Take your time!']
-      };
-      
-      // Simplify choices if it's a choice task
-      if (step.taskType === 'choice' && step.content?.options) {
-        // Reduce to 2 options for easy mode
-        step.content.options = step.content.options.slice(0, 2);
-        // Mark correct answer more visibly
-        // Inline type annotation
-step.content.options = step.content.options.map((opt: { text: string; correct: boolean }) => ({
-  ...opt,
-  hint: opt.correct ? '✓ This is correct!' : undefined
-}));
-      }
-      
-    } else if (difficulty === 'hard') {
-      // HARD MODE: Less help, less time, more complex
-      
-      step.metadata = {
-        ...step.metadata,
-        timeLimit: 30,  // 30 seconds for hard mode
-        hints: []       // No hints in hard mode
-      };
-      
-      // Remove helpful feedback
-      step.correctFeedback = step.correctFeedback?.replace(/[🌟🎉✨]/g, '');
-      step.wrongFeedback = "That's not correct. Try again.";
-      
-      // Add more options for choice tasks
-      if (step.taskType === 'choice' && step.content?.options) {
-        // Add a distractor option
-        step.content.options.push({
-          text: 'Tricky option',
-          correct: false,
-          isDistractor: true
-        });
-      }
-    }
-  }
   
   // ──────────────────────────────────────────────────────────
   // 3. Character Extraction & Mapping
@@ -390,34 +268,20 @@ step.content.options = step.content.options.map((opt: { text: string; correct: b
   // 4. Asset Loading (URLs → Local requires)
   // ──────────────────────────────────────────────────────────
   
-  private static convertBackgroundImage(url?: string): ImageSourcePropType | null {
-    if (!url) return null;
-    
-    // If it's a local asset reference (starts with @/ or ./)
-    if (url.startsWith('@/') || url.startsWith('./')) {
-      // In a real app, you'd have a mapping system
-      // For now, return as URI
-      return { uri: url };
-    }
-    
-    // If it's a remote URL
-    if (url.startsWith('http')) {
-      return { uri: url };
-    }
-    
-    // If it's a local asset name
-    try {
-      // This is simplified - in reality you'd have a require mapping
-      return { uri: url };
-    } catch {
-      return null;
-    }
+private static convertBackgroundImage(url?: string): any {
+  if (!url) return null;
+  const key = url.toLowerCase().trim();
+  if (this.IMAGE_MAP[key]) return this.IMAGE_MAP[key]; // SVG component
+  if (url.startsWith('http') || url.startsWith('@/') || url.startsWith('./')) {
+    return { uri: url };
   }
+  return { uri: url };
+}
 
   private static IMAGE_MAP: Record<string, any> = {
-  slide1: require('../../assets/images/chapters/slide1.png'),
-  slide2: require('../../assets/images/chapters/slide3.png'),
-  slide3: require('../../assets/images/chapters/slide2.png'),
+  slide1: Slide1,
+  slide2: Slide2,
+  slide3: Slide3
 };
 
 private static resolveImage(key: string | undefined): any {

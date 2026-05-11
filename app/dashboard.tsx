@@ -1,5 +1,6 @@
-import { AppColors, AppFonts, ButtonStyles, CardStyles, Spacing } from '@/constants/theme';
+import { AppColors, AppFonts, AppFontSizes, ButtonStyles, CardStyles, Spacing } from '@/constants/theme';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useRouter } from 'expo-router';
 import React, { useEffect, useMemo, useState } from 'react';
 import {
   ActivityIndicator,
@@ -19,34 +20,44 @@ import NavBar from './components/navbar';
 
 const { width } = Dimensions.get('window');
 
-// // ─── DECORATIVE SVG ILLUSTRATION ─────────────────────────
-// const HeroIllustration = () => (
-//   <Svg width={300} height={300} viewBox="0 0 300 300" fill="none"></Svg>
-// );
+// ─── DIARY PREVIEW CARD ──────────────────────────────────
+const DiaryPreviewCard = ({ onPress }: { onPress: () => void }) => {
+  const today = new Date();
+  const dateLabel = today.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
 
-// ─── SUB-COMPONENTS ──────────────────────────────────────
-// const Tag = ({
-//   label,
-//   bgColor = AppColors.blue,
-//   textColor = AppColors.lilac,
-// }: {
-//   label: string;
-//   bgColor?: string;
-//   textColor?: string;
-// }) => (
-//   <View style={[styles.tag, { backgroundColor: bgColor }]}>
-//     <Text style={[styles.tagText, { color: textColor }]}>{label.toUpperCase()}</Text>
-//   </View>
-// );
+  return (
+    <TouchableOpacity onPress={onPress} activeOpacity={0.85} style={styles.diaryPreviewCard}>
+      <View style={styles.diarySpine} />
+      <View style={styles.diaryPreviewInner}>
+        <Text style={styles.diaryPreviewTitle}>My Diary</Text>
+        <Text style={styles.diaryPreviewDate}>Today · {dateLabel}</Text>
+        <View style={styles.diaryLines}>
+          {[1, 2, 3].map((_, i) => (
+            <View key={i} style={[styles.diaryLine, i === 2 && { width: '55%' }]} />
+          ))}
+        </View>
+        <View style={styles.diaryBadge}>
+          <Text style={styles.diaryBadgeText}>✏ Write note</Text>
+        </View>
+      </View>
+    </TouchableOpacity>
+  );
+};
 
 // ─── SECTION 1: HERO ─────────────────────────────────────
-//simplify this later
-const HeroSection = ({ userName, onOpenCalendar }: { userName: string; onOpenCalendar: () => void }) => {
+const HeroSection = ({
+  userName,
+  onOpenCalendar,
+  onOpenDiary,
+}: {
+  userName: string;
+  onOpenCalendar: () => void;
+  onOpenDiary: () => void;
+}) => {
   const today = new Date();
   const monthNames = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
   const dayNames = ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
 
-  // build 5 days: 2 before today, today, 2 after
   const days = [-2, -1, 0, 1, 2].map((offset) => {
     const d = new Date(today);
     d.setDate(today.getDate() + offset);
@@ -59,17 +70,16 @@ const HeroSection = ({ userName, onOpenCalendar }: { userName: string; onOpenCal
 
   return (
     <View style={styles.heroSection}>
+
       {/* left col */}
-      <View style={{ flexDirection: 'column', flex: 1, marginRight: Spacing.xl, marginLeft: Spacing.xl, alignItems: 'flex-start', justifyContent: 'center' }}>
+      <View style={styles.heroCol}>
         <Image source={require('../assets/images/profilepic.png')} resizeMode="contain" />
         <Text style={styles.heroTitle}>Hi! {userName}</Text>
       </View>
 
       {/* center col */}
-      <View style={{ flexDirection: 'column', flex: 2, alignItems: 'center', justifyContent: 'center' }}>
+      <View style={[styles.heroCol, { flex: 2 }]}>
         <TouchableOpacity style={styles.calendarCard} onPress={onOpenCalendar} activeOpacity={0.85}>
-          
-          {/* month header */}
           <View style={styles.calendarHeader}>
             <Text style={styles.calendarChevron}>‹</Text>
             <Text style={styles.calendarMonth}>
@@ -77,14 +87,9 @@ const HeroSection = ({ userName, onOpenCalendar }: { userName: string; onOpenCal
             </Text>
             <Text style={styles.calendarChevron}>›</Text>
           </View>
-
-          {/* day strip */}
           <View style={styles.calendarPreviewRow}>
             {days.map((day, index) => (
-              <View
-                key={index}
-                style={[styles.previewDay, day.isToday && styles.previewDayActive]}
-              >
+              <View key={index} style={[styles.previewDay, day.isToday && styles.previewDayActive]}>
                 <Text style={[styles.previewDayName, day.isToday && styles.previewDayNameActive]}>
                   {day.name}
                 </Text>
@@ -95,10 +100,9 @@ const HeroSection = ({ userName, onOpenCalendar }: { userName: string; onOpenCal
               </View>
             ))}
           </View>
-
         </TouchableOpacity>
 
-        <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+        <View style={styles.btnRow}>
           <TouchableOpacity style={styles.btnAction}><Text style={styles.btnActionText}>Total</Text></TouchableOpacity>
           <TouchableOpacity style={styles.btnAction}><Text style={styles.btnActionText}>Missed</Text></TouchableOpacity>
           <TouchableOpacity style={styles.btnAction}><Text style={styles.btnActionText}>Favorite</Text></TouchableOpacity>
@@ -106,47 +110,24 @@ const HeroSection = ({ userName, onOpenCalendar }: { userName: string; onOpenCal
       </View>
 
       {/* right col */}
-      <View style={{ flexDirection: 'column', flex: 1, marginRight: Spacing.xl, marginLeft: Spacing.xl, justifyContent: 'center', alignContent: 'center' }}>
-        <View style={styles.card} />
-        <TouchableOpacity style={styles.btnAction}>
-          <Text style={styles.btnActionText}>Write Today's note</Text>
-        </TouchableOpacity>
+      <View style={styles.heroCol}>
+        <DiaryPreviewCard onPress={onOpenDiary} />
       </View>
+
     </View>
   );
 };
 
-
-// const GameSection = () => (
-// <View style={styles.gameSection}>
-//   <View style={styles.gameCard}>
-//   </View>
-// </View>
-// );
-
-// // ─── SECTION 3: COMMUNITY ────────────────────────────────
-// const CommunitySection = () => (
-// <View style={styles.shadowWrapper}>
-//   <View style={styles.shadowLayer} />
-//   <View style={styles.commCard}>
-//   </View>
-// </View>
-// );
-
-
-// ─── FOOTER ──────────────────────────────────────────────
+// ─── FOOTER COLS ─────────────────────────────────────────
 const footerCols = [
   { title: 'Play', links: ['Games', 'Leaderboard', 'Challenges'] },
   { title: 'Connect', links: ['Community', 'Chat', 'Events'] },
   { title: 'You', links: ['Diary', 'Profile', 'Settings'] },
 ];
 
-// const Footer = () => (
-// <Footer />
-// );
-
 // ─── MAIN SCREEN ─────────────────────────────────────────
 export default function dashboard() {
+  const router = useRouter(); // ← must be inside the component
   const [userName, setUserName] = useState('User');
   const [userId, setUserId] = useState<string | null>(null);
   const [calendarVisible, setCalendarVisible] = useState(false);
@@ -166,15 +147,11 @@ export default function dashboard() {
         console.error('Error loading user name:', error);
       }
     };
-
     loadUserName();
   }, []);
 
   useEffect(() => {
-    if (!calendarVisible || !userId) {
-      return;
-    }
-
+    if (!calendarVisible || !userId) return;
     const fetchCalendar = async () => {
       setCalendarLoading(true);
       try {
@@ -187,7 +164,6 @@ export default function dashboard() {
         setCalendarLoading(false);
       }
     };
-
     fetchCalendar();
   }, [calendarVisible, userId]);
 
@@ -210,14 +186,15 @@ export default function dashboard() {
   return (
     <View style={styles.root}>
       <StatusBar barStyle="light-content" backgroundColor={AppColors.blue} />
-      <NavBar userName={userName} />
-      <ScrollView showsVerticalScrollIndicator={false}
-      style={styles.main}>
-        <HeroSection userName={userName} onOpenCalendar={() => setCalendarVisible(true)} />
-          <View></View>
-          <View></View>
-        {/* <GameSection />
-        <CommunitySection /> */}
+      <NavBar />
+      <ScrollView showsVerticalScrollIndicator={false} style={styles.main}>
+        <HeroSection
+          userName={userName}
+          onOpenCalendar={() => setCalendarVisible(true)}
+          onOpenDiary={() => router.push('/diary/Diary')}
+        />
+        <View></View>
+        <View></View>
       </ScrollView>
 
       <Modal visible={calendarVisible} animationType="slide" transparent>
@@ -245,12 +222,10 @@ export default function dashboard() {
                 style={styles.fullCalendar}
               />
             )}
-           
           </View>
         </View>
       </Modal>
-    <Footer />
-
+      <Footer />
     </View>
   );
 }
@@ -261,29 +236,204 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: AppColors.lilacLight,
   },
-
-  main:{
+  main: {
     flex: 1,
-    flexDirection: 'column'
+    flexDirection: 'column',
+  },
+
+  // ── Hero
+  heroSection: {
+    backgroundColor: AppColors.lilac,
+    paddingVertical: 48,
+    paddingHorizontal: Spacing.xl,
+    flexDirection: 'row',
+    alignItems: 'center',   // all three cols share the same vertical centre
+    gap: Spacing.xl,        // uniform spacing between every column
+    minHeight: 320,
+    overflow: 'hidden',
+  },
+  // Shared column — flex:1, centred content, no ad-hoc margins
+  heroCol: {
+    flex: 1,
+    flexDirection: 'column',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  btnRow: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    flexWrap: 'wrap',
+    gap: Spacing.sm,
+    marginTop: Spacing.lg,
+  },
+
+  heroTitle: {
+    ...AppFonts.title,
+    fontSize: 50,
+    color: AppColors.blue,
+    lineHeight: 60,
+    marginBottom: Spacing.md,
   },
 
   btnAction: {
-     ...ButtonStyles.primary,
+    ...ButtonStyles.primary,
     backgroundColor: AppColors.lilac,
     shadowColor: AppColors.blue,
-    shadowOffset: { width: 0, height: 4 },
+    shadowOffset: { width: 4, height: 4 },
     shadowOpacity: 1,
     shadowRadius: 0,
     elevation: 6,
-    marginTop: Spacing.lg,
-    alignSelf: 'flex-start',
-    marginRight: Spacing.lg,
   },
   btnActionText: {
+    fontSize: AppFontSizes.bodySmall,
+    color: AppColors.blue,
+    ...AppFonts.bodySmall,
+  },
 
-     color: AppColors.blue,
-    ...AppFonts.button,
-    
+  // ── Calendar card
+  calendarCard: {
+    ...CardStyles.default,
+    minHeight: 180,
+    width: '100%',
+    padding: Spacing.lg,
+    justifyContent: 'space-between',
+    shadowColor: AppColors.blue,
+    shadowOffset: { width: 4, height: 4 },
+    shadowOpacity: 1,
+    shadowRadius: 0,
+    elevation: 6,
+  },
+  calendarHeader: {
+    flexDirection: 'row',
+    gap: Spacing.md,
+    marginBottom: Spacing.lg,
+  },
+  calendarMonth: {
+    fontSize: AppFontSizes.subhead,
+    color: AppColors.blue,
+    fontFamily: AppFonts.body.fontFamily,
+  },
+  calendarChevron: {
+    fontSize: 36,
+    color: AppColors.blue,
+    fontWeight: '500',
+    lineHeight: 26,
+  },
+  calendarPreviewRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    gap: Spacing.sm,
+  },
+  previewDay: {
+    flex: 1,
+    borderRadius: 18,
+    backgroundColor: AppColors.lilacLight,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: Spacing.sm,
+    gap: 4,
+  },
+  previewDayActive: {
+    backgroundColor: AppColors.blue,
+  },
+  previewDayName: {
+    fontSize: AppFontSizes.subhead,
+    color: AppColors.blue,
+    fontFamily: AppFonts.body.fontFamily,
+  },
+  previewDayNameActive: { color: 'white' },
+  previewDayNumber: {
+    fontSize: AppFontSizes.subhead,
+    color: AppColors.blue,
+    fontFamily: AppFonts.body.fontFamily,
+  },
+  previewDayNumberActive: { color: 'white' },
+  previewDayDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: 'white',
+    marginTop: 2,
+  },
+
+  // ── Diary preview card
+  diaryPreviewCard: {
+    ...CardStyles.default,
+    flexDirection: 'row',
+    width: '100%',
+    minHeight: 180,         // matches calendarCard so tops align
+    overflow: 'hidden',
+    shadowColor: AppColors.blue,
+    shadowOffset: { width: 4, height: 4 },
+    shadowOpacity: 1,
+    shadowRadius: 0,
+    elevation: 6,
+  },
+  diarySpine: {
+    width: 10,
+    backgroundColor: AppColors.blue,
+    borderRadius: 0,
+  },
+  diaryPreviewInner: {
+    flex: 1,
+    padding: Spacing.md,
+    justifyContent: 'center',
+  },
+  diaryPreviewTitle: {
+    ...AppFonts.subhead,
+    fontSize: AppFontSizes.body,
+    color: AppColors.blue,
+  },
+  diaryPreviewDate: {
+    ...AppFonts.body,
+    fontSize: AppFontSizes.bodySmall,
+    color: AppColors.blue,
+    opacity: 0.55,
+    marginBottom: Spacing.sm,
+  },
+  diaryLines: {
+    gap: 5,
+  },
+  diaryLine: {
+    height: 2,
+    width: '100%',
+    backgroundColor: AppColors.blue,
+    borderRadius: 2,
+    opacity: 0.2,
+    marginBottom: 5,
+  },
+  diaryBadge: {
+    marginTop: Spacing.sm,
+    alignSelf: 'flex-start',
+    backgroundColor: AppColors.blue,
+    borderRadius: 20,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+  },
+  diaryBadgeText: {
+    ...AppFonts.bodySmall,
+    color: AppColors.lilac,
+    fontSize: AppFontSizes.bodySmall,
+  },
+
+  // ── Shared card bits
+  card: {
+    ...CardStyles.default,
+    width: '100%',
+    height: 100,
+  },
+  cardTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: AppColors.blue,
+    marginBottom: Spacing.sm,
+    fontFamily: AppFonts.subhead.fontFamily,
+  },
+  cardCaption: {
+    fontSize: 13,
+    color: AppColors.blue,
+    opacity: 0.75,
+    fontFamily: AppFonts.bodySmall.fontFamily,
   },
 
   // ── Section shared
@@ -303,113 +453,7 @@ const styles = StyleSheet.create({
     fontFamily: AppFonts.bodySmall.fontFamily,
   },
 
-  // ── Section 1: Hero
-  heroSection: {
-    backgroundColor: AppColors.lilac,
-    paddingTop: 48,
-    paddingBottom: 52,
-    paddingLeft: Spacing.xl,
-    paddingRight: Spacing.md,
-    flexDirection: 'row',
-    alignItems: 'center',
-    overflow: 'hidden',
-    minHeight: 320,
-  },
-
-card:{
-    ...CardStyles.default,
-    //padding: Spacing.md,
-    width: '100%', 
-    height: 100,
-},
-
-  heroTitle: {
-    ...AppFonts.title,
-    fontSize: 50,
-    color: AppColors.blue,
-    lineHeight: 60,
-    marginBottom: Spacing.md,
-  },
-  // replace / add these in your StyleSheet:
-
-calendarCard: {
-  ...CardStyles.default,
-  minHeight: 180,
-  width: '100%',
-  padding: Spacing.lg,
-  justifyContent: 'space-between',
-},
-calendarHeader: {
-  flexDirection: 'row',
-  // alignItems: 'center',
-  // justifyContent: 'center',
-  gap: Spacing.md,
-  marginBottom: Spacing.lg,
-},
-calendarMonth: {
-  fontSize: 36,
-  color: AppColors.blue,
-  fontFamily: AppFonts.body.fontFamily,
-},
-calendarChevron: {
-  fontSize: 36,
-  color: AppColors.blue,
-  fontWeight: '500',
-  lineHeight: 26,
-},
-calendarPreviewRow: {
-  flexDirection: 'row',
-  justifyContent: 'space-between',
-  gap: Spacing.sm,
-},
-previewDay: {
-  flex: 1,
-  borderRadius: 18,
-  backgroundColor: AppColors.lilacLight,
-  alignItems: 'center',
-  justifyContent: 'center',
-  paddingVertical: Spacing.sm,
-  gap: 4,
-},
-previewDayActive: {
-  backgroundColor: AppColors.blue,  // today is highlighted
-},
-previewDayName: {
-  fontSize: 36,
-  color: AppColors.blue,
-  fontFamily: AppFonts.body.fontFamily,
-},
-previewDayNameActive: {
-  color: 'white',
-},
-previewDayNumber: {
-  fontSize: 36,
-  color: AppColors.blue,
-  fontFamily: AppFonts.body.fontFamily,
-},
-previewDayNumberActive: {
-  color: 'white',
-},
-previewDayDot: {
-  width: 6,
-  height: 6,
-  borderRadius: 3,
-  backgroundColor: 'white',
-  marginTop: 2,
-},
-  cardTitle: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: AppColors.blue,
-    marginBottom: Spacing.sm,
-    fontFamily: AppFonts.subhead.fontFamily,
-  },
-  cardCaption: {
-    fontSize: 13,
-    color: AppColors.blue,
-    opacity: 0.75,
-    fontFamily: AppFonts.bodySmall.fontFamily,
-  },
+  // ── Modal
   fullCalendar: {
     width: '100%',
     borderRadius: 24,
@@ -463,13 +507,14 @@ previewDayDot: {
     ...ButtonStyles.primary,
     textAlign: 'center',
   },
+
   // ── Section 2: Game
-    gameSection: {alignItems: 'center', justifyContent: 'center', padding: Spacing.xl}, 
-    gameCard : {
-        ...CardStyles.default,
-        width: width - Spacing.xl * 2,
-        height: 200,
-    },
+  gameSection: { alignItems: 'center', justifyContent: 'center', padding: Spacing.xl },
+  gameCard: {
+    ...CardStyles.default,
+    width: width - Spacing.xl * 2,
+    height: 200,
+  },
 
   // ── Section 3: Community
   communitySection: {
@@ -477,24 +522,21 @@ previewDayDot: {
     padding: Spacing.xl,
     paddingVertical: 48,
   },
-
-    commCard: {...CardStyles.default, width: width - Spacing.xl * 2, height: 200},
-
-    shadowWrapper: {
-        backgroundColor: AppColors.lilac,
-  position: 'relative',
-  alignSelf: 'flex-start',
-},
-
-shadowLayer: {
-  position: 'absolute',
-  top: 6,          // 👈 controls shadow thickness (vertical)
-  left: 0,
-  right: 0,
-  bottom: -6,
-  backgroundColor: AppColors.blue,
-  borderRadius: 24,
-},
+  commCard: { ...CardStyles.default, width: width - Spacing.xl * 2, height: 200 },
+  shadowWrapper: {
+    backgroundColor: AppColors.lilac,
+    position: 'relative',
+    alignSelf: 'flex-start',
+  },
+  shadowLayer: {
+    position: 'absolute',
+    top: 6,
+    left: 0,
+    right: 0,
+    bottom: -6,
+    backgroundColor: AppColors.blue,
+    borderRadius: 24,
+  },
 
   // ── Footer
   footer: {

@@ -776,6 +776,7 @@
           <button class="btn btn-outline btn-sm" onclick="addStepToList('task', document.getElementById('step-list'))">+ Task</button>
         </div>
       </div>
+    </div>
 
     <!-- ════════════════════ CHAPTERS PAGE ════════════════════ -->
     <div class="page" id="page-chapters">
@@ -908,7 +909,7 @@ async function loadChapters() {
   if (!API) { list.innerHTML = '<div class="empty"><div class="empty-icon">🔌</div><div class="empty-text">Connect your API first.</div></div>'; return; }
   list.innerHTML = '<div style="color:var(--muted);padding:16px;">Loading…</div>';
   try {
-    const r = await fetch(`${API}/api/chapters`);
+    const r = await fetch(`${API}/api/chapters/admin`);
     const data = await r.json();
     const raw = data.chapters ?? data.data ?? data;
     chapters = Array.isArray(raw) ? raw : [];

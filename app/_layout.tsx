@@ -1,42 +1,62 @@
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { DefaultTheme, ThemeProvider } from '@react-navigation/native';
 import { useFonts } from 'expo-font';
-import { Stack } from 'expo-router';
+import { Stack, useRouter } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
+import { useEffect, useState } from 'react';
 import 'react-native-reanimated';
-
-
-export const unstable_settings = {
-  // anchor: '(tabs)',
-  initialRouteName: 'welcome',
-};
+import { useSessionStore } from './services/userSession';
 
 export default function RootLayout() {
+  const router = useRouter();
+  const [isReady, setIsReady] = useState(false);
+
+  const user = useSessionStore((s) => s.user);
+  const setUser = useSessionStore((s) => s.setUser);
 
   const [fontsLoaded] = useFonts({
     'Game Paused DEMO': require('../assets/fonts/Game Paused DEMO.ttf'),
-    'PixelPurl': require('../assets/fonts/PixelPurl.ttf'),
-    'yoster': require('../assets/fonts/yoster.ttf'),
+    PixelPurl: require('../assets/fonts/PixelPurl.ttf'),
+    yoster: require('../assets/fonts/yoster.ttf'),
   });
 
-  if (!fontsLoaded) {
-    return null; // or a loading screen
-  }
+  useEffect(() => {
+    const bootstrap = async () => {
+      try {
+        const storedUser = await AsyncStorage.getItem('user');
+
+        if (storedUser) {
+          setUser(JSON.parse(storedUser));
+        }
+      } catch (err) {
+        console.log('Session load error:', err);
+      } finally {
+        setIsReady(true);
+      }
+    };
+
+    bootstrap();
+  }, []);
+
+  if (!fontsLoaded || !isReady) return null;
 
   return (
     <ThemeProvider value={DefaultTheme}>
-      <Stack initialRouteName="welcome" screenOptions={{headerShown:false}}>
-        <Stack.Screen name="welcome" options={{ headerShown: false }} />
-        <Stack.Screen name="login" options={{ title: 'Login' }} />
-        <Stack.Screen name="dashboard" options={{ headerShown: false }} />
-        <Stack.Screen name="signup" options={{ title: 'Sign Up' }} />
-        <Stack.Screen name="register-child" options={{ title: 'Register Child' }} />
-        <Stack.Screen name="game" options={{ title: 'Game' }} />
-        <Stack.Screen name="community" options={{ title: 'Community' }} />
-        <Stack.Screen name="diary" options={{ title: 'Diary' }} />
-        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-        <Stack.Screen name="modal" options={{ presentation: 'modal', title: 'Modal' }} />
-        <Stack.Screen name="chapters" options={{ title: 'Chapters' }} />
+      <Stack screenOptions={{ headerShown: false }}>
+        <Stack.Screen name="welcome" />
+        <Stack.Screen name="login" />
+        <Stack.Screen name="signup" />
+
+        <Stack.Screen name="dashboard" />
+        <Stack.Screen name="game" />
+        <Stack.Screen name="community" />
+        <Stack.Screen name="diary" />
+        <Stack.Screen name="chapters" />
+
+        <Stack.Screen name="register-child" />
+        <Stack.Screen name="modal" options={{ presentation: 'modal' }} />
       </Stack>
+
       <StatusBar style="auto" />
     </ThemeProvider>
   );

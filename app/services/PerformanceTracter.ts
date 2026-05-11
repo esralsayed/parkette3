@@ -147,9 +147,6 @@ export class PerformanceTracker {
     this.sendToBackend(fullRecord).catch(err => 
       console.error('Failed to send to backend:', err)
     );
-
-    await this.checkAndAdjustDifficulty();
-
     
     // 📢 LOG FOR DEBUGGING (helps developers see what's happening)
     console.log(`📊 Recorded: Task ${attempt.taskId} - ${attempt.correct ? '✅' : '❌'} (${attempt.timeTaken}s, accuracy: ${fullRecord.accuracy}%)`);
@@ -168,23 +165,6 @@ export class PerformanceTracker {
       }
     } catch (error) {
       // Store failed attempts in local queue for retry
-    }
-  }
-
-  private async checkAndAdjustDifficulty(): Promise<void> {
-    // Real-time decisions based on local data
-    if (this.shouldDecreaseDifficulty()) {
-      await this.adjustDifficulty('easy');
-    } else if (this.shouldIncreaseDifficulty()) {
-      await this.adjustDifficulty('hard');
-    }
-  }
-  
-  private async adjustDifficulty(level: 'easy' | 'medium' | 'hard'): Promise<void> {
-    console.log(`🎮 Adjusting difficulty to ${level}`);
-    // Emit event or callback to parent component
-    if (this.onDifficultyChange) {
-      this.onDifficultyChange(level);
     }
   }
   
@@ -275,48 +255,6 @@ export class PerformanceTracker {
   // ──────────────────────────────────────────────────────────
   // EXTRA HELPER METHODS (Add these if needed)
   // ──────────────────────────────────────────────────────────
-  
-  // Check if player is struggling and needs easier difficulty
-  shouldDecreaseDifficulty(): boolean {
-    const performance = this.getCurrentPerformance();
-    
-    // Decrease difficulty if:
-    // 1. Accuracy below 50% OR
-    // 2. Last 3 questions were all wrong OR  
-    // 3. Taking more than 15 seconds per question on average
-    const recentTasks = this.sessionData.slice(-3);
-    const allWrong = recentTasks.length === 3 && recentTasks.every(t => !t.correct);
-    const tooSlow = performance.averageResponseTime > 15;
-    
-    const shouldDecrease = performance.accuracy < 50 || allWrong || tooSlow;
-    
-    if (shouldDecrease) {
-      console.log(`⚠️ Recommendation: DECREASE difficulty (accuracy: ${performance.accuracy}%, allWrong: ${allWrong}, tooSlow: ${tooSlow})`);
-    }
-    
-    return shouldDecrease;
-  }
-  
-  // Check if player is excelling and needs harder difficulty
-  shouldIncreaseDifficulty(): boolean {
-    const performance = this.getCurrentPerformance();
-    
-    // Increase difficulty if:
-    // 1. Accuracy above 85% AND
-    // 2. Last 3 questions were all correct AND
-    // 3. Answering quickly (under 5 seconds average)
-    const recentTasks = this.sessionData.slice(-3);
-    const allCorrect = recentTasks.length === 3 && recentTasks.every(t => t.correct);
-    const fastEnough = performance.averageResponseTime < 5;
-    
-    const shouldIncrease = performance.accuracy > 85 && allCorrect && fastEnough;
-    
-    if (shouldIncrease) {
-      console.log(`🎯 Recommendation: INCREASE difficulty (accuracy: ${performance.accuracy}%, fast: ${fastEnough})`);
-    }
-    
-    return shouldIncrease;
-  }
   
   // Get a human-readable summary (for debugging or UI)
   getSummary(): string {

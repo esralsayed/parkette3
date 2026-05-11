@@ -1,4 +1,5 @@
 import express from "express";
+import { Message } from "../models/Chat/community.js";
 import { User } from "../models/User.js";
 const communityroutes = express.Router(); 
 
@@ -187,6 +188,55 @@ communityroutes.post("/friends/deny", async (req, res) => {
   } catch (err) {
     console.error("Error denying friend request:", err);
     res.status(500).json({ message: "Server error" });
+  }
+});
+
+// messages
+communityroutes.post("/messages/send", async (req, res) => {
+  try {
+    const { senderId, receiverId, content } = req.body;
+
+    console.log("[MESSAGE SEND] Incoming request:", {
+      senderId,
+      receiverId,
+      contentLength: content?.length,
+    });
+
+    // basic validation (important for stability)
+    if (!senderId || !receiverId || !content) {
+      console.warn("[MESSAGE SEND] Missing fields:", {
+        senderId,
+        receiverId,
+        content,
+      });
+
+      return res.status(400).json({
+        message: "senderId, receiverId, and content are required",
+      });
+    }
+
+    const msg = await Message.create({
+      senderId,
+      receiverId,
+      content,
+      moderation: {
+        status: "pending",
+        autoModerated: true,
+      },
+    });
+
+    console.log("[MESSAGE SEND] Message created successfully:", msg._id);
+
+    return res.status(201).json(msg);
+  } catch (error) {
+    console.error("[MESSAGE SEND] Error creating message:", {
+      message: error.message,
+      stack: error.stack,
+    });
+
+    return res.status(500).json({
+      message: "Failed to send message",
+    });
   }
 });
 

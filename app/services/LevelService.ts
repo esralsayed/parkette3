@@ -23,7 +23,8 @@ class LevelAttemptTracker {
     if (hadWrongChoices) current.wrongChoices++;
     this.attempts.set(levelId, current);
     
-    // Save to storage
+    console.log(`[Attempts] Saving to AsyncStorage →`, current);   // ← Add this
+    
     await AsyncStorage.setItem(`level_attempts_${levelId}`, JSON.stringify(current));
   }
   
@@ -40,6 +41,7 @@ class LevelAttemptTracker {
 
 export interface GameSession {
   levelId: string;
+  chapterId: string;
   level: GameLevel;
   currentSceneIndex: number;
   currentStepIndex: number;
@@ -65,7 +67,15 @@ export interface StepResult {
   starsDeducted?: number;
 }
 
+export interface ChapterProgressPayload {
+  userId: string;
+  chapterId: string;
+  completedLevelId: string;
+  starsEarned: number;       // stars earned on THIS level
+}
+
 export class LevelService {
+  private attemptTracker = LevelAttemptTracker.getInstance();
   private currentSession: GameSession | null = null;
   private performanceTracker: PerformanceTracker | null = null;
   private currentDifficulty: 'easy' | 'medium' | 'hard' = 'medium';
@@ -83,11 +93,17 @@ export class LevelService {
   // creates a current session object
   // returns the gameLevel it got from leveladaptor
   
-  async initializeLevel(levelId: string, userId: string, difficulty?: 'easy' | 'medium' | 'hard'): Promise<GameLevel> {
+  async initializeLevel(levelId: string, chapterId: string, userId: string, difficulty?: 'easy' | 'medium' | 'hard'): Promise<GameLevel> {
     console.log(`🎮 Initializing level ${levelId} for user ${userId}`);
     
     // Use medium difficulty for now (you can change this later)
     this.currentDifficulty = difficulty || 'medium';
+
+    // ✅ Don't record an attempt here — we only count attempts when the user
+    // fails (i.e. makes wrong choices). Replaying a passed level doesn't count.
+    const currentAttemptNumber = await this.getAccumulatedAttempts(levelId);
+
+    console.log("im tracking the difficulty",this.currentDifficulty);
 
     // Check cache first for easy mode
   if (this.currentDifficulty === 'easy') {
@@ -98,11 +114,12 @@ export class LevelService {
       this.performanceTracker = new PerformanceTracker(userId, levelId);
       this.currentSession = {
         levelId,
+        chapterId,
         level: cached,
         currentSceneIndex: 0,
         currentStepIndex: 0,
         starsEarned: cached.reward?.stars || 3,
-        attempts: this.levelRetrialCount + 1,
+        attempts: currentAttemptNumber,
         startTime: Date.now(),
         completed: false,
         answers: []
@@ -127,15 +144,16 @@ export class LevelService {
     
     // Create performance tracker (just for tracking, not adapting yet)
     this.performanceTracker = new PerformanceTracker(userId, levelId);
-    
+  
     // Create session
     this.currentSession = {
       levelId,
+      chapterId,
       level: gameLevel,
       currentSceneIndex: 0,
       currentStepIndex: 0,
       starsEarned: gameLevel.reward?.stars || 3,
-      attempts: this.levelRetrialCount+1,
+      attempts: currentAttemptNumber,
       startTime: Date.now(),
       completed: false,
       answers: []
@@ -143,6 +161,35 @@ export class LevelService {
     
     return gameLevel;
   }
+
+private async getAccumulatedAttempts(levelId: string): Promise<number> {
+  try {
+    const key = `level_attempts_${levelId}`;
+    const data = await AsyncStorage.getItem(key);
+    
+    console.log(`[Attempts] Read attempt for ${levelId}`);
+    console.log(`[Attempts] Key used: ${key}`);
+    console.log(`[Attempts] Raw data from AsyncStorage:`, data);
+
+    if (!data) {
+      console.log(`[Attempts] No data found → returning 0`);
+      return 0;
+    }
+    
+    const parsed = JSON.parse(data);
+    console.log(`[Attempts] Parsed count:`, parsed.count);
+    
+    return parsed.count || 0;
+  } catch (e) {
+    console.error(`[Attempts] Error reading storage:`, e);
+    return 0;
+  }
+}
+
+private async recordLevelCompletion(levelId: string, hadWrongChoices: boolean): Promise<void> {
+  console.log(`[Attempts] Recording completion for ${levelId}, hadWrongChoices=${hadWrongChoices}`);
+  await this.attemptTracker.recordAttempt(levelId, hadWrongChoices);
+}
   
   // Cache simplified version using LevelRepository's AsyncStorage
   private async cacheSimplifiedLevel(levelId: string, gameLevel: GameLevel): Promise<void> {
@@ -186,199 +233,76 @@ export class LevelService {
   // services/LevelService.ts - advanceToNextStep method
 
 async advanceToNextStep(userAnswer?: any): Promise<StepResult> {
+  if (!this.currentSession || this.currentSession.completed) {
+    return { success: false, nextStep: null };
+  }
+
   const currentStep = this.getCurrentStep();
-  
+
+  // If we're already past the last step → complete the level
   if (!currentStep) {
     return this.completeLevel();
   }
-  
-  // Track performance for task steps
+
+  // === Task Step ===
   if (currentStep.type === 'task') {
-    const startTime = Date.now();
     const isCorrect = userAnswer?.isCorrect ?? false;
-    const timeTaken = (Date.now() - startTime) / 1000;
-    
-    // Record the attempt
+    const timeTaken = 0; // You can improve timing logic later
+
     this.performanceTracker?.recordTaskAttempt({
       taskId: currentStep.id,
       taskType: currentStep.taskType,
       correct: isCorrect,
-      timeTaken: timeTaken,
+      timeTaken,
     });
-    
-    // ✅ Insert continuation steps if they exist (for any answer)
+
+    // Insert continuation steps if any
     if (userAnswer?.continuationSteps?.length) {
-  const currentScene = this.currentSession!.level.scenes[this.currentSession!.currentSceneIndex];
+      const currentScene = this.currentSession.level.scenes[this.currentSession.currentSceneIndex];
+      const insertIndex = this.currentSession.currentStepIndex + 1;
 
-  const insertIndex = this.currentSession!.currentStepIndex + 1;
+      currentScene.steps.splice(
+        insertIndex, 
+        0, 
+        ...userAnswer.continuationSteps
+      );
+    }
 
-  currentScene.steps = [
-    ...currentScene.steps.slice(0, insertIndex),
-    ...userAnswer.continuationSteps,
-    ...currentScene.steps.slice(insertIndex),
-  ];
-}
-    // ✅ ALWAYS advance to the next step (whether correct or wrong)
-    // This will now point to the inserted continuation step
-    this.currentSession!.currentStepIndex++;
-    
-    // Handle stars deduction for wrong answers
+    // Advance index
+    this.currentSession.currentStepIndex++;
+
+    // Deduct star on wrong answer
     if (!isCorrect) {
       this.wrongChoiceCount++;
-      this.currentSession!.starsEarned = Math.max(0, this.currentSession!.starsEarned - 1);
+      this.currentSession.starsEarned = Math.max(0, this.currentSession.starsEarned - 1);
     }
-    
+
+    // Check if we finished after this advancement
     const nextStep = this.getCurrentStep();
-    console.log('➡️ After advancement:', {
-      isCorrect,
-      newIndex: this.currentSession!.currentStepIndex,
-      nextStepType: nextStep?.type,
-      nextStepText: nextStep?.text || nextStep?.instruction
-    });
-    
+    if (!nextStep) {
+      return this.completeLevel();
+    }
+
     return {
       success: isCorrect,
-      nextStep: this.getCurrentStep(),
+      nextStep,
       starsDeducted: isCorrect ? 0 : 1
     };
   }
-  
-  // For narrative steps, just advance
-  this.currentSession!.currentStepIndex++;
+
+  // === Narrative / Story Step ===
+  this.currentSession.currentStepIndex++;
+
+  const nextStep = this.getCurrentStep();
+  if (!nextStep) {
+    return this.completeLevel();
+  }
+
   return {
     success: true,
-    nextStep: this.getCurrentStep()
+    nextStep
   };
 }
-
-  // Check if level needs simplification based on retries and wrong choices
-  needsSimplification(): boolean {
-    // Simplify after 2 level retries AND still making wrong choices
-    const hasMultipleRetries = this.levelRetrialCount >= 2;
-    const hasWrongChoices = this.wrongChoiceCount > 0;
-    
-    return hasMultipleRetries && hasWrongChoices;
-  }
-  
-  // Get recommendation for next difficulty level
-  getRecommendedDifficulty(): 'easy' | 'medium' | 'hard' {
-    if (this.needsSimplification()) {
-      // If already on easy, stay on easy
-      if (this.currentDifficulty === 'easy') return 'easy';
-      // Otherwise simplify by one level
-      if (this.currentDifficulty === 'medium') return 'easy';
-      if (this.currentDifficulty === 'hard') return 'medium';
-    }
-    return this.currentDifficulty;
-  }
-
-    // Reset for level retry with potentially easier difficulty
-    // who uses this function? 
-  async retryLevelWithSimplification(): Promise<GameLevel> {
-    this.levelRetrialCount++;
-    
-    const recommendedDifficulty = this.getRecommendedDifficulty();
-    const willSimplify = recommendedDifficulty !== this.currentDifficulty;
-    
-    console.log(`🔄 Retrying level (attempt #${this.levelRetrialCount + 1})`, {
-      currentDifficulty: this.currentDifficulty,
-      recommendedDifficulty,
-      willSimplify,
-      wrongChoicesThisAttempt: this.wrongChoiceCount
-    });
-    
-    if (willSimplify) {
-      console.log(`✨ Simplifying language from ${this.currentDifficulty} to ${recommendedDifficulty}`);
-      this.currentDifficulty = recommendedDifficulty;
-    }
-    
-    // Reset wrong choice counter for new attempt
-    this.wrongChoiceCount = 0;
-    
-    // Re-initialize level with new difficulty
-    const userId = await this.getCurrentUserId();
-    return this.initializeLevel(this.currentSession!.levelId, userId, this.currentDifficulty);
-  }
-
-  getLevelRetryInfo() {
-    return {
-      retryCount: this.levelRetrialCount,
-      currentDifficulty: this.currentDifficulty,
-      wrongChoicesThisAttempt: this.wrongChoiceCount,
-      needsSimplification: this.needsSimplification()
-    };
-  }
-  
-  private async validateAnswer(step: GameStep, answer: any): Promise<boolean> {
-    switch (step.taskType) {
-      case 'choice':
-        return this.validateChoiceAnswer(step, answer);
-      case 'tap_object':
-        return this.validateTapObjectAnswer(step, answer);
-      case 'drag_drop':
-        return this.validateDragDropAnswer(step, answer);
-      case 'speak':
-        return this.validateSpeakAnswer(step, answer);
-      default:
-        return false;
-    }
-  }
-  
-  private validateChoiceAnswer(step: GameStep, answer: any): boolean {
-    console.log('does the code run here?');
-    if (typeof answer === 'object' && answer.isCorrect !== undefined) {
-      return answer.isCorrect;
-    }
-    if (answer && answer.correct !== undefined) {
-      return answer.correct;
-    }
-    if (typeof answer === 'number' && step.content?.options) {
-      return step.content.options[answer]?.correct === true;
-    }
-    return false;
-  }
-  
-  private validateTapObjectAnswer(step: GameStep, answer: any): boolean {
-  // Game completion — all friends found
-  if (answer?.foundCount !== undefined) {
-    const required = step.content?.objectsInScene?.length || 
-                     step.content?.objectsToFind?.length || 1;
-    return answer.foundCount >= required;
-  }
-  
-  // Single object tap
-  const correctObject = step.content?.correctObject;
-  if (correctObject) {
-    return answer?.objectId === correctObject;
-  }
-
-  // If no correctObject defined, any completion counts as correct
-  return true;
-}
-  
-  private validateDragDropAnswer(step: GameStep, answer: any): boolean {
-    const matches = step.content?.matches || [];
-    return matches.every((match: any) => answer[match.item] === match.target);
-  }
-  
-  private async validateSpeakAnswer(step: GameStep, answer: any): Promise<boolean> {
-    const expectedPhrase = step.content?.expectedPhrase;
-    const spokenText = answer?.spokenText || answer;
-    
-    if (!expectedPhrase) return false;
-    
-    if (step.content?.acceptSimilar) {
-      return this.fuzzyMatch(spokenText, expectedPhrase);
-    }
-    
-    return spokenText.toLowerCase() === expectedPhrase.toLowerCase();
-  }
-  
-  private fuzzyMatch(spoken: string, expected: string): boolean {
-    const normalizedSpoken = spoken.toLowerCase().trim();
-    const normalizedExpected = expected.toLowerCase().trim();
-    return normalizedSpoken.includes(normalizedExpected);
-  }
   
   getCurrentStep(): GameStep | null {
     if (!this.currentSession) return null;
@@ -417,41 +341,82 @@ async advanceToNextStep(userAnswer?: any): Promise<StepResult> {
     return this.performanceTracker.getCurrentPerformance();
   }
   
-  private async completeLevel(): Promise<StepResult> {
-    if (!this.currentSession) {
-      throw new Error('No active session');
-    }
-    
-    const session = this.currentSession;
-    session.completed = true;
-    
-    // Get final performance summary
-    const performance = this.performanceTracker?.getCurrentPerformance();
-    
-    console.log('🏆 Level Completed!', {
-      stars: session.starsEarned,
-      accuracy: performance?.accuracy,
-      avgTime: performance?.averageResponseTime
-    });
-    
-    // Save progress to repository
-    await levelRepository.saveProgress({
-      userId: await this.getCurrentUserId(),
-      levelId: session.levelId,
-      starsEarned: session.starsEarned,
-      passed: true,
-      attempts: session.attempts,
-      lastAttemptAt: new Date(),
-      completedAt: new Date()
-    });
-    
+private async completeLevel(): Promise<StepResult> {
+  if (!this.currentSession) {
+    throw new Error('No active session');
+  }
+
+  // ←←← ADD THIS GUARD
+  if (this.currentSession.completed) {
+    console.log("⚠️ Level already completed. Skipping duplicate save.");
     return {
       success: true,
-      feedback: `Level complete! You earned ${session.starsEarned} stars! 🎉`,
       nextStep: null
     };
   }
+
+  const session = this.currentSession;
+  session.completed = true;
+
+  // ✅ Only count this as a "failed attempt" if the user made wrong choices.
+  // A clean pass (wrongChoiceCount === 0) means they replayed successfully — don't penalise.
+  const hadWrongChoices = this.wrongChoiceCount > 0;
+  if (hadWrongChoices) {
+    await this.recordLevelCompletion(session.levelId, true);
+    // Refresh the attempt count so the backend receives the updated value
+    session.attempts = await this.getAccumulatedAttempts(session.levelId);
+  }
+
+  console.log("Sending attempts to backend:", session.attempts);
   
+  // Save level progress (only once)
+  await levelRepository.saveProgress({
+    userId: await this.getCurrentUserId(),
+    levelId: session.levelId,
+    chapterId: session.chapterId,
+    starsEarned: session.starsEarned,
+    passed: true,
+    attempts: session.attempts,
+    lastAttemptAt: new Date(),
+    completedAt: new Date()
+  });
+
+  // ✅ Update chapter progress after every level completion.
+  // levelRepository.getChapterLevels(chapterId) should return all level docs for the chapter.
+  // levelRepository.getPassedLevelIds(userId, chapterId) should return the set of levelIds
+  // the user has passed so far (including the one we just saved above).
+  await this.updateChapterProgress(session.chapterId);
+  
+  return {
+    success: true,
+    feedback: `Level complete! You earned ${session.starsEarned} stars! 🎉`,
+    nextStep: null
+  };
+}
+  
+  // ─── Chapter progress ────────────────────────────────────────────────────────
+  //
+  // Called after every level completion. Fetches all levels in the chapter and
+  // the user's passed-level set, then writes a ChapterProgress record.
+  //
+  // Required repo methods (add to LevelRepository if not present):
+  //   getChapterLevels(chapterId)            → { id, reward: { stars } }[]
+  //   getPassedLevelIds(userId, chapterId)   → Set<string>  (levelId strings)
+  //   saveChapterProgress(payload)           → void
+  //   markChapterStarted({ userId, chapterId, startedAt }) → void (no-op if already set)
+  //
+  private async updateChapterProgress(chapterId: string): Promise<void> {
+    const userId = await this.getCurrentUserId();
+    const session = this.currentSession!;
+
+    await levelRepository.saveChapterProgress({
+      userId,
+      chapterId,
+      completedLevelId: session.levelId,   // tell backend which level just finished
+      starsEarned: session.starsEarned,    // stars for THIS level only
+    });
+  }
+
   private async getCurrentUserId(): Promise<string> {
     // Get from your auth system
     const userJson = await AsyncStorage.getItem('user');

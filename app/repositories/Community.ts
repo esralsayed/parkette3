@@ -123,3 +123,35 @@ export async function denyFriendRequest(friendId: string) {
   if (!response.ok) throw new Error('Failed to deny request');
   return response.json();
 }
+
+// 1. Send message (creates MessageSchema doc)
+export async function sendMessage(receiverId: string, content: string) {
+  const userId = await getUserId();
+  const headers = await getHeaders();
+
+  const response = await fetch(`${API_URL}/messages/send`, {
+    method: "POST",
+    headers,
+    body: JSON.stringify({
+      senderId: userId,
+      receiverId,
+      content,
+    }),
+  });
+
+  if (!response.ok) throw new Error("Failed to send message");
+  return response.json(); // returns saved Message
+}
+
+export async function getMessagesWithFriend(friendId: string) {
+  const userId = await getUserId();
+  const headers = await getHeaders();
+
+  const response = await fetch(
+    `${API_URL}/messages/${userId}/${friendId}`,
+    { headers }
+  );
+
+  if (!response.ok) throw new Error("Failed to load messages");
+  return response.json(); // { messages: [...] }
+}

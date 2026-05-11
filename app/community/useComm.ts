@@ -3,7 +3,9 @@ import {
   approveFriendRequest, denyFriendRequest,
   getCommunitySession,
   getFriendRequests,
-  getFriends, getMyFriendCode, removeFriend
+  getFriends,
+  getMessagesWithFriend,
+  getMyFriendCode, removeFriend, sendMessage
 } from '@/app/repositories/Community';
 import { router } from 'expo-router';
 import { useEffect, useState } from 'react';
@@ -136,6 +138,31 @@ async function handleDeny(friendId: string) {
   }
 }
 
+//for messages
+  const [messages, setMessages] = useState<any[]>([]);
+
+  // load chat with friend
+  const loadMessages = async (friendId: string) => {
+    setLoading(true);
+    try {
+      const data = await getMessagesWithFriend(friendId);
+      setMessages(data.messages);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // send message
+  const send = async (receiverId: string, content: string) => {
+    const msg = await sendMessage(receiverId, content);
+
+    // optimistic UI update
+    setMessages((prev) => [...prev, msg]);
+
+    return msg;
+  };
+
+
   return {
     friends,
     myFriendCode,
@@ -147,6 +174,6 @@ async function handleDeny(friendId: string) {
     handleDeny,
     requests, 
     handleApprove,
-    handleRemoveFriend
+    handleRemoveFriend, messages, send, loadMessages, 
   };
 }

@@ -10,13 +10,16 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
+import { useSessionStore } from '../services/userSession';
 
 interface NavBarProps {
-  userName?: string;
   onLogout?: () => void;
 }
 
-const NavBar: React.FC<NavBarProps> = ({ userName, onLogout }) => {
+const NavBar: React.FC<NavBarProps> = ({ onLogout }) => {
+  const session = useSessionStore((s) => s.user);
+  const userName = useSessionStore((s) => s.user?.name);
+  const level = useSessionStore((s) => s.user?.level);
   const router = useRouter();
   const [showDropdown, setShowDropdown] = useState(false);
   const [avatarLayout, setAvatarLayout] = useState({ x: 0, y: 0, width: 0, height: 0 });
@@ -36,7 +39,9 @@ const NavBar: React.FC<NavBarProps> = ({ userName, onLogout }) => {
 
   return (
     <View style={styles.navbar}>
-      <Text style={styles.navLogo}>Parkette</Text>
+      <TouchableOpacity onPress={() => router.push('/dashboard')}>
+        <Text style={styles.navLogo}>Parkette</Text>
+      </TouchableOpacity>
 
       <View style={styles.navLinks}>
         <TouchableOpacity onPress={() => router.push('/game/main')}>
@@ -108,7 +113,7 @@ const NavBar: React.FC<NavBarProps> = ({ userName, onLogout }) => {
               />
               <View>
                 <Text style={styles.dropdownHi}>Hi! {userName}</Text>
-                <Text style={styles.dropdownSubtext}>My Account</Text>
+                <Text style={styles.dropdownSubtext}>Level: {level}</Text>
               </View>
             </View>
 
@@ -240,7 +245,7 @@ const styles = StyleSheet.create({
   },
   dropdownSubtext: {
     color: AppColors.blue,
-    fontSize: 12,
+    fontSize: 14,
     fontFamily: AppFonts.bodySmall.fontFamily,
     opacity: 0.6,
     marginTop: 1,

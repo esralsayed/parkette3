@@ -12,6 +12,8 @@ const LevelProgressSchema = new Schema(
     starsEarned: { type: Number, default: 0 },
     lastAttemptAt: { type: Date },
     completedAt: { type: Date },
+    preQuestionnaireId:  { type: Schema.Types.ObjectId, ref: "QuestionnaireResponse" },
+    postQuestionnaireId: { type: Schema.Types.ObjectId, ref: "QuestionnaireResponse" },
 
     // which difficulty variant was served (ai-selected based on child profile)
     servedDifficulty: {

@@ -72,7 +72,7 @@ export const AppFonts = {
 export const AppFontSizes = {
   super: 72,
   title:     52,
-  header:    54,
+  header:    48,
   subhead:   36,
   body:      32,
   bodySmall: 20,

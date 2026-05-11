@@ -70,3 +70,10 @@ export interface LevelProgress {
     finalStars?: number;
   };
 }
+
+export interface ChapterProgressPayload {
+  userId: string;
+  chapterId: string;
+  completedLevelId: string;
+  starsEarned: number;       // stars earned on THIS level
+}

@@ -2,12 +2,12 @@ import Hamster from "@/assets/svgs/community/animals/hamester.svg";
 import { AppColors, AppFonts } from "@/constants/theme";
 import React, { useEffect, useRef } from "react";
 import {
-  Animated,
-  Linking,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View
+    Animated,
+    Linking,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    View
 } from "react-native";
 import Svg, { Path } from "react-native-svg";
 
@@ -213,7 +213,6 @@ const Footer: React.FC = () => {
 
 const styles = StyleSheet.create({
   footer: {
-    //width: "100%",
     backgroundColor: AppColors.blue,
     paddingTop: 50,
     paddingHorizontal: 24,

@@ -1,12 +1,11 @@
 // app/game/level/[levelId].tsx
 
-import { AppColors, AppFonts, ButtonStyles, Spacing } from '@/constants/theme';
+import { AppColors } from '@/constants/theme';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useCallback, useEffect, useState } from 'react';
 import {
-  ActivityIndicator,
-  SafeAreaViewBase,
+  SafeAreaView,
   StyleSheet,
   Text,
   TouchableOpacity,
@@ -14,6 +13,7 @@ import {
 } from 'react-native';
 import catImage from '../../assets/images/chapters/Cat.png';
 import { GameCharacter, GameScene, GameStep } from '../adapters/LevelAdapter';
+import { EndScreen, ErrorScreen, LoadingScreen } from "../components/Extra screens";
 import WrongAnswerFeedback from '../components/Feedback';
 import HowToPlayModal from '../components/howtoplay';
 import FindFriendsGame from '../components/minigames/FindFriendsGame';
@@ -25,7 +25,6 @@ import { TaskAnswer } from '../interfaces/TaskAnswer';
 import { levelService } from '../services/LevelService';
 
 export default function LevelPlayer() {
-  const router = useRouter();
   const { levelId, chapterId, chapterTitle } = useLocalSearchParams();
   const [userName, setUserName] = useState('User');
   const [loading, setLoading] = useState(true);
@@ -40,13 +39,15 @@ export default function LevelPlayer() {
   const [currentScene, setCurrentScene] = useState<GameScene | null>(null);
   const isAdvancingRef = React.useRef(false);
   const [feedbackPopup, setFeedbackPopup] = useState<{ chosenText: string; correctText: string } | null>(null);
-const [pendingNextStep, setPendingNextStep] = useState<GameStep | null>(null);
+  const [pendingNextStep, setPendingNextStep] = useState<GameStep | null>(null);
   // ── How To Play ────────────────────────────────────────────────────────────
   // true  → modal is open (auto-shown when task starts, or user taps ?)
   // false → modal dismissed, in-scene game is visible
   const [showHowToPlay, setShowHowToPlay] = useState(false);
-  const step = currentStep;
 
+  //variables
+  const step = currentStep;
+  const router = useRouter();
 
   // explanation of the component -> 
   // 1- this useeffect loads the user info from AsyncStorage
@@ -64,6 +65,17 @@ const [pendingNextStep, setPendingNextStep] = useState<GameStep | null>(null);
     loadUserName();
   }, []);
 
+  useEffect(() => {
+    if (!chapterId) {
+      console.error("❌ chapterId is missing. Cannot load level.");
+      // Option 1: Show error screen
+      setError("Missing chapter information. Please go back and try again.");
+      
+      // Option 2: Auto redirect back (uncomment if you prefer)
+      // setTimeout(() => router.back(), 1500);
+    }
+  }, [chapterId]);
+
   // this useeffect loads the level by ->
   // 1. get the user Id , 
   // 2. call levelService initilize level with the levelId(from the params)
@@ -72,18 +84,28 @@ const [pendingNextStep, setPendingNextStep] = useState<GameStep | null>(null);
   // 5. get the first step and set it as the currentstep
   // 6. get the progress and set the currentstepIndex with the progress current step ? 
 
-  useEffect(() => {
+useEffect(() => {
+    if (!levelId || !chapterId) {
+      setError("Invalid level access: Missing chapter or level ID");
+      setLoading(false);
+      return;
+    }
+
     const loadLevel = async () => {
       try {
         setLoading(true);
         const userId = await getCurrentUserId();
-        const gameLevel = await levelService.initializeLevel(levelId as string, userId);
+        
+        const gameLevel = await levelService.initializeLevel(levelId as string, chapterId as string, userId);
+        
         const scene = gameLevel.scenes[0];
         setCurrentScene(scene);
         setLevelTitle(gameLevel.title);
         setStars(gameLevel.reward?.stars || 3);
+
         const firstStep = levelService.getCurrentStep();
         setCurrentStep(firstStep);
+
         const progress = levelService.getProgress();
         if (progress) setCurrentStepIndex(progress.currentStep - 1);
       } catch (err) {
@@ -92,13 +114,15 @@ const [pendingNextStep, setPendingNextStep] = useState<GameStep | null>(null);
         setLoading(false);
       }
     };
-    if (levelId) loadLevel();
+
+    loadLevel();
+
     return () => { levelService.destroy(); };
-  }, [levelId]);
+  }, [levelId, chapterId]);
 
   // Auto-show HowToPlay whenever we arrive at a new task step
   useEffect(() => {
-    if (currentStep?.type === 'task') {
+    if (currentStep?.type === 'task' && currentStep?.gameType === 'slide_choice') {
       setShowHowToPlay(true);
     } else {
       setShowHowToPlay(false);
@@ -108,27 +132,26 @@ const [pendingNextStep, setPendingNextStep] = useState<GameStep | null>(null);
   const advance = useCallback(async () => {
     if (step?.type === 'task') return;
     const result = await levelService.advanceToNextStep();
-    console.log('level player result',result);
     if (result.nextStep === null) {
       finishLevel();
     } else {
-if (!result.nextStep) {
-  console.warn('⚠️ nextStep is undefined/null — stopping update');
-  finishLevel();
-  return;
-}
-setCurrentStep(result.nextStep);      
-const progress = levelService.getProgress();
-      if (progress) {
-        setCurrentStepIndex(progress.currentStep - 1);
-        setStars(progress.starsRemaining);
-      }
+    if (!result.nextStep) {
+      console.warn('⚠️ nextStep is undefined/null — stopping update');
+      finishLevel();
+      return;
     }
-  }, [step]);
+    setCurrentStep(result.nextStep);      
+    const progress = levelService.getProgress();
+          if (progress) {
+            setCurrentStepIndex(progress.currentStep - 1);
+            setStars(progress.starsRemaining);
+          }
+        }
+      }, [step]);
 
   const finishLevel = async () => {
+    if (phase === 'end') return; 
     setPhase('end');
-    await saveLevelProgress();
     const finalStars = levelService.getStars();
     setStars(finalStars);
     for (let i = 0; i < finalStars; i++) {
@@ -140,30 +163,6 @@ const progress = levelService.getProgress();
         });
       }, i * 350 + 200);
     }
-  };
-
-  const saveLevelProgress = async () => {
-    setSavingProgress(true);
-    try {
-      const userId = await getCurrentUserId();
-      const finalStars = levelService.getStars();
-      const performance = levelService.getPerformanceSummary();
-      await fetch(`${process.env.EXPO_PUBLIC_API_URL || 'http://localhost:5000/api'}/progress/level`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          userId, levelId, chapterId,
-          starsEarned: finalStars, passed: true, attempts: 1,
-          lastAttemptAt: new Date(), completedAt: new Date(),
-          performance: performance ? {
-            accuracy: performance.accuracy,
-            averageResponseTime: performance.averageResponseTime,
-            tasksCompleted: performance.tasksAttempted,
-          } : undefined,
-        }),
-      });
-    } catch (e) { console.error(e); }
-    finally { setSavingProgress(false); }
   };
 
   const getCurrentUserId = async (): Promise<string> => {
@@ -222,11 +221,11 @@ const progress = levelService.getProgress();
     if (!step || step.type !== 'task' || showHowToPlay) return null;
 
     const gameType = step.gameType ?? step.taskType;
-    console.log(gameType, 'inside levelplayer');
     switch (gameType) {
       case 'slide_choice':
         return (
            <ImageChoiceGame
+           visible={!showHowToPlay}
             gameType={gameType}
             instruction={step.instruction ?? step.content?.instruction ?? 'Choose the right one!'}
             options={step.content?.options ?? []}
@@ -236,8 +235,6 @@ const progress = levelService.getProgress();
           />
         );
       case 'find_friends':
-          console.log('FindFriendsGame data:', step.content?.objectsToFind);
-
         return (
           <FindFriendsGame
             friends={step.content?.objectsToFind ?? []}
@@ -315,26 +312,25 @@ const progress = levelService.getProgress();
     setLoading(true);
 
     const userId = await getCurrentUserId();
-    await levelService.initializeLevel(levelId as string, userId);
+    await levelService.initializeLevel(levelId as string, chapterId as string, userId);
 
     setCurrentStep(levelService.getCurrentStep());
     setLoading(false);
   };
 
-  if (loading) return <LoadingScreen />;
-  if (error) return <ErrorScreen message={error} onBack={() => router.back()} />;
-  if (!step) {
-  return <LoadingScreen />;
-}
+    if (loading) return <LoadingScreen />;
+    if (error) return <ErrorScreen message={error} onBack={() => router.back()} />;
+    if (!step) {
+    return <LoadingScreen />;
+  }
   const isTaskStep = step.type === 'task';
   const inSceneGame = buildInSceneGame();
   const howToPlayContent = isTaskStep ? getHowToPlayContent(step) : null;
 
   return (
-    <SafeAreaViewBase style={styles.container}>
-      <NavBar userName={userName} />
+    <SafeAreaView style={styles.container}>
+      <NavBar/>
 
-      {phase === 'playing' && (
         <>
           <View style={styles.sceneArea}>
             <SceneStage
@@ -371,7 +367,6 @@ const progress = levelService.getProgress();
             </TouchableOpacity>
           )}
         </>
-      )}
 
       {phase === 'end' && (
         <EndScreen
@@ -396,7 +391,7 @@ const progress = levelService.getProgress();
           catImageSource={catImage}
         />
       )}
-    </SafeAreaViewBase>
+    </SafeAreaView>
   );
 }
 
@@ -410,7 +405,6 @@ const styles = StyleSheet.create({
     borderTopLeftRadius: 20, borderTopRightRadius: 20,
     elevation: 5, zIndex: 10,
   },
-
   // Floating ? button
   helpBtn: {
     position: 'absolute',
@@ -438,82 +432,5 @@ const styles = StyleSheet.create({
     fontFamily: 'monospace',
     lineHeight: 20,
   },
-
-  // End screen
-  endScreen: {
-    flex: 1, justifyContent: 'center', alignItems: 'center',
-    paddingHorizontal: Spacing.lg, backgroundColor: AppColors.gameBg,
-  },
-  endEmoji:   { fontSize: 56, marginBottom: Spacing.lg },
-  endTitle:   { ...AppFonts.header, fontSize: 32, color: AppColors.blue, marginBottom: Spacing.sm },
-  endMessage: { ...AppFonts.body, fontSize: 16, color: AppColors.dark, marginBottom: Spacing.lg, textAlign: 'center' },
-  starsDisplay: { flexDirection: 'row', gap: Spacing.md, marginVertical: Spacing.lg },
-  starIcon: { fontSize: 40 },
-  nextLevelBtn: { ...ButtonStyles.bigAction, backgroundColor: AppColors.blue, borderColor: AppColors.lilac, marginBottom: Spacing.md },
-  nextLevelBtnText: { ...AppFonts.button, fontSize: 18, color: AppColors.white },
-  retryBtn: { ...ButtonStyles.action, backgroundColor: AppColors.white, borderColor: AppColors.blue },
-  retryBtnText: { ...AppFonts.button2, fontSize: 14, color: AppColors.blue },
-
-  // Loading / error
-  centerScreen: { flex: 1, justifyContent: 'center', alignItems: 'center' },
-  loadingText: { marginTop: Spacing.md, fontSize: 14, color: '#666' },
-  errorEmoji: { fontSize: 48, marginBottom: Spacing.md },
-  errorText: { fontSize: 16, fontWeight: '700', color: AppColors.dark, marginBottom: Spacing.sm },
-  errorDetail: { fontSize: 13, color: '#666', marginBottom: Spacing.lg },
-  header: {
-    flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
-    paddingVertical: Spacing.md, paddingHorizontal: Spacing.lg,
-    backgroundColor: AppColors.white, borderBottomWidth: 2, borderBottomColor: AppColors.blue,
-  },
 });
 
-// ─── Sub-components ───────────────────────────────────────────────────────────
-
-interface EndScreenProps {
-  stars: boolean[]; levelTitle: string;
-  onNext: () => void; onRetry: () => void; savingProgress?: boolean;
-}
-function EndScreen({ stars, onNext, onRetry, savingProgress }: EndScreenProps) {
-  const count = stars.filter(Boolean).length;
-  const message = count === 3 ? 'Perfect! You nailed it!' : count === 2 ? 'Great job!' : 'Nice try — keep practicing!';
-  const emoji = count === 3 ? '🎉' : count === 2 ? '👍' : '💪';
-  return (
-    <View style={styles.endScreen}>
-      <Text style={styles.endEmoji}>{emoji}</Text>
-      <Text style={styles.endTitle}>{count === 3 ? 'Level Complete!' : 'Level Finished'}</Text>
-      <Text style={styles.endMessage}>{message}</Text>
-      <View style={styles.starsDisplay}>
-        {stars.map((earned, i) => <Text key={i} style={[styles.starIcon, { opacity: earned ? 1 : 0.2 }]}>⭐</Text>)}
-      </View>
-      <TouchableOpacity style={styles.nextLevelBtn} onPress={onNext} disabled={savingProgress}>
-        <Text style={styles.nextLevelBtnText}>{savingProgress ? 'Saving...' : 'Next Level →'}</Text>
-      </TouchableOpacity>
-      <TouchableOpacity style={styles.retryBtn} onPress={onRetry}>
-        <Text style={styles.retryBtnText}>Try Again</Text>
-      </TouchableOpacity>
-    </View>
-  );
-}
-
-function LoadingScreen() {
-  return (
-    <View style={styles.centerScreen}>
-      <ActivityIndicator size="large" color={AppColors.blue} />
-      <Text style={styles.loadingText}>Loading level…</Text>
-    </View>
-  );
-}
-
-interface ErrorScreenProps { message: string; onBack: () => void; }
-function ErrorScreen({ message, onBack }: ErrorScreenProps) {
-  return (
-    <View style={styles.centerScreen}>
-      <Text style={styles.errorEmoji}>⚠️</Text>
-      <Text style={styles.errorText}>Failed to load level</Text>
-      <Text style={styles.errorDetail}>{message}</Text>
-      <TouchableOpacity style={styles.retryBtn} onPress={onBack}>
-        <Text style={styles.retryBtnText}>← Go Back</Text>
-      </TouchableOpacity>
-    </View>
-  );
-}

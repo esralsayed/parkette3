@@ -1,7 +1,9 @@
 import express from "express";
 import mongoose from "mongoose";
+import { authMiddleware } from "../middleware/auth.js";
 import Level from "../models/content agent/Level.js";
 import Progress from "../models/content agent/Progress.js";
+import { generateAndSaveEasyVariant, getEasyVariant, getLevelAttemptCount } from "./ai.js";
 
 const levelroutes = express.Router();
 
@@ -79,23 +81,42 @@ levelroutes.get("/admin", async (req, res) => {
   }
 });
 
-levelroutes.get("/:id", async (req, res) => {
+levelroutes.get("/:id", authMiddleware, async (req, res) => {
+  console.log(authMiddleware); 
   try {
-    console.log("Fetching level with id:", req.params.id);
-    
-    // Fix: req.params.id (not req.params.levelid)
     const levelId = req.params.id;
-    
-    // Fix: Use findOne() instead of find() if you want a single level
-    // Also, your database field might be '_id' or 'levelId' - adjust accordingly
-    const level = await Level.findOne({ _id: levelId }); // or { levelId: levelId }
-    
+    const userId  = req.user?.userId;
+    console.log("getting level", levelId, userId); 
+
+    const level = await Level.findById(levelId);
     if (!level) {
       return res.status(404).json({ message: "Level not found" });
     }
-    
-    console.log("Level found:", level);
+
+    const attempts = await getLevelAttemptCount(userId, levelId);
+    console.log(attempts); 
+
+    if (attempts > 2) {
+      // ── 1. Check cache FIRST, never skip this ──
+      const cached = await getEasyVariant(levelId);
+      console.log(cached);
+      if (cached) {
+        return res.json({
+          level: { ...level.toObject(), dialog: cached, _variantApplied: "easy" },
+        });
+      }
+
+      // ── 2. Only reach here if no cache AND attempts > 2 ──
+      console.log(`Generating easy variant for level ${levelId}…`);
+      const easyDialog = await generateAndSaveEasyVariant(level.toObject());
+
+      return res.json({
+        level: { ...level.toObject(), dialog: easyDialog, _variantApplied: "easy" },
+      });
+    }
+
     res.json({ level });
+
   } catch (error) {
     console.error("Error fetching level:", error);
     res.status(500).json({ message: "Server error" });

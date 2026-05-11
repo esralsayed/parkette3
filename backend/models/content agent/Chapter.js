@@ -63,6 +63,10 @@ const ChapterSchema = new Schema(
     }, // for content moderation workflow
 
     failThreshold: { type: FailThresholdSchema, default: () => ({}) },
+    // unlockRules: {
+    //   requiredPassedLevels: { type: Number, default: 1 },
+    //   requiredAvgStars: { type: Number, default: 0 }
+    // },
     unlockedOn: { type: Number, default: null }, // which chapter needs to be passed to unlock this one (null for first chapter),
     isActive: { type: Boolean, default: true }, // soft delete / draft toggle
   },

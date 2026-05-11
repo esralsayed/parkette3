@@ -13,5 +13,5 @@
     "**/*.tsx",
     ".expo/types/**/*.ts",
     "expo-env.d.ts"
-, "backend/routes/ai.js", "backend/routes/performance.js"  ]
+, "backend/routes/ai.js", "backend/routes/performance.js", "backend/scripts/friendcode.js"  ]
 }

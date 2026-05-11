@@ -41,7 +41,6 @@ export default function SceneStage({
 
   const isTask = currentStep?.type === 'task';
   const [side, setSide] = useState<'left' | 'right'>('left');
-  console.log('🎭 SceneStage rendered', { sceneKey });
 
   //this portion is for making the dialog on the left or on the right
   const speakingCharacter = currentStep?.type === 'dialog' 

@@ -1,84 +1,103 @@
-import dotenv from 'dotenv';
-import express from 'express';
-dotenv.config();
+import Level from "../models/content agent/Level.js";
+import Progress from "../models/content agent/Progress.js";
+// ─────────────────────────────────────────────
+// 1. Check attempt count for a user + level
+// ─────────────────────────────────────────────
+export async function getLevelAttemptCount(userId, levelId) {
+  const progress = await Progress.findOne({ userId });
+  
+  if (!progress) return 0;
 
-const airouter = express.Router();
-const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
-const GEMINI_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY}`;
+  const levelProgress = progress.levelProgress.find(
+    (lp) => lp.levelId.toString() === levelId.toString()
+  );
+  console.log("how many attempts?", levelProgress.attempts); 
+  return levelProgress?.attempts ?? 0;
+}
 
-const levelGuide = {
-  easy: 'Kindergarten level (ages 5-6). Very short sentences, 5-8 words. Use only the simplest words like "good", "bad", "safe", "not safe".',
-  medium: '2nd grade level (ages 7-8). Simple sentences, 8-12 words.',
-  hard: '3rd grade level (ages 9-10). Varied sentences, introduce new words with context.',
-};
-
-airouter.post('/simplify', async (req, res) => {
-  console.log('📥 Received simplification request:', JSON.stringify(req.body, null, 2));
-  try {
-    const { text, level } = req.body;
-
-    const response = await fetch(GEMINI_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        contents: [{
-          parts: [{
-            text: `Simplify this children's safety education game text to ${levelGuide[level]}
-
-Rules:
-- Keep the EXACT same safety message
-- Do NOT change names or key actions
-- Return ONLY the simplified text, nothing else
-
-Text: "${text}"`
-          }]
-        }],
-        generationConfig: {
-          temperature: 0.3,
-          maxOutputTokens: 300,
-        }
-      })
-    });
-
-    if (!response.ok) {
-      const err = await response.text();
-      throw new Error(`Gemini API ${response.status}: ${err}`);
-    }
-
-    const data = await response.json();
-    const simplifiedText = data.candidates?.[0]?.content?.parts?.[0]?.text?.trim() || text;
-
-    console.log(`🤖 Simplified: "${text}" → "${simplifiedText}"`);
-
-    res.json({ original: text, simplifiedText });
-
-  } catch (error) {
-    console.error('AI simplification error:', error);
-    res.status(500).json({
-      error: 'Failed to simplify text',
-      simplifiedText: req.body.text
-    });
+// ─────────────────────────────────────────────
+// 2. Check if an easy variant already exists
+// ─────────────────────────────────────────────
+export async function getEasyVariant(levelId) {
+  console.log("is there easy varient?", levelId); 
+  const level = await Level.findById(levelId).select("difficultyVariants").lean();
+  const dialog = level?.difficultyVariants?.easy?.dialog;
+  // Only treat it as "exists" if it was actually generated (non-empty dialog)
+  if (dialog && dialog.length > 0) {
+    return dialog;
   }
-});
+  return null;
+}
 
-airouter.post('/simplify-batch', async (req, res) => {
-  try {
-    const { texts, level } = req.body;
-    const simplified = await Promise.all(
-      texts.map(async (text) => {
-        const response = await fetch(`${req.protocol}://${req.get('host')}/api/ai/simplify`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ text, level })
-        });
-        const data = await response.json();
-        return data.simplifiedText;
-      })
-    );
-    res.json({ simplifiedTexts: simplified });
-  } catch (error) {
-    res.status(500).json({ error: 'Batch simplification failed' });
+// ─────────────────────────────────────────────
+// 3. Generate + persist a simpler level variant
+//    using groq api
+// ─────────────────────────────────────────────
+export async function generateAndSaveEasyVariant(level) {
+  console.log("we are generating easy version"); 
+  const baseDialog = level.dialog ?? [];
+
+const prompt = `
+You are simplifying a children's educational dialog level.
+
+STRICT RULES:
+- Keep EVERY step. The output array must have the same number of items as the input.
+- Do NOT remove, merge, or skip any dialog or task step.
+- Preserve all fields: type, taskType, gameType, renderMode, sceneKey, content, continuationSteps, correctFeedback, wrongFeedback, speaker.
+- Only change "text", "instruction", "correctFeedback", "wrongFeedback" to simpler language.
+- continuationSteps must also be simplified but keep the same count.
+- Input has ${baseDialog.length} steps. Output MUST have ${baseDialog.length} steps.
+
+Simplification goals:
+- Shorter sentences (max 8 words per sentence)
+- Friendly, calm tone
+- No complex vocabulary
+
+Return ONLY a valid JSON array. No markdown. No explanation.
+
+Original dialog:
+${JSON.stringify(baseDialog, null, 2)}
+`.trim();
+
+  const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "Authorization": `Bearer ${process.env.GROQ_API_KEY}`,
+    },
+    body: JSON.stringify({
+      model: "llama-3.1-8b-instant",
+      messages: [
+        {
+          role: "system",
+          content: "You are an educational content adapter for children. Return only valid JSON, no markdown, no explanation.",
+        },
+        { role: "user", content: prompt },
+      ],
+      temperature: 0.7,
+    }),
+  });
+
+  if (!response.ok) {
+    throw new Error(`Groq error: ${response.status} ${response.statusText}`);
   }
-});
 
-export default airouter;
+  const raw = await response.json();
+  const cleaned = (raw.choices[0].message.content ?? "")
+    .replace(/```json|```/g, "")
+    .trim();
+
+  let easyDialog;
+  try {
+    easyDialog = JSON.parse(cleaned);
+  } catch {
+    throw new Error("Groq returned invalid JSON for easy variant");
+  }
+
+  await Level.findByIdAndUpdate(level._id, {
+    $set: { "difficultyVariants.easy.dialog": easyDialog },
+  });
+  console.log("easy version", easyDialog); 
+
+  return easyDialog;
+}

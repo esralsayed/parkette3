@@ -2,6 +2,16 @@ import mongoose from "mongoose";
 
 const { Schema } = mongoose;
 
+const QuestionSchema = new Schema(
+  {
+    text:         { type: String, required: true },
+    options:      { type: [String], required: true },  // 2-4 choices
+    correctIndex: { type: Number, required: true },     // 0-based
+    hint:         { type: String },                     // optional hint shown after wrong answer
+  },
+  { _id: false }
+);
+
 // ── Tags (same shape as Chapter) ────────────────────────────
 const TagsSchema = new Schema(
   {
@@ -122,7 +132,9 @@ const LevelSchema = new Schema(
     reward: {
       stars: { type: Number, default: 3 },  // max stars for clean first pass
     },
-
+    // In LevelSchema, add these two fields:
+    preQuestions:  { type: [QuestionSchema], default: [] },  // asked before the level
+    postQuestions: { type: [QuestionSchema], default: [] },  // asked after pass/fail
     maxRetries: { type: Number, default: 3 },  // overrides chapter failThreshold for this level
 
     isActive: { type: Boolean, default: true },

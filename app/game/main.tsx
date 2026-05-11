@@ -141,7 +141,7 @@ export default function gamedashboard() {
 
   return (
     <View style={styles.root}>
-      <NavBar userName={userName} />
+      <NavBar/>
       <HeroSection userName={userName} onOpenCalendar={() => {}} />
     </View>
   );

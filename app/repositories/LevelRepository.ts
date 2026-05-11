@@ -1,7 +1,7 @@
 // repositories/LevelRepository.ts
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { LevelData, LevelProgress } from '../types/level.types';
+import { ChapterProgressPayload, LevelData, LevelProgress } from '../types/level.types';
 
 export interface LevelCheckpoint {
   userId: string;
@@ -30,23 +30,38 @@ export class LevelRepository {
   // API URL from environment variables (works in both dev and production)
   private apiUrl = process.env.EXPO_PUBLIC_API_URL || 'http://localhost:5000/api';
 
+  private async getAuthHeaders(): Promise<HeadersInit> {
+    try {
+      const token = await AsyncStorage.getItem('token'); // or 'userToken'
+      return token 
+        ? {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`,
+          }
+        : { 'Content-Type': 'application/json' };
+    } catch (error) {
+      console.warn('Failed to get auth token');
+      return { 'Content-Type': 'application/json' };
+    }
+  }
+
   // ──────────────────────────────────────────────────────────
   // 1. GET LEVEL BY ID - Most important method
   // ──────────────────────────────────────────────────────────
   async getLevelById(levelId: string): Promise<LevelData> {
-    // STEP 1: Check if we have this level in cache
-    if (this.isCacheValid(levelId)) {
-      console.log(`✅ Cache hit: Returning ${levelId} from cache`);
-      return this.levelCache.get(levelId)!;
-    }
+    // // STEP 1: Check if we have this level in cache
+    // if (this.isCacheValid(levelId)) {
+    //   console.log(`✅ Cache hit: Returning ${levelId} from cache`);
+    //   return this.levelCache.get(levelId)!;
+    // }
 
-    // STEP 2: Not in cache? Try AsyncStorage (persistent storage)
-    const cachedLevel = await this.getFromAsyncStorage(levelId);
-    if (cachedLevel) {
-      console.log(`💾 AsyncStorage hit: ${levelId} found in persistent storage`);
-      this.updateLevelCache(levelId, cachedLevel);
-      return cachedLevel;
-    }
+    // // STEP 2: Not in cache? Try AsyncStorage (persistent storage)
+    // const cachedLevel = await this.getFromAsyncStorage(levelId);
+    // if (cachedLevel) {
+    //   console.log(`💾 AsyncStorage hit: ${levelId} found in persistent storage`);
+    //   this.updateLevelCache(levelId, cachedLevel);
+    //   return cachedLevel;
+    // }
 
     // STEP 3: Not in any cache? Fetch from API
     try {
@@ -102,12 +117,11 @@ export class LevelRepository {
   // ──────────────────────────────────────────────────────────
   async saveProgress(progress: LevelProgress): Promise<void> {
     try {
+    const headers = await this.getAuthHeaders();
       // Save to backend
       const response = await fetch(`${this.apiUrl}/progress/level`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers,
         body: JSON.stringify(progress),
       });
       
@@ -211,6 +225,17 @@ export class LevelRepository {
       // Don't throw - checkpoint is not critical
     }
   }
+
+  //save chapter progress
+
+  async saveChapterProgress(payload: ChapterProgressPayload): Promise<void> {
+  const headers = await this.getAuthHeaders(); // add this
+  await fetch(`${this.apiUrl}/progress/chapter`, {
+    method: 'POST',
+    headers,
+    body: JSON.stringify(payload),
+  });
+}
 
   async getCheckpoint(userId: string, levelId: string): Promise<LevelCheckpoint | null> {
     const cacheKey = `checkpoint_${userId}_${levelId}`;
@@ -341,11 +366,11 @@ export class LevelRepository {
     const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
     
     try {
+      const headers = await this.getAuthHeaders();
+      console.log(headers);
       const response = await fetch(`${this.apiUrl}/levels/${levelId}`, {
         signal: controller.signal,
-        headers: {
-          'Accept': 'application/json',
-        }
+        headers
       });
       
       clearTimeout(timeoutId);

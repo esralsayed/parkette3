@@ -12,6 +12,7 @@ import {
 } from 'react-native';
 import PrimaryButton from './components/style/buttonHovered';
 import LinkText from './components/style/LinksHover';
+import { useSessionStore } from './services/userSession';
 
 const API_URL = 'http://localhost:5000/api/auth';
 
@@ -21,6 +22,8 @@ export default function Login() {
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [focusedField, setFocusedField] = useState<string | null>(null);
+
+  const setUser = useSessionStore((s) => s.setUser);
 
   const handleLogin = async () => {
     if (!username || !password) {
@@ -38,6 +41,8 @@ export default function Login() {
       if (response.ok) {
         await AsyncStorage.setItem('token', data.token);
         await AsyncStorage.setItem('user', JSON.stringify(data.user));
+        setUser(data.user);
+        console.log(data.user)
         Alert.alert('Success', 'Login successful!');
         router.replace('/dashboard');
       } else {
