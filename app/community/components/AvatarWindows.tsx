@@ -1,6 +1,6 @@
 import { AppColors, AppFonts } from "@/constants/theme";
 import { Dimensions, StyleSheet, Text, TouchableOpacity, View } from "react-native";
-import { ActiveWindow } from "./useAvatar";
+import { ActiveWindow } from "../hooks/useAvatar";
 const { width: screenWidth } = Dimensions.get('window'); 
 
 //hair imports

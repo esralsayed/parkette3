@@ -13,18 +13,18 @@ import Undo from "@/assets/svgs/diary/undo.svg";
 import { AppColors, AppFonts, AppFontSizes } from "@/constants/theme";
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
-  NativeSyntheticEvent,
-  StyleSheet,
-  Text,
-  TextInput,
-  TextInputKeyPressEventData,
-  TouchableOpacity,
-  useWindowDimensions,
-  View
+    NativeSyntheticEvent,
+    StyleSheet,
+    Text,
+    TextInput,
+    TextInputKeyPressEventData,
+    TouchableOpacity,
+    useWindowDimensions,
+    View
 } from 'react-native';
 import Svg, { ClipPath, Defs, Line, Path, Rect } from 'react-native-svg';
-import { DiaryStats, FavoriteEntry, getDiaryStats, getFavouriteEntries } from "../repositories/Diary";
-import { usePage } from './usePage';
+import { DiaryStats, FavoriteEntry, getDiaryStats, getFavouriteEntries } from "../../repositories/Diary";
+import { usePage } from '../hooks/usePage';
 
 // ─── Sizes ────────────────────────────────────────────────────────────────────
 const SHADOW_X       = 6;

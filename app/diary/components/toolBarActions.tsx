@@ -114,7 +114,7 @@ const styles = StyleSheet.create({
 
 
 import { DiaryCustomLetter } from '@/app/repositories/Diary';
-import { FontFamily, FontSize, TextAlignment } from './useToolBar';
+import { FontFamily, FontSize, TextAlignment } from '../hooks/useToolBar';
 
 
 interface TextWindowProps {

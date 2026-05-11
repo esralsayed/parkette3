@@ -6,8 +6,8 @@ import { ActivityIndicator, ScrollView, Share, StyleSheet, Text, TextInput, Touc
 import Footer from '../components/Footer';
 import NavBar from '../components/navbar';
 import { useSessionStore } from '../services/userSession';
-import { useSessionStore as useCommunitySession } from './sessionStore';
-import { useCommunity } from './useComm';
+import { useSessionStore as useCommunitySession } from './hooks/sessionStore';
+import { useCommunity } from './hooks/useComm';
 
 export default function CommunityFriends() {
   const { width } = useWindowDimensions(); // reactive to rotation/resize

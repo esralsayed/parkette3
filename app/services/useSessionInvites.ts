@@ -1,7 +1,7 @@
 import { router } from "expo-router";
 import { useEffect } from "react";
 import { Alert } from "react-native";
-import { useSessionStore } from "../community/sessionStore";
+import { useSessionStore } from "../community/hooks/sessionStore";
 import { getSocket } from "./useSocket";
 
 export function useSessionInvite(currentUserId: string | null) {

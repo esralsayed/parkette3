@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { DiaryEntry, getEntryByDate, saveDiaryEntry, toggleFavourite } from "../repositories/Diary";
+import { DiaryEntry, getEntryByDate, saveDiaryEntry, toggleFavourite } from "../../repositories/Diary";
 
 const LINE_COUNT = 9; 
 const TOTAL_LINES = LINE_COUNT * 2; 

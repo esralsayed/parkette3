@@ -10,7 +10,7 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import { useSessionStore as useCommunityStore } from '../community/sessionStore';
+import { useSessionStore as useCommunityStore } from '../community/hooks/sessionStore';
 import { useSessionStore } from '../services/userSession';
 
 interface NavBarProps {

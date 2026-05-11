@@ -6,7 +6,7 @@ import { StatusBar } from 'expo-status-bar';
 import { useEffect, useState } from 'react';
 import 'react-native-reanimated';
 
-import { useSessionStore as useCommunity } from './community/sessionStore';
+import { useSessionStore as useCommunity } from './community/hooks/sessionStore';
 import { useSessionStore } from './services/userSession';
 import { useSessionInvite } from './services/useSessionInvites';
 import { getSocket, useSocket } from './services/useSocket';

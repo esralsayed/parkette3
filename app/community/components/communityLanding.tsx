@@ -13,8 +13,8 @@ import NavBar from "../components/navbar";
 import { useDirectMessages } from "../services/useMessages";
 import { useSessionStore } from "../services/userSession";
 import { useSessionChat } from "../services/useSessionChat";
-import { useSessionStore as useCommunitySession } from "./sessionStore";
-import { useCommunity } from "./useComm";
+import { useSessionStore as useCommunitySession } from "./hooks/sessionStore";
+import { useCommunity } from "./hooks/useComm";
 const { width, height } = Dimensions.get("window");
 const isDesktopLike = width > 800;
 

@@ -10,10 +10,10 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { router } from "expo-router";
 import React, { useEffect, useState } from "react";
 import { Image, ScrollView, StyleSheet, Text, TouchableOpacity, useWindowDimensions, View } from "react-native";
-import Footer from "../components/Footer";
-import NavBar from "../components/navbar";
+import Footer from "../../components/Footer";
+import NavBar from "../../components/navbar";
+import { useAvatar } from "../hooks/useAvatar";
 import { AvatarLayer, RENDERED_H, RENDERED_W, Window } from "./AvatarWindows";
-import { useAvatar } from "./useAvatar";
 
 
 interface ActionOption {

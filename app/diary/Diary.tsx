@@ -7,11 +7,11 @@ import { useEffect, useState } from "react";
 import { ActivityIndicator, StyleSheet, Text, useWindowDimensions, View } from "react-native";
 import NavBar from "../components/navbar";
 import { getDiary } from "../repositories/Diary";
-import { DiaryBook } from "./DiaryBook";
-import { ExpandableActionBar } from "./Diarytoolbar";
-import { DiarySpread } from "./OpenDiary";
-import { ColoredWindow, StickersWindow, TextWindow } from "./toolBarActions";
-import { useDiaryToolbar } from "./useToolBar";
+import { DiaryBook } from "./components/DiaryBook";
+import { ExpandableActionBar } from "./components/Diarytoolbar";
+import { DiarySpread } from "./components/OpenDiary";
+import { ColoredWindow, StickersWindow, TextWindow } from "./components/toolBarActions";
+import { useDiaryToolbar } from "./hooks/useToolBar";
 
 export default function DiaryLandingPage() {
   const { width: screenWidth, height:screenHeight } = useWindowDimensions();
