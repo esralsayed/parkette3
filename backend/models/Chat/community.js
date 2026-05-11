@@ -30,15 +30,16 @@ const ModerationSchema = new Schema(
 // ── Community Post ──────────────────────────────────────────
 const CommunityPostSchema = new Schema(
   {
-    authorId: {
+    sessionId : {type: Schema.Types.ObjectId, ref: "Session"}, 
+    senderId: {
       type: Schema.Types.ObjectId,
       ref: "User",
       required: true,
     },
 
     content: { type: String, required: true },
+    type : {type: String}, 
     imageUrl: { type: String },
-
     // sanitized version shown to others if AI detected issues
     sanitizedContent: { type: String },
 
@@ -50,7 +51,7 @@ const CommunityPostSchema = new Schema(
   { timestamps: true }
 );
 
-CommunityPostSchema.index({ authorId: 1, createdAt: -1 });
+CommunityPostSchema.index({ sessionId: 1, createdAt: -1 }); // session feed
 CommunityPostSchema.index({ "moderation.status": 1 }); // for moderation queue
 
 // ── Direct Message ──────────────────────────────────────────

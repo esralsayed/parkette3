@@ -27,19 +27,72 @@ export async function getFriends() {
 }
 
 // 2. Get community session with chosen friends
-export async function getCommunitySession(friendIds: string[]) {
+export async function createSession(friendIds: string[]) {
   const userId = await getUserId();
   const headers = await getHeaders();
 
-  const query = friendIds.join(',');
-  console.log('is query sending', query)
-  const response = await fetch(
-    `${API_URL}/session/${userId}?friendIds=${query}`,
-    { headers }
-  );
+  const response = await fetch(`${API_URL}/session/create`, {
+    method: "POST",          // ← was missing
+    headers,
+    body: JSON.stringify({
+      hostId: userId,        // ← renamed to match backend's { hostId }
+      friendIds,
+    }),
+  });
+
   if (!response.ok) throw new Error('Failed to load session');
   return response.json(); // { session: { host, participants } }
 }
+
+export async function leaveSession(sessionId: string, userId: string) {
+  const headers = await getHeaders();
+
+  await fetch(`${API_URL}/session/leave`, {
+    method: "POST",
+    headers,
+    body: JSON.stringify({
+      sessionId,
+      userId,
+    }),
+  });
+}
+
+export const broadcast = async (
+  sessionId: string,
+  senderId: string,
+  content: string,
+  type: string
+) => {
+  try {
+    const headers = await getHeaders();
+
+    const res = await fetch(`${API_URL}/session/post`, {
+      method: "POST",
+      headers: {
+        ...headers,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        sessionId,
+        senderId,
+        content,
+        type,
+      }),
+    });
+
+    if (!res.ok) {
+      const error = await res.text();
+      console.error("[BROADCAST ERROR]", res.status, error);
+      return null;
+    }
+
+    const data = await res.json();
+    return data;
+  } catch (err) {
+    console.error("[BROADCAST NETWORK ERROR]", err);
+    return null;
+  }
+};
 
 // 3. Add friend by code
 export async function addFriend(friendCode: string) {

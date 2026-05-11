@@ -1,14 +1,17 @@
 import {
   addFriend,
-  approveFriendRequest, denyFriendRequest,
-  getCommunitySession,
+  approveFriendRequest,
+  broadcast,
+  createSession,
+  denyFriendRequest,
   getFriendRequests,
   getFriends,
   getMessagesWithFriend,
-  getMyFriendCode, removeFriend, sendMessage
+  getMyFriendCode, leaveSession, removeFriend, sendMessage
 } from '@/app/repositories/Community';
 import { router } from 'expo-router';
 import { useEffect, useState } from 'react';
+import { getSocket } from '../services/useSocket';
 import { useSessionStore } from './sessionStore';
 
 interface Friend {
@@ -98,14 +101,28 @@ async function handleDeny(friendId: string) {
     }
   }
 
-  async function startSession(friendIds: string[]) {
-    console.log("is friends id sending?", friendIds);
-    setLoading(true);
+async function startSession(friendIds: string[]) {
+  const s = getSocket();
+  console.log("socket connected?", s.connected); // should now be true
+  console.log("socket id?", s.id);
+
+  setLoading(true);
+  try {
+    const data = await createSession(friendIds);
+    setSession(data.session);
+    router.push(`/community/communityLanding`);
+  } catch (e: any) {
+    setError(e.message);
+  } finally {
+    setLoading(false);
+  }
+}
+
+    async function leave(sessionId: string, userId: string) {
     try {
-      const data = await getCommunitySession(friendIds);
-      setSession(data.session);
-      console.log(data.session);
-      router.push(`/community/communityLanding`); 
+      await leaveSession(sessionId, userId);
+      setSession(null); 
+      router.push(`/community/main`); 
     } catch (e: any) {
       setError(e.message);
       throw e; 
@@ -169,10 +186,12 @@ async function handleDeny(friendId: string) {
     loading,
     error,
     startSession,
+    broadcast,
     handleAddFriend,
     loadFriends,
     handleDeny,
     requests, 
+    leave,
     handleApprove,
     handleRemoveFriend, messages, send, loadMessages, 
   };

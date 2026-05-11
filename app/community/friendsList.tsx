@@ -1,15 +1,28 @@
 import { AppColors, AppFonts, AppFontSizes, Spacing } from '@/constants/theme';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { ActivityIndicator, ScrollView, Share, StyleSheet, Text, TextInput, TouchableOpacity, useWindowDimensions, View } from 'react-native';
 import Footer from '../components/Footer';
 import NavBar from '../components/navbar';
+import { useSessionStore } from '../services/userSession';
+import { useSessionStore as useCommunitySession } from './sessionStore';
 import { useCommunity } from './useComm';
 
 export default function CommunityFriends() {
   const { width } = useWindowDimensions(); // reactive to rotation/resize
   const isWide = width >= 800;
+  //router
+  const router = useRouter(); 
+  //loading session
+  const session = useCommunitySession((s) => s.session);
+  const user = useSessionStore((s) => s.user); // from your auth store
+  const hasActiveSession = session !== null;
+  const isParticipant = session?.participants?.some(
+  (p: any) => p._id === user?.id
+);
 
+//-------------------//
   const { friends, loading, handleAddFriend, startSession, handleApprove, handleDeny, requests, handleRemoveFriend } = useCommunity();
   const [showCode, setShowCode] = useState(false);
   const [myCode, setMyCode] = useState('');
@@ -20,6 +33,8 @@ export default function CommunityFriends() {
   const [searching, setSearching] = useState(false);
   const [searchResult, setSearchResult] = useState<'sent' | 'not_found' | 'already_friends' | null>(null);
 
+  //useeffects + functions 
+  
   useEffect(() => {
     AsyncStorage.getItem('user').then(str => {
       if (str) setMyCode(JSON.parse(str).friendCode ?? '');
@@ -92,7 +107,7 @@ export default function CommunityFriends() {
                       : <Text style={styles.searchBtnText}>Send</Text>}
                   </TouchableOpacity>
                 </View>
-                {searchResult === 'sent' && <Text style={styles.feedbackSuccess}>Friend request sent! 🎉</Text>}
+                {searchResult === 'sent' && <Text style={styles.feedbackSuccess}>Friend request sent!</Text>}
                 {searchResult === 'not_found' && <Text style={styles.feedbackError}>No user found with that code.</Text>}
                 {searchResult === 'already_friends' && <Text style={styles.feedbackError}>You're already friends with this person.</Text>}
               </View>
@@ -173,16 +188,33 @@ export default function CommunityFriends() {
                           <Text style={styles.name}>{friend.username}</Text>
                           <Text style={styles.level}>Level {friend.level}</Text>
                         </View>
-                        <TouchableOpacity style={[styles.btn, styles.btnJoin]} onPress={() => {console.log(friend._id); startSession([friend._id])}}>
-                          <Text style={styles.btnJoinText}>Join</Text>
+
+                        <TouchableOpacity
+                          style={[styles.btn, styles.btnJoin]}
+                          onPress={() => startSession([friend._id])}
+                        >
+                          <Text style={styles.btnJoinText}>Create</Text>
                         </TouchableOpacity>
-                        <TouchableOpacity style={[styles.btn, { borderColor: '#c0392b' }]} onPress={() => handleRemoveFriend(friend._id)}>
+
+                        {hasActiveSession && isParticipant && (
+                          <TouchableOpacity
+                            style={[styles.btn, styles.btnApprove]}
+                            onPress={() => router.push('/community/communityLanding')}
+                          >
+                            <Text style={styles.btnApproveText}>Join</Text>
+                          </TouchableOpacity>
+                        )}
+
+                        <TouchableOpacity
+                          style={[styles.btn, { borderColor: '#c0392b' }]}
+                          onPress={() => handleRemoveFriend(friend._id)}
+                        >
                           <Text style={[styles.btnText, { color: '#c0392b' }]}>Remove</Text>
                         </TouchableOpacity>
                       </View>
                     ))}
-                  </>
-                )}
+                  </> 
+                )}            
 
                 {/* Requests list */}
                 {activeTab === 'requests' && (
@@ -308,8 +340,8 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   searchBtnText: { ...AppFonts.bodySmall, fontSize: AppFontSizes.bodySmall, color: AppColors.lilac },
-  feedbackSuccess: { marginTop: 8, fontSize: 13, color: 'green' },
-  feedbackError: { marginTop: 8, fontSize: 13, color: '#c0392b' },
+  feedbackSuccess: { ...AppFonts.body, marginTop: 8, fontSize: 24, color: 'green' },
+  feedbackError: { ...AppFonts.body, marginTop: 8, fontSize: 24, color: '#c0392b' },
 
   // ── Tabbed section
   section: {

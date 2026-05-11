@@ -1,5 +1,6 @@
 import express from "express";
-import { Message } from "../models/Chat/community.js";
+import { io, userSocketMap } from "../app.js";
+import { CommunityPost, Message } from "../models/Chat/community.js";
 import { User } from "../models/User.js";
 const communityroutes = express.Router(); 
 
@@ -24,37 +25,7 @@ communityroutes.get("/friends/:userId", async (req, res) => {
 });
 
 // 2. GET community session with chosen friends
-communityroutes.get("/session/:userId", async (req, res) => {
-  try {
-    console.log("info", req.query); 
 
-    const { userId } = req.params;
-    const { friendIds } = req.query; // e.g. ?friendIds=id1,id2
-
-    const friendIdList = friendIds ? friendIds.split(',') : [];
-
-    // Get current user
-    const user = await User.findById(userId)
-      .select('name username level avatar');
-    if (!user) return res.status(404).json({ message: "User not found" });
-
-    // Get chosen friends
-    const friends = await User.find({
-      _id: { $in: friendIdList },
-      friends: userId // security: only load if they're actually your friend
-    }).select('name username level avatar');
-
-    return res.status(200).json({
-      session: {
-        host: user,
-        participants: friends,
-      }
-    });
-  } catch (err) {
-    console.error("Error loading session:", err);
-    res.status(500).json({ message: "Server error" });
-  }
-});
 
 // POST - send a friend request using their code
 communityroutes.post("/friends/add", async (req, res) => {
@@ -224,6 +195,11 @@ communityroutes.post("/messages/send", async (req, res) => {
         autoModerated: true,
       },
     });
+      // Push to receiver instantly
+  const socketId = userSocketMap.get(receiverId);
+  if (socketId) {
+    io.to(socketId).emit('new_message', msg);
+  }
 
     console.log("[MESSAGE SEND] Message created successfully:", msg._id);
 
@@ -240,5 +216,141 @@ communityroutes.post("/messages/send", async (req, res) => {
   }
 });
 
+//sessions routes
 
+import { Session } from "../models/Chat/Session.js";
+
+// ==================== CREATE SESSION ====================
+
+communityroutes.post("/session/create", async (req, res) => {
+  try {
+    const { hostId, friendIds } = req.body;
+
+     console.log("hostId:", hostId);
+    console.log("friendIds:", friendIds);
+    console.log("userSocketMap:", Object.fromEntries(userSocketMap));
+
+    const session = new Session({
+      host: hostId,
+      participants: [hostId, ...friendIds]
+    });
+
+    await session.save();
+    await session.populate('host participants', 'name username level avatar');
+
+    const sessionId = session._id.toString();
+
+    // Notify all participants
+    session.participants.forEach(p => {
+      const socketId = userSocketMap.get(p._id.toString());
+      if (socketId) {
+        io.to(socketId).emit('session_created', {
+          sessionId,
+          session: session
+        });
+const socket = io.sockets.sockets.get(socketId);
+if (socket) {
+  socket.join(sessionId);
+}
+      }
+    });
+
+    return res.status(201).json({ session });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
+communityroutes.post("/session/post", async (req, res) => {
+  try {
+    console.log(req.body);
+    const { sessionId, senderId, content, type } = req.body;
+    console.log("[SESSION POST] sockets in room:", io.sockets.adapter.rooms.get(sessionId));
+
+    if (!sessionId || !senderId || !content || !type) 
+      return res.status(400).json({ message: "Missing required fields" });
+
+    if (type === "emoji") {
+      const post = await CommunityPost.create({  // ← was missing await
+        sessionId,
+        senderId,                  
+        content,
+        isVisible: true                           // ← was = instead of :
+      });
+
+      // Broadcast to everyone in the session room
+      io.to(sessionId).emit("session_emoji", {
+        senderId,
+        content,
+        postId: post._id,
+        sessionId
+      });
+
+      return res.status(201).json({ post });      // ← was missing return
+    }
+
+  } catch (error) {
+    console.error("[SESSION POST] Error:", error.message);
+    return res.status(500).json({ message: "Failed to send" });
+  }
+});
+
+
+communityroutes.get("/session/:sessionId", async (req, res) => {
+  try {
+    const { sessionId } = req.params;
+    console.log("session Id" , sessionId);
+
+    if (!sessionId) 
+    return res.status(404).json({ message: "Session Id not found" });
+
+    const session = await Session.findById(sessionId); 
+    if (!session) return res.status(404).json({ message: "Session not found" });
+
+    return res.status(200).json({ session });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
+
+
+// ==================== LEAVE SESSION ====================
+communityroutes.post("/session/leave", async (req, res) => {
+  try {
+    const { userId, sessionId } = req.body;
+
+    const session = await Session.findById(sessionId);
+    if (!session) return res.status(404).json({ message: "Session not found" });
+
+    // Remove user from participants
+    session.participants = session.participants.filter(
+      id => id.toString() !== userId
+    );
+
+    if (session.participants.length === 0) {
+      // Delete empty session
+      await Session.findByIdAndDelete(sessionId);
+    } else {
+      // If host left → assign new host
+      if (session.host.toString() === userId) {
+        session.host = session.participants[0];
+      }
+      await session.save();
+    }
+
+    // Notify others
+    io.to(sessionId).emit("member_left", { 
+      userId, 
+      message: "A player left the community" 
+    });
+
+    return res.status(200).json({ success: true });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Server error" });
+  }
+});
 export default communityroutes; 

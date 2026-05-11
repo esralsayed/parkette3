@@ -1,16 +1,19 @@
 import { AppColors, AppFonts, AppFontSizes, Spacing } from "@/constants/theme";
 import React, { useState } from "react";
 import {
-    Dimensions,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View, ViewStyle
+  Dimensions,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View, ViewStyle
 } from "react-native";
 import NavBar from "../components/navbar";
-import { useSessionStore } from "./sessionStore";
+import { useDirectMessages } from "../services/useMessages";
+import { useSessionStore } from "../services/userSession";
+import { useSessionChat } from "../services/useSessionChat";
+import { useSessionStore as useCommunitySession } from "./sessionStore";
 import { useCommunity } from "./useComm";
 const { width, height } = Dimensions.get("window");
 const isDesktopLike = width > 800;
@@ -466,61 +469,143 @@ const Scene = ({
 /* -------------------- PAGE -------------------- */
 
 export default function CommunityLanding() {
+  const { send, leave, broadcast } = useCommunity();
 
-    const {loadMessages, send} = useCommunity(); 
-    const [messages, setMessages] = React.useState<
+  const session = useCommunitySession((state) => state.session);
+  const currentUserId = useSessionStore((state) => state.user?.id); // FIXED
+  const sessionId = session?._id ?? null;
+
+  const { emojis } = useSessionChat(sessionId, currentUserId ?? null);
+  const { messages } = useDirectMessages(currentUserId ?? null);
+
+  const [sceneMessages, setSceneMessages] = React.useState<
     { id: number; name: string; content: string; x: number; y: number }[]
-    >([]);
-    const session = useSessionStore((state) => state.session);
-    console.log("session:",session);
+  >([]);
 
-    const friends = session?.participants ?? [];
-    
-    //emojis handler
-    const addEmojiMessage = (emoji: string) => {
-    setMessages((prev) => [
-        ...prev,
-        {
+  // ─────────────────────────────────────────────
+  // FRIENDS LIST
+  // ─────────────────────────────────────────────
+  const friends = (session?.participants ?? []).filter(
+    (f: any) => f._id !== currentUserId
+  );
+
+  // ─────────────────────────────────────────────
+  // DM MESSAGES → SCENE
+  // ─────────────────────────────────────────────
+  React.useEffect(() => {
+    if (!messages.length) return;
+
+    const latest = messages[messages.length - 1];
+
+    const sender = session?.participants?.find(
+      (f: any) => f._id === latest.senderId
+    );
+
+    const senderName = sender?.username ?? "Friend";
+
+    setSceneMessages((prev) => [
+      ...prev,
+      {
+        id: Date.now(),
+        name: senderName,
+        content: latest.content,
+        x: 200 + Math.random() * 600,
+        y: 200 + Math.random() * 400,
+      },
+    ]);
+  }, [messages]);
+
+  // ─────────────────────────────────────────────
+  // SESSION EMOJIS → SCENE
+  // ─────────────────────────────────────────────
+  React.useEffect(() => {
+    if (!emojis.length) return;
+
+    const latest = emojis[emojis.length - 1];
+
+    const sender = session?.participants?.find(
+      (f: any) => f._id === latest.senderId
+    );
+
+    setSceneMessages((prev) => [
+      ...prev,
+      {
+        id: Date.now(),
+        name: sender?.username ?? "Friend",
+        content: latest.content,
+        x: 400 + Math.random() * 600,
+        y: 300 + Math.random() * 400,
+      },
+    ]);
+  }, [emojis]);
+
+  // ─────────────────────────────────────────────
+  // EMOJI SEND
+  // ─────────────────────────────────────────────
+  const addEmojiMessage = async (emoji: string) => {
+    // optimistic UI
+    setSceneMessages((prev) => [
+      ...prev,
+      {
         id: Date.now(),
         name: "You",
         content: emoji,
         x: 400 + Math.random() * 600,
         y: 300 + Math.random() * 400,
-        },
+      },
     ]);
-    };
 
+    if (sessionId && currentUserId) {
+      await broadcast(sessionId, currentUserId, emoji, "emoji");
+    }
+  };
+
+  // ─────────────────────────────────────────────
+  // LEAVE SESSION
+  // ─────────────────────────────────────────────
+  const handleLeave = async () => {
+    if (!sessionId || !currentUserId) {
+      console.warn("Missing sessionId or userId");
+      return;
+    }
+
+    try {
+      await leave(sessionId, currentUserId);
+    } catch (e) {
+      console.error("Failed to leave session", e);
+    }
+  };
+
+  // ─────────────────────────────────────────────
+  // UI
+  // ─────────────────────────────────────────────
   return (
     <View style={{ flex: 1 }}>
-      {/* FIXED NAVBAR */}
-      <View
-        style={{
-          position: "absolute",
-          top: 0,
-          left: 0,
-          right: 0,
-          zIndex: 100,
-        }}
-      >
+      <View style={{ position: "absolute", top: 0, left: 0, right: 0, zIndex: 100 }}>
         <NavBar />
 
-    <EmojiBar onSelect={addEmojiMessage} />
+        <TouchableOpacity
+          onPress={handleLeave}
+          style={{
+            backgroundColor: AppColors.blue,
+            padding: 10,
+            margin: 8,
+            borderRadius: 8,
+            alignSelf: "flex-end",
+          }}
+        >
+          <Text style={{ color: "white" }}>Leave Session</Text>
+        </TouchableOpacity>
 
-    <InstantMessageBar
-      friends={friends}
-      onSend={send}
-    />
+        <EmojiBar onSelect={addEmojiMessage} />
+        <InstantMessageBar friends={friends} onSend={send} />
       </View>
 
-      {/* SCENE AREA */}
       <ScrollView
         horizontal={isDesktopLike}
         showsHorizontalScrollIndicator={false}
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={{
-          flexGrow: 1,
-          paddingTop: 60, // space for navbar
-        }}
+        contentContainerStyle={{ flexGrow: 1, paddingTop: 60 }}
       >
         <View
           style={{
@@ -529,9 +614,7 @@ export default function CommunityLanding() {
             position: "relative",
           }}
         >
-<Scene
-  messages={messages}
-/>
+          <Scene messages={sceneMessages} />
         </View>
       </ScrollView>
     </View>

@@ -10,6 +10,7 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
+import { useSessionStore as useCommunityStore } from '../community/sessionStore';
 import { useSessionStore } from '../services/userSession';
 
 interface NavBarProps {
@@ -24,6 +25,8 @@ const NavBar: React.FC<NavBarProps> = ({ onLogout }) => {
   const [showDropdown, setShowDropdown] = useState(false);
   const [avatarLayout, setAvatarLayout] = useState({ x: 0, y: 0, width: 0, height: 0 });
   const avatarRef = useRef<View>(null);
+     const communitySession =
+  useCommunityStore((s) => s.session);
 
   const handleAvatarPress = () => {
     avatarRef.current?.measureInWindow((x, y, width, height) => {
@@ -47,7 +50,15 @@ const NavBar: React.FC<NavBarProps> = ({ onLogout }) => {
         <TouchableOpacity onPress={() => router.push('/game/main')}>
           <Text style={styles.navLink}>Game</Text>
         </TouchableOpacity>
-        <TouchableOpacity onPress={() => router.push('/community/main')}>
+        <TouchableOpacity
+  onPress={() => {
+    if (communitySession) {
+      router.push('/community/communityLanding');
+    } else {
+      router.push('/community/main');
+    }
+  }}
+>
           <Text style={styles.navLink}>Community</Text>
         </TouchableOpacity>
         <TouchableOpacity onPress={() => router.push('/diary/Diary')}>

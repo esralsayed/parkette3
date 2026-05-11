@@ -125,8 +125,6 @@ const LevelSchema = new Schema(
     // keyed by difficulty string for easy lookup
     difficultyVariants: {
       easy: { type: DifficultyVariantSchema },
-      medium: { type: DifficultyVariantSchema },
-      hard: { type: DifficultyVariantSchema },
     },
 
     reward: {

@@ -2,10 +2,18 @@
 //  diaryApi.ts  –  All diary-related API calls live here
 //  Add new endpoints below as the feature grows.
 // ─────────────────────────────────────────────────────────────
-import type { JSONContent } from '@tiptap/react';
+//import type { JSONContent } from '@tiptap/react';
 
 const BASE_URL = 'http://localhost:5000/api/diary';
 
+// JSONContent is tiptap's format: a recursive node tree
+export type JSONContent = {
+  type?: string;
+  content?: JSONContent[];
+  attrs?: Record<string, any>;
+  marks?: { type: string; attrs?: Record<string, any> }[];
+  text?: string;
+};
 // ── Types ──────────────────────────────────────────────────────
 
 export interface DiaryCustomLetter {
@@ -30,7 +38,7 @@ export interface DiaryEntry {
   diaryId: string
   date: string
   favorite: boolean
-  content: JSONContent
+  content: {leftPage: string[]; rightPage: string[]}
   drawings: {
     strokeType: "pen" | "brush"
     strokeSize: "big" | "small"

@@ -67,13 +67,6 @@ export interface StepResult {
   starsDeducted?: number;
 }
 
-export interface ChapterProgressPayload {
-  userId: string;
-  chapterId: string;
-  completedLevelId: string;
-  starsEarned: number;       // stars earned on THIS level
-}
-
 export class LevelService {
   private attemptTracker = LevelAttemptTracker.getInstance();
   private currentSession: GameSession | null = null;
