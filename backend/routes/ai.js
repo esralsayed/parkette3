@@ -11,7 +11,8 @@ export async function getLevelAttemptCount(userId, levelId) {
   const levelProgress = progress.levelProgress.find(
     (lp) => lp.levelId.toString() === levelId.toString()
   );
-  console.log("how many attempts?", levelProgress.attempts); 
+  if (!levelProgress) return 0; 
+  if (progress) console.log("how many attempts?", levelProgress.attempts); 
   return levelProgress?.attempts ?? 0;
 }
 

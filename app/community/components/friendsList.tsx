@@ -3,11 +3,11 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { ActivityIndicator, ScrollView, Share, StyleSheet, Text, TextInput, TouchableOpacity, useWindowDimensions, View } from 'react-native';
-import Footer from '../components/Footer';
-import NavBar from '../components/navbar';
-import { useSessionStore } from '../services/userSession';
-import { useSessionStore as useCommunitySession } from './hooks/sessionStore';
-import { useCommunity } from './hooks/useComm';
+import Footer from '../../components/Footer';
+import NavBar from '../../components/navbar';
+import { useSessionStore } from '../../services/userSession';
+import { useSessionStore as useCommunitySession } from '../hooks/sessionStore';
+import { useCommunity } from '../hooks/useComm';
 
 export default function CommunityFriends() {
   const { width } = useWindowDimensions(); // reactive to rotation/resize
@@ -199,7 +199,7 @@ export default function CommunityFriends() {
                         {hasActiveSession && isParticipant && (
                           <TouchableOpacity
                             style={[styles.btn, styles.btnApprove]}
-                            onPress={() => router.push('/community/communityLanding')}
+                            onPress={() => router.push('/community/components/communityLanding')}
                           >
                             <Text style={styles.btnApproveText}>Join</Text>
                           </TouchableOpacity>

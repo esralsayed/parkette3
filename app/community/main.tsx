@@ -22,13 +22,13 @@ export default function CommunityLanding() {
               <PFP />
             </View>
             <View style={styles.buttonsRow}>
-              <TouchableOpacity style={[styles.pin, { top: height * 0.06, left: width * 0.26 }]} onPress={() => router.push('/community/avatar')}>
+              <TouchableOpacity style={[styles.pin, { top: height * 0.06, left: width * 0.26 }]} onPress={() => router.push('/community/components/avatar')}>
                 <Text style={styles.pinText}>Customize</Text>
               </TouchableOpacity>
-              <TouchableOpacity style={[styles.pin, { top: height * 0.16 }]} onPress={() => router.push('/community/friendsList')}>
+              <TouchableOpacity style={[styles.pin, { top: height * 0.16 }]} onPress={() => router.push('/community/components/friendsList')}>
                 <Text style={styles.pinText}>Join</Text>
               </TouchableOpacity>
-              <TouchableOpacity style={[styles.pin, { top: height * 0.06, right: width * 0.26 }]} onPress={() => router.push('/community/friendsList')}>
+              <TouchableOpacity style={[styles.pin, { top: height * 0.06, right: width * 0.26 }]} onPress={() => router.push('/community/components/friendsList')}>
                 <Text style={styles.pinText}>Friends List</Text>
               </TouchableOpacity>
             </View>

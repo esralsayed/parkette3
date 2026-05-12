@@ -1,13 +1,13 @@
 import {
-    addFriend,
-    approveFriendRequest,
-    broadcast,
-    createSession,
-    denyFriendRequest,
-    getFriendRequests,
-    getFriends,
-    getMessagesWithFriend,
-    getMyFriendCode, leaveSession, removeFriend, sendMessage
+  addFriend,
+  approveFriendRequest,
+  broadcast,
+  createSession,
+  denyFriendRequest,
+  getFriendRequests,
+  getFriends,
+  getMessagesWithFriend,
+  getMyFriendCode, leaveSession, removeFriend, sendMessage
 } from '@/app/repositories/Community';
 import { router } from 'expo-router';
 import { useEffect, useState } from 'react';
@@ -110,7 +110,7 @@ async function startSession(friendIds: string[]) {
   try {
     const data = await createSession(friendIds);
     setSession(data.session);
-    router.push(`/community/communityLanding`);
+    router.push(`/community/components/communityLanding`);
   } catch (e: any) {
     setError(e.message);
   } finally {

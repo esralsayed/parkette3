@@ -53,7 +53,7 @@ const NavBar: React.FC<NavBarProps> = ({ onLogout }) => {
         <TouchableOpacity
   onPress={() => {
     if (communitySession) {
-      router.push('/community/communityLanding');
+      router.push('/community/components/communityLanding');
     } else {
       router.push('/community/main');
     }
