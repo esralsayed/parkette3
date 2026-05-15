@@ -1,6 +1,6 @@
 // app/components/minigames/ChoiceModal.tsx
-import { TaskAnswer } from '@/app/interfaces/TaskAnswer';
-import { AppColors, AppFonts } from '@/constants/theme';
+import { TaskAnswer } from '@/app/game/interfaces/TaskAnswer';
+import { AppColors, AppFonts, AppFontSizes } from '@/constants/theme';
 import React, { useEffect, useRef } from 'react';
 import {
   Animated,
@@ -203,7 +203,7 @@ const styles = StyleSheet.create({
   },
   modalContainer: {
     width: '100%',
-    maxWidth: 500,
+    maxWidth: 700,
     alignItems: 'center',
     position: 'relative',
   },
@@ -244,7 +244,7 @@ const styles = StyleSheet.create({
   headerTitle: {
     ...AppFonts.body,
     color: AppColors.lilac,
-    fontSize: 28,
+    fontSize: AppFontSizes.title,
     letterSpacing: 1,
     flex: 1,
   },
@@ -265,8 +265,8 @@ const styles = StyleSheet.create({
     color: AppColors.blue,
   },
   closeBtn: {
-    width: 28,
-    height: 28,
+    width: 50,
+    height: 50,
     backgroundColor: AppColors.lilac,
     borderRadius: 6,
     borderWidth: 2,
@@ -318,7 +318,7 @@ const styles = StyleSheet.create({
   },
   charLabel: {
     ...AppFonts.body,
-    fontSize: 12,
+    fontSize: AppFontSizes.body,
     fontWeight: '700',
     color: AppColors.blue,
     textTransform: 'uppercase',
@@ -331,8 +331,8 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   instructionText: {
-    ...AppFonts.body,
-    fontSize: 20,
+    ...AppFonts.bodySmall,
+    fontSize: AppFontSizes.body,
     color: AppColors.blue,
     lineHeight: 28,
     marginBottom: 18,
@@ -363,8 +363,8 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   optionIconContainer: {
-    width: 36,
-    height: 36,
+    width: 100,
+    height: 100,
     borderRadius: 6,
     backgroundColor: AppColors.lilac,
     alignItems: 'center',
@@ -378,8 +378,8 @@ const styles = StyleSheet.create({
     color: AppColors.blue,
   },
   optionText: {
-    ...AppFonts.body,
-    fontSize: 16,
+    ...AppFonts.bodySmall,
+    fontSize: AppFontSizes.bodySmall,
     color: AppColors.dark,
     flex: 1,
     flexWrap: 'wrap',

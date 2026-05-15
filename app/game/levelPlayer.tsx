@@ -13,16 +13,16 @@ import {
 } from 'react-native';
 import catImage from '../../assets/images/chapters/Cat.png';
 import { GameCharacter, GameScene, GameStep } from '../adapters/LevelAdapter';
-import { EndScreen, ErrorScreen, LoadingScreen } from "../components/Extra screens";
-import WrongAnswerFeedback from '../components/Feedback';
-import HowToPlayModal from '../components/howtoplay';
-import FindFriendsGame from '../components/minigames/FindFriendsGame';
-import ImageChoiceGame from '../components/minigames/imageChoice';
 import NavBar from '../components/navbar';
-import SceneStage from '../components/SceneStage';
-import TaskRenderer from '../components/TaskRenderer';
-import { TaskAnswer } from '../interfaces/TaskAnswer';
-import { levelService } from '../services/LevelService';
+import { EndScreen, ErrorScreen, LoadingScreen } from "./components/Extra screens";
+import WrongAnswerFeedback from './components/Feedback';
+import HowToPlayModal from './components/howtoplay';
+import FindFriendsGame from './components/minigames/FindFriendsGame';
+import ImageChoiceGame from './components/minigames/imageChoice';
+import SceneStage from './components/SceneStage';
+import TaskRenderer from './components/TaskRenderer';
+import { TaskAnswer } from './interfaces/TaskAnswer';
+import { levelService } from './services/LevelService';
 
 export default function LevelPlayer() {
   const { levelId, chapterId, chapterTitle } = useLocalSearchParams();

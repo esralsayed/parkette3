@@ -123,6 +123,17 @@ levelroutes.get("/:id", authMiddleware, async (req, res) => {
   }
 });
 
+// Add this BEFORE the /:id route
+levelroutes.get("/admin/:id", async (req, res) => {
+  try {
+    const level = await Level.findById(req.params.id);
+    if (!level) return res.status(404).json({ message: "Level not found" });
+    res.json({ level });
+  } catch (error) {
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
 
 //for the admin
 // POST /api/levels — create (used by admin panel)

@@ -7,9 +7,9 @@ import { useEffect, useState } from 'react';
 import 'react-native-reanimated';
 
 import { useSessionStore as useCommunity } from './community/hooks/sessionStore';
-import { useSessionStore } from './services/userSession';
-import { useSessionInvite } from './services/useSessionInvites';
-import { getSocket, useSocket } from './services/useSocket';
+import { useSessionStore } from './community/services/userSession';
+import { useSessionInvite } from './community/services/useSessionInvites';
+import { getSocket, useSocket } from './community/services/useSocket';
 
 export default function RootLayout() {
   const [isReady, setIsReady] = useState(false);

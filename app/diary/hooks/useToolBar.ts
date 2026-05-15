@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { Dimensions } from 'react-native';
-import { DiaryCustomLetter, saveChangesCover } from '../../repositories/Diary';
 import { PlacedSticker } from '../components/toolBarActions';
+import { DiaryCustomLetter, saveChangesCover } from '../repository/Diary';
 const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
 
 ////mapping for the texts

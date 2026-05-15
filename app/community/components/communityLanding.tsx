@@ -28,11 +28,11 @@ import {
   ViewStyle,
 } from "react-native";
 import NavBar from "../../components/navbar";
-import { useDirectMessages } from "../../services/useMessages";
-import { useSessionStore } from "../../services/userSession";
-import { useSessionChat } from "../../services/useSessionChat";
 import { useSessionStore as useCommunitySession } from "../hooks/sessionStore";
 import { useCommunity } from "../hooks/useComm";
+import { useDirectMessages } from "../services/useMessages";
+import { useSessionStore } from "../services/userSession";
+import { useSessionChat } from "../services/useSessionChat";
 import { EmojiBar, InstantMessageBar, MessageBar } from "./Messages&Posts";
 
 const { width, height } = Dimensions.get("window");

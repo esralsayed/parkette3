@@ -4,29 +4,40 @@
 // 1. LAYER TYPES — every visual element has a type
 //    with constrained options, not raw style objects
 // ─────────────────────────────────────────────
+import React from "react";
+import { SvgProps } from "react-native-svg";
+
+type SvgComponent = React.FC<SvgProps>;
+type RasterSource = number | { uri: string };
+export type SceneImageSource = SvgComponent | RasterSource;
 
 export type LayerType = 'sky' | 'background' | 'midground' | 'ground' | 'foreground' | 'ui';
 
 // Character sizes are named, not arbitrary numbers
-export type CharacterSize = 'small' | 'medium' | 'large' | 'hero' | 'xlarge';
+export type CharacterSize = 'small' | 'medium' | 'large' | 'hero' | 'herox' | 'xlarge' | 'xxlarge' | 'xxxlarge';
 export const CHARACTER_SIZE_MAP: Record<CharacterSize, number> = {
   small:  120,
   medium: 200,
   large:  300,
   hero:   420,
-  xlarge: 620
+  herox: 520,
+  xlarge: 620,
+  xxlarge: 900,
+  xxxlarge: 1100,
 };
 
 import { DimensionValue } from "react-native";
 
 // Horizontal positions are named slots, not raw percentages
-export type HorizontalSlot = 'far-left' | 'left' | 'center-left' | 'center' | 'center-right' | 'right' | 'far-right';
+export type HorizontalSlot = 'far-far-left' | 'far-left' | 'left' | 'center-left' | 'center' | 'center-right' | 'center-toward-right' | 'right' | 'far-right';
 export const SLOT_MAP: Record<HorizontalSlot, DimensionValue> = {
+  'far-far-left': '-10%',
   'far-left':     '-5%',
   'left':         '10%',
   'center-left':  '25%',
   'center':       '35%',
   'center-right': '55%',
+  'center-toward-right': '65%',
   'right':        '70%',
   'far-right':    '82%',
 };
@@ -43,12 +54,14 @@ export const DEPTH_OPACITY: Record<DepthLevel, number> = { near: 1, mid: 0.85, f
 
 export interface CharacterElement {
   kind: 'character';
-  image: any;
+  image: SceneImageSource;
   slot: HorizontalSlot;
   size: CharacterSize;
   depth?: DepthLevel;      // Defaults to 'near'
   flipped?: boolean;       // Mirror the sprite
   zOffset?: number;        // Fine-tune z-order within the layer
+  verticalOffset?: number;  // positive = down, negative = up (in % of scene height)
+
 }
 
 export interface TreeElement {
@@ -61,10 +74,12 @@ export interface TreeElement {
 
 export interface PropElement {
   kind: 'prop';
-  image: any;
+  image: SceneImageSource;
   slot: HorizontalSlot;
   size: CharacterSize;
   depth?: DepthLevel;
+  verticalOffset?: number;  // positive = down, negative = up (in % of scene height)
+
 }
 
 export type SceneElement = CharacterElement | TreeElement | PropElement;

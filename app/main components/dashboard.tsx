@@ -15,8 +15,8 @@ import {
   View,
 } from 'react-native';
 import { Calendar as RnCalendar } from 'react-native-calendars';
-import Footer from './components/Footer';
-import NavBar from './components/navbar';
+import Footer from '../components/Footer';
+import NavBar from '../components/navbar';
 
 const { width } = Dimensions.get('window');
 
@@ -73,7 +73,7 @@ const HeroSection = ({
 
       {/* left col */}
       <View style={styles.heroCol}>
-        <Image source={require('../assets/images/profilepic.png')} resizeMode="contain" />
+        <Image source={require('../../assets/images/profilepic.png')} resizeMode="contain" />
         <Text style={styles.heroTitle}>Hi! {userName}</Text>
       </View>
 

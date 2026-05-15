@@ -11,7 +11,8 @@
 import { AppColors, AppFonts, Spacing } from '@/constants/theme';
 import React, { useEffect, useState } from "react";
 import { Dimensions, Image, ImageBackground, StyleSheet, Text, TouchableOpacity, View } from "react-native";
-import { GameCharacter } from '../adapters/LevelAdapter';
+import { GameCharacter } from '../../adapters/LevelAdapter';
+import DevOffsetPanel from './DevOffsetPanel';
 import DialogBox from './DialogBox';
 import LevelDecorations from './LevelDecorations';
 
@@ -41,6 +42,8 @@ export default function SceneStage({
 
   const isTask = currentStep?.type === 'task';
   const [side, setSide] = useState<'left' | 'right'>('left');
+  const [devOffsets, setDevOffsets] = useState<Record<number, number>>({});
+
 
   //this portion is for making the dialog on the left or on the right
   const speakingCharacter = currentStep?.type === 'dialog' 
@@ -55,7 +58,7 @@ useEffect(() => {
 
   const sceneContent = (
     <>
-      <LevelDecorations sceneKey={sceneKey} />
+      <LevelDecorations sceneKey={sceneKey} devOffsets={devOffsets} />
       <View style={styles.ground} />
 
       {/* ── When an in-scene game is active, show it in the bottom panel ── */}
@@ -126,8 +129,9 @@ useEffect(() => {
   );
 
   return (
+    <View style={styles.container}>
     <TouchableOpacity 
-      style={styles.container}
+      style={StyleSheet.absoluteFill}
       activeOpacity={1}
       onPress={(gameMode || inSceneGame) ? undefined : onAdvance}
       disabled={isTask || gameMode || !!inSceneGame}
@@ -146,6 +150,8 @@ useEffect(() => {
         </View>
       )}
     </TouchableOpacity>
+    {__DEV__ && <DevOffsetPanel sceneKey={sceneKey} offsets={devOffsets} setOffsets={setDevOffsets} />}
+    </View>
   );
 }
 

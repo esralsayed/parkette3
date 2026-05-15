@@ -1,8 +1,8 @@
 // services/LevelService.ts
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { GameLevel, GameStep, LevelAdapter } from '../adapters/LevelAdapter';
-import { levelRepository } from '../repositories/LevelRepository';
+import { GameLevel, GameStep, LevelAdapter } from '../../adapters/LevelAdapter';
+import { levelRepository } from '../repository/LevelRepository';
 import { PerformanceTracker } from './PerformanceTracter';
 
 // Store in AsyncStorage or backend to persist across app restarts

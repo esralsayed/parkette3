@@ -4,7 +4,7 @@
 
 
 import React, { useEffect, useState } from 'react';
-import { GameStep } from '../adapters/LevelAdapter';
+import { GameStep } from '../../adapters/LevelAdapter';
 import ChoiceModal, { ChoiceOption } from './minigames/ChoiceModal';
 
 import { TaskAnswer } from '../interfaces/TaskAnswer';

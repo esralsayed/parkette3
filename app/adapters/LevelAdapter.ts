@@ -1,7 +1,7 @@
 // adapters/LevelAdapter.ts
 
 import { ImageSourcePropType } from 'react-native';
-import { DialogStep, DifficultyVariant, LevelData } from '../types/level.types';
+import { DialogStep, DifficultyVariant, LevelData } from '../game/types/level.types';
 
 import Slide2 from '../../assets/svgs/game/chapters/slide1.svg';
 import Slide1 from '../../assets/svgs/game/chapters/slide2.svg';

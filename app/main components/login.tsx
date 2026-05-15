@@ -1,4 +1,4 @@
-import { AppColors, AppFonts, Spacing } from '@/constants/theme';
+import { AppColors, AppFonts, AppFontSizes, Spacing } from '@/constants/theme';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useRouter } from 'expo-router';
 import React, { useState } from 'react';
@@ -8,45 +8,45 @@ import {
   StyleSheet,
   Text,
   TextInput,
-  View
+  View,
 } from 'react-native';
-import PrimaryButton from './components/style/buttonHovered';
-import LinkText from './components/style/LinksHover';
+import { useSessionStore } from '../community/services/userSession';
+import PrimaryButton from '../components/style/buttonHovered';
+import LinkText from '../components/style/LinksHover';
 
 const API_URL = 'http://localhost:5000/api/auth';
 
-export default function Signup() {
+export default function Login() {
   const router = useRouter();
-  const [name, setName] = useState('');
   const [username, setUsername] = useState('');
-  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [focusedField, setFocusedField] = useState<string | null>(null);
-  const [signupHover, setSignupHover] = useState(false);
-  const [backLoginHover, setBackLoginHover] = useState(false);
-  const [backWelcomeHover, setBackWelcomeHover] = useState(false);
 
-  const handleSignup = async () => {
-    if (!name || !username || !email || !password) {
+  const setUser = useSessionStore((s) => s.setUser);
+
+  const handleLogin = async () => {
+    if (!username || !password) {
       Alert.alert('Error', 'Please fill in all fields');
       return;
     }
     setLoading(true);
     try {
-      const response = await fetch(`${API_URL}/signup`, {
+      const response = await fetch(`${API_URL}/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name, username, email, password }),
+        body: JSON.stringify({ username, password }),
       });
       const data = await response.json();
       if (response.ok) {
         await AsyncStorage.setItem('token', data.token);
         await AsyncStorage.setItem('user', JSON.stringify(data.user));
-        Alert.alert('Success', 'Account created successfully!');
-        router.push('/register-child');
+        setUser(data.user);
+        console.log(data.user)
+        Alert.alert('Success', 'Login successful!');
+        router.replace('/main components/dashboard');
       } else {
-        Alert.alert('Error', data.message || 'Signup failed');
+        Alert.alert('Error', data.message || 'Login failed');
       }
     } catch (error) {
       Alert.alert('Error', 'Network error. Please try again.');
@@ -60,33 +60,16 @@ export default function Signup() {
       {/* Header section with cat and title */}
       <View style={styles.headerContainer}>
         <Image 
-          source={require('../assets/images/chapters/Cat.png')}
+          source={require('../../assets/images/chapters/Cat.png')}
           style={styles.catImage}
         />
-        <Text style={[AppFonts.header, styles.headerTitle]}>Sign Up</Text>
+        <Text style={[AppFonts.header, styles.headerTitle]}>Login</Text>
       </View>
 
       {/* Card */}
       <View style={styles.card}>
         <View style={styles.cornerTL} />
         <View style={styles.cornerBR} />
-
-        {/* Full Name Field */}
-        <View style={styles.field}>
-          <Text style={styles.label}>FULL NAME</Text>
-          <TextInput
-            style={[
-              styles.input,
-              focusedField === 'name' && styles.inputFocused
-            ]}
-            placeholder="Full name"
-            placeholderTextColor={AppColors.lilac}
-            value={name}
-            onChangeText={setName}
-            onFocus={() => setFocusedField('name')}
-            onBlur={() => setFocusedField(null)}
-          />
-        </View>
 
         {/* Username Field */}
         <View style={styles.field}>
@@ -102,25 +85,6 @@ export default function Signup() {
             onChangeText={setUsername}
             autoCapitalize="none"
             onFocus={() => setFocusedField('username')}
-            onBlur={() => setFocusedField(null)}
-          />
-        </View>
-
-        {/* Email Field */}
-        <View style={styles.field}>
-          <Text style={styles.label}>EMAIL</Text>
-          <TextInput
-            style={[
-              styles.input,
-              focusedField === 'email' && styles.inputFocused
-            ]}
-            placeholder="Email"
-            placeholderTextColor={AppColors.lilac}
-            value={email}
-            onChangeText={setEmail}
-            keyboardType="email-address"
-            autoCapitalize="none"
-            onFocus={() => setFocusedField('email')}
             onBlur={() => setFocusedField(null)}
           />
         </View>
@@ -144,22 +108,22 @@ export default function Signup() {
         </View>
 
         <PrimaryButton
-          title="SIGN UP"
-          onPress={handleSignup}
+          title="LOGIN"
+          onPress={handleLogin}
           loading={loading}
         />
 
         {/* Back links section */}
         <View style={styles.linksContainer}>
           <LinkText
-            title="← Back to Login"
-            onPress={() => router.push('/login')}
+            title="New to the game? Signup!"
+            onPress={() => router.push('/main components/signup')}
           />
 
           <LinkText
             title="back to welcome?"
             variant="secondary"
-            onPress={() => router.push('/welcome')}
+            onPress={() => router.push('/main components/welcome')}
           />
         </View>
       </View>
@@ -178,7 +142,10 @@ const styles = StyleSheet.create({
   headerContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between', // cleaner
+    justifyContent: 'space-between',
+    width: '100%',
+    maxWidth: 420,
+    marginBottom: Spacing.sm,
   },
   catImage: {
     width: 130,
@@ -188,6 +155,7 @@ const styles = StyleSheet.create({
     color: AppColors.blue,
     letterSpacing: 2,
     textAlign: 'right',
+    fontSize: AppFontSizes.title,
   },
   card: {
     width: '100%',
@@ -250,39 +218,10 @@ const styles = StyleSheet.create({
     shadowRadius: 6,
     elevation: 4,
   },
-  signupBtn: {
-    width: '100%',
-    backgroundColor: '#ffffff',
-    borderWidth: 2.5,
-    borderColor: AppColors.blue,
-    borderRadius: 10,
-    paddingVertical: Spacing.md,
-    alignItems: 'center',
-    shadowColor: AppColors.blue,
-    shadowOffset: { width: 3, height: 3 },
-    shadowOpacity: 1,
-    shadowRadius: 0,
-    elevation: 3,
-    marginTop: Spacing.sm,
-    marginBottom: Spacing.lg,
-  },
-  disabled: {
-    backgroundColor: '#ccc',
-  },
   linksContainer: {
     flexDirection: 'column',
     alignItems: 'center',
     gap: Spacing.sm,
-  },
-  backLoginLink: {
-    color: AppColors.blue,
-  },
-  backWelcomeLink: {
-    color: AppColors.blue,
-    fontSize: 15
-  },
-  linkHover: {
-    color: '#4a6adc',
-    textDecorationLine: 'underline',
+    marginTop: Spacing.sm,
   },
 });

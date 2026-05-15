@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { loadAvatar, saveAvatar } from "../../repositories/Avatar";
+import { loadAvatar, saveAvatar } from "../repository/Avatar";
 
 
 export type ActiveWindow = 'hair' | 'skin' | 'top' | 'bottom' | 'feet' | 'accessory' | null;

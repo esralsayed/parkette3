@@ -2,16 +2,16 @@ import { AppColors, AppFonts, Spacing } from '@/constants/theme';
 import { useRouter } from 'expo-router';
 import React, { useRef, useState } from 'react';
 import {
-  Image,
-  Modal,
-  Pressable,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
+    Image,
+    Modal,
+    Pressable,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    View,
 } from 'react-native';
 import { useSessionStore as useCommunityStore } from '../community/hooks/sessionStore';
-import { useSessionStore } from '../services/userSession';
+import { useSessionStore } from '../community/services/userSession';
 
 interface NavBarProps {
   onLogout?: () => void;

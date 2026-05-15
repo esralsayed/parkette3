@@ -1,17 +1,17 @@
 "use client";
 
-import type { Diary } from "@/app/repositories/Diary";
+import type { Diary } from "@/app/diary/repository/Diary";
 import { AppColors, AppFonts } from "@/constants/theme";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useEffect, useState } from "react";
 import { ActivityIndicator, StyleSheet, Text, useWindowDimensions, View } from "react-native";
 import NavBar from "../components/navbar";
-import { getDiary } from "../repositories/Diary";
 import { DiaryBook } from "./components/DiaryBook";
 import { ExpandableActionBar } from "./components/Diarytoolbar";
 import { DiarySpread } from "./components/OpenDiary";
 import { ColoredWindow, StickersWindow, TextWindow } from "./components/toolBarActions";
 import { useDiaryToolbar } from "./hooks/useToolBar";
+import { getDiary } from "./repository/Diary";
 
 export default function DiaryLandingPage() {
   const { width: screenWidth, height:screenHeight } = useWindowDimensions();

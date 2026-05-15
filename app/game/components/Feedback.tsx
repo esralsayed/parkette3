@@ -1,5 +1,6 @@
 // app/components/WrongAnswerFeedback.tsx
 
+import catImage from '@/assets/images/chapters/Cat.png';
 import { AppColors, AppFonts } from '@/constants/theme';
 import React, { useEffect, useRef } from 'react';
 import {
@@ -12,7 +13,6 @@ import {
   View
 } from 'react-native';
 import Svg, { Circle, Ellipse, Line, Path } from 'react-native-svg';
-import catImage from '../../assets/images/chapters/Cat.png';
 
 interface WrongAnswerFeedbackProps {
   visible: boolean;

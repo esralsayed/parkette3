@@ -5,9 +5,9 @@ import { useEffect, useState } from 'react';
 import { ActivityIndicator, ScrollView, Share, StyleSheet, Text, TextInput, TouchableOpacity, useWindowDimensions, View } from 'react-native';
 import Footer from '../../components/Footer';
 import NavBar from '../../components/navbar';
-import { useSessionStore } from '../../services/userSession';
 import { useSessionStore as useCommunitySession } from '../hooks/sessionStore';
 import { useCommunity } from '../hooks/useComm';
+import { useSessionStore } from '../services/userSession';
 
 export default function CommunityFriends() {
   const { width } = useWindowDimensions(); // reactive to rotation/resize

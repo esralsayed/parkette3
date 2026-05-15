@@ -3,7 +3,7 @@ import { AppColors, AppFonts } from '@/constants/theme';
 import React, { useState } from 'react';
 import { ActivityIndicator, StyleSheet, Text, TouchableOpacity, useWindowDimensions, View } from 'react-native';
 import Svg, { Rect } from 'react-native-svg';
-import { DiaryCustomLetter } from "../../repositories/Diary";
+import { DiaryCustomLetter } from "../repository/Diary";
 import { PlacedSticker, STICKER_DEFS } from "./toolBarActions";
 
 // ─── Types ────────────────────────────────────────────────────────────────────

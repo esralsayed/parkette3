@@ -113,7 +113,7 @@ const styles = StyleSheet.create({
 });
 
 
-import { DiaryCustomLetter } from '@/app/repositories/Diary';
+import { DiaryCustomLetter } from '@/app/diary/repository/Diary';
 import { FontFamily, FontSize, TextAlignment } from '../hooks/useToolBar';
 
 

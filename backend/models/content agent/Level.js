@@ -71,7 +71,7 @@ const DialogStepSchema = new Schema({
     enum: ["narrate", "dialog", "task"],
     required: true,
   },
-  sceneKey: { type: String },  // e.g. "park", "school", "home" for easier AI prompting
+  sceneKey: { type: String, default: "null" },  // e.g. "park", "school", "home" for easier AI prompting
 
   // for narrate + dialog
   text:     { type: String },

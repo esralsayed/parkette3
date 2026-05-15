@@ -23,8 +23,8 @@ import {
     View
 } from 'react-native';
 import Svg, { ClipPath, Defs, Line, Path, Rect } from 'react-native-svg';
-import { DiaryStats, FavoriteEntry, getDiaryStats, getFavouriteEntries } from "../../repositories/Diary";
 import { usePage } from '../hooks/usePage';
+import { DiaryStats, FavoriteEntry, getDiaryStats, getFavouriteEntries } from "../repository/Diary";
 
 // ─── Sizes ────────────────────────────────────────────────────────────────────
 const SHADOW_X       = 6;

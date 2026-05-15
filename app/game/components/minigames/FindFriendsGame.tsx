@@ -2,15 +2,15 @@
 import { AppColors, AppFonts } from '@/constants/theme';
 import React, { JSX, useEffect, useRef, useState } from 'react';
 import {
-  Animated,
-  Dimensions,
-  Image,
-  ImageSourcePropType,
-  Modal,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View
+    Animated,
+    Dimensions,
+    Image,
+    ImageSourcePropType,
+    Modal,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    View
 } from 'react-native';
 import Bush from '../decorations/bush';
 

@@ -1021,7 +1021,7 @@ async function editLevel(id, e) {
   if (e) e.stopPropagation();
   showPage('builder');
   try {
-    const r = await fetch(`${API}/api/levels/${id}`);
+    const r = await fetch(`${API}/api/levels/admin/${id}`);
     const data = await r.json();
     const lv = data.level || data;
     populateBuilder(lv);

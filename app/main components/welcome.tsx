@@ -46,12 +46,12 @@ const NavBar = () => {
         <Text style={styles.navLink}>Diary</Text>
       </View>
       <View style={styles.navActions}>
-        <TouchableOpacity onPress={() => router.push('/login')}>
+        <TouchableOpacity onPress={() => router.push('/main components/login')}>
           <Text style={styles.navLogin}>Login</Text>
         </TouchableOpacity>
         <TouchableOpacity
           style={styles.navSignupBtn}
-          onPress={() => router.push('/signup')}
+          onPress={() => router.push('/main components/signup')}
         >
           <Text style={styles.navSignupText}>Sign Up</Text>
         </TouchableOpacity>
@@ -71,7 +71,7 @@ const HeroSection = () => {
         <Text style={styles.heroDesc}>
           Join us in a world of full of wonder and opportunities, and what-ifs. where your choices shape the story, your friends join the fun, and every adventure helps you grow into a real-life hero!
         </Text>
-        <TouchableOpacity style={styles.btnAction} onPress={() => router.push('/login')}>
+        <TouchableOpacity style={styles.btnAction} onPress={() => router.push('/main components/login')}>
           <View style={{alignContent: 'center', justifyContent: 'center', alignItems: 'center'}}>
           <Text style={styles.btnActionText}>Play Now</Text>
           </View>
@@ -79,10 +79,10 @@ const HeroSection = () => {
       </View>
 
       <View style={styles.heroRight}>
-        <Image source={require('../assets/images/stars 11.png')} style={styles.starImage1} />
-        <Image source={require('../assets/images/stars 17.png')} style={styles.starImage2} />
-        <Image source={require('../assets/images/stars 18.png')} style={styles.starImage3} />
-        <Image source={require('../assets/images/stars 19.png')} style={styles.starImage4} />
+        <Image source={require('../../assets/images/stars 11.png')} style={styles.starImage1} />
+        <Image source={require('../../assets/images/stars 17.png')} style={styles.starImage2} />
+        <Image source={require('../../assets/images/stars 18.png')} style={styles.starImage3} />
+        <Image source={require('../../assets/images/stars 19.png')} style={styles.starImage4} />
       </View>
     </View>
   );
@@ -100,17 +100,17 @@ const GameSection = () => (
     <Text style={styles.sectionTitle}>Game</Text>
      <View style={styles.gameCards}>
        <Image
-        source={require('../assets/images/welcomepage/left.png')}
+        source={require('../../assets/images/welcomepage/left.png')}
         style={styles.cardleft}
         resizeMode="cover"
       />
       <Image
-        source={require('../assets/images/welcomepage/left.png')}
+        source={require('../../assets/images/welcomepage/left.png')}
         style={styles.cardcenter}
         resizeMode="cover"
       />
       <Image
-        source={require('../assets/images/welcomepage/right.png')}
+        source={require('../../assets/images/welcomepage/right.png')}
         style={styles.cardright}
         resizeMode="cover"
       />
@@ -143,17 +143,17 @@ const CommunitySection = () => (
           </View>
           <View style={styles.imageCol}>
             <Image
-              source={require('../assets/images/welcomepage/girlcomm2.png')}
+              source={require('../../assets/images/welcomepage/girlcomm2.png')}
               style={styles.commImage1}
               resizeMode="contain"
             />
             <Image
-              source={require('../assets/images/welcomepage/girlcomm.png')}
+              source={require('../../assets/images/welcomepage/girlcomm.png')}
               style={styles.commImage2}
               resizeMode="contain"
             />
             <Image
-              source={require('../assets/images/welcomepage/catcomm.png')}
+              source={require('../../assets/images/welcomepage/catcomm.png')}
               style={styles.commImage3}
               resizeMode="contain"
             />
@@ -182,7 +182,7 @@ const DiarySection = () => (
           </View>
           <View style={styles.diaryImageCol}>
             <Image
-              source={require('../assets/images/welcomepage/Diary Sample.png')}
+              source={require('../../assets/images/welcomepage/Diary Sample.png')}
               style={styles.diaryImage}
               resizeMode="contain"
             />

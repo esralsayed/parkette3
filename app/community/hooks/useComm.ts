@@ -8,10 +8,10 @@ import {
   getFriends,
   getMessagesWithFriend,
   getMyFriendCode, leaveSession, removeFriend, sendMessage
-} from '@/app/repositories/Community';
+} from '@/app/community/repository/Community';
 import { router } from 'expo-router';
 import { useEffect, useState } from 'react';
-import { getSocket } from '../../services/useSocket';
+import { getSocket } from '../services/useSocket';
 import { useSessionStore } from './sessionStore';
 
 interface Friend {
