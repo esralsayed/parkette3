@@ -115,9 +115,9 @@ export const SCENE_REGISTRY: Record<string, SceneDefinition> = {
     atmosphere: 'day',
     elements: [
       { kind: 'character', image: MainGirl, slot: 'left', size: 'large' },
-      { kind: 'prop',      image: Stove,    slot: 'center-left', size: 'large', verticalOffset: -200 },
-      { kind: 'prop',      image: Window,    slot: 'center', size: 'large', verticalOffset: -300 }, 
-      { kind: 'prop',      image: Curtain,    slot: 'center', size: 'large', verticalOffset: -350 },  
+      { kind: 'prop',      image: Stove,    slot: 'center-left', size: 'xlarge', verticalOffset: -40 },
+      { kind: 'prop',      image: Window,    slot: 'center', size: 'xlarge', verticalOffset: 0 }, 
+      { kind: 'prop',      image: Curtain,    slot: 'center', size: 'xlarge', verticalOffset: 0 },  
     ],
   }
 };
