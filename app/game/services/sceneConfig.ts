@@ -15,6 +15,12 @@ import Pen from "@/assets/svgs/game/chapters/pen.svg";
 import SmokeAlarm from "@/assets/svgs/game/chapters/smokealarm.svg";
 import Stove from "@/assets/svgs/game/chapters/stove.svg";
 import Window from "@/assets/svgs/game/chapters/window.svg";
+import Counter from "@/assets/svgs/game/chapters/counter.svg";
+import Counter2 from "@/assets/svgs/game/chapters/counter2.svg";
+import Spoon from "@/assets/svgs/game/chapters/spoon.svg";
+import Towel from "@/assets/svgs/game/chapters/towel.svg";
+import Bag from "@/assets/svgs/game/chapters/bag.svg";
+import Bottle from "@/assets/svgs/game/chapters/bottle.svg";
 
 
 // image imports
@@ -115,9 +121,26 @@ export const SCENE_REGISTRY: Record<string, SceneDefinition> = {
     atmosphere: 'day',
     elements: [
       { kind: 'character', image: MainGirl, slot: 'left', size: 'large' },
-      { kind: 'prop',      image: Stove,    slot: 'center-left', size: 'xlarge', verticalOffset: -40 },
-      { kind: 'prop',      image: Window,    slot: 'center', size: 'xlarge', verticalOffset: 0 }, 
-      { kind: 'prop',      image: Curtain,    slot: 'center', size: 'xlarge', verticalOffset: 0 },  
+      { kind: 'prop',      image: Stove,    slot: 'center-slightly-right', size: 'xlarge', verticalOffset: -165 },
+      { kind: 'prop',      image: Curtain,    slot: 'center-left', size: 'semixlarge', verticalOffset: 135 },  
+      { kind: 'prop',      image: Counter2,    slot: 'center-toward-right', size: 'semixxlarge', verticalOffset: -70 },
+
     ],
+  },
+
+  'kitchen3': {
+    atmosphere: 'day',
+    elements: [
+      { kind: 'character', image: MainGirl, slot: 'left', size: 'large' },
+      { kind: 'prop',      image: Stove,    slot: 'center', size: 'xlarge', verticalOffset: -165 },
+      { kind: 'prop',      image: Curtain,    slot: 'left', size: 'semixlarge', verticalOffset: 235 },  
+      { kind: 'prop',      image: Spoon,    slot: 'center-toward-right', size: 'medium', verticalOffset: 335 },
+      { kind: 'prop',      image: Towel,    slot: 'right', size: 'medium', verticalOffset: 335 },
+      { kind: 'prop',      image: Bag,    slot: 'before-before-far-right', size: 'medium', verticalOffset: 335 },
+      { kind: 'prop',      image: Bottle,    slot: 'before-far-right', size: 'medium', verticalOffset: 335 },
+      { kind: 'prop',      image: Counter2,    slot: 'center-right', size: 'semixxlarge', verticalOffset: -70 },
+
+    ],
+
   }
 };

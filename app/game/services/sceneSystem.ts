@@ -14,7 +14,7 @@ export type SceneImageSource = SvgComponent | RasterSource;
 export type LayerType = 'sky' | 'background' | 'midground' | 'ground' | 'foreground' | 'ui';
 
 // Character sizes are named, not arbitrary numbers
-export type CharacterSize = 'small' | 'medium' | 'large' | 'hero' | 'herox' | 'xlarge' | 'xxlarge' | 'xxxlarge';
+export type CharacterSize = 'small' | 'medium' | 'large' | 'hero' | 'herox' | 'xlarge' | 'semixlarge' | 'semixxlarge' | 'xxlarge' | 'xxxlarge';
 export const CHARACTER_SIZE_MAP: Record<CharacterSize, number> = {
   small:  120,
   medium: 200,
@@ -22,6 +22,8 @@ export const CHARACTER_SIZE_MAP: Record<CharacterSize, number> = {
   hero:   420,
   herox: 520,
   xlarge: 620,
+  semixlarge: 720,
+  semixxlarge: 830,
   xxlarge: 900,
   xxxlarge: 1100,
 };
@@ -29,16 +31,20 @@ export const CHARACTER_SIZE_MAP: Record<CharacterSize, number> = {
 import { DimensionValue } from "react-native";
 
 // Horizontal positions are named slots, not raw percentages
-export type HorizontalSlot = 'far-far-left' | 'far-left' | 'left' | 'center-left' | 'center' | 'center-right' | 'center-toward-right' | 'right' | 'far-right';
+export type HorizontalSlot = 'far-far-left' | 'far-left' | 'left' | 'center-left' | 'center' | 'center-slightly-right' | 'fifty-percent' | 'center-right' | 'center-toward-right' | 'right' | 'before-before-far-right' | 'before-far-right' | 'far-right';
 export const SLOT_MAP: Record<HorizontalSlot, DimensionValue> = {
   'far-far-left': '-10%',
   'far-left':     '-5%',
   'left':         '10%',
   'center-left':  '25%',
   'center':       '35%',
+  'center-slightly-right': '45%',
+  'fifty-percent': '50%',
   'center-right': '55%',
   'center-toward-right': '65%',
   'right':        '70%',
+  'before-before-far-right': '75%',
+  'before-far-right': '80%',
   'far-right':    '82%',
 };
 
@@ -82,7 +88,7 @@ export interface PropElement {
 
 }
 
-export type SceneElement = CharacterElement | TreeElement | PropElement;
+export type SceneElement =  CharacterElement | TreeElement | PropElement;
 
 // ─────────────────────────────────────────────
 // 3. SCENE DEFINITION
