@@ -163,52 +163,105 @@ communityroutes.post("/friends/deny", async (req, res) => {
 });
 
 // messages
+import { classifyMessage, moderateChildMessage } from "./moderation.js";
+
 communityroutes.post("/messages/send", async (req, res) => {
   try {
     const { senderId, receiverId, content } = req.body;
 
-    console.log("[MESSAGE SEND] Incoming request:", {
-      senderId,
-      receiverId,
-      contentLength: content?.length,
-    });
-
-    // basic validation (important for stability)
     if (!senderId || !receiverId || !content) {
-      console.warn("[MESSAGE SEND] Missing fields:", {
-        senderId,
-        receiverId,
-        content,
-      });
-
       return res.status(400).json({
         message: "senderId, receiverId, and content are required",
       });
     }
 
+    // ================= MODERATION =================
+    const moderationResult = await moderateChildMessage(content);
+
+    console.log("[MODERATION RESULT]", moderationResult);
+
+    if (moderationResult.flagged) {
+    return res.status(403).json({
+      message: "Message blocked by moderation system",
+      reason: "unsafe_content_detected",
+    });
+  }
+    console.log("FLAGGED?", moderationResult.flagged);
+    console.log("CATEGORIES", moderationResult.categories);
+    const classification =
+    await classifyMessage(content, moderationResult);
+
+    console.log(classification);
+
+    // ==============================================
+
+    // Map Groq tier → your schema's status enum
+    const statusMap = {
+      safe: "approved",
+      needs_caution: "flagged",
+      unsafe: "blocked",
+    };
+
+    // Map Groq's free-form reasons → your schema's flagReasons enum
+    const reasonMap = {
+      "Threats": "bullying",
+      "Explicit bullying": "bullying",
+      "Mild bullying": "bullying",
+      "Hate speech": "inappropriate_language",
+      "Sexual content": "adult_content",
+      "Grooming": "adult_content",
+      "Predatory behavior": "adult_content",
+      "Asking for personal information": "personal_info_detected",
+      "Sharing contact info": "personal_info_detected",
+      "Violence": "other",
+      "Emotional manipulation": "other",
+      "Suspicious behavior": "other",
+    };
+
+    const mappedStatus = statusMap[classification.tier] ?? "flagged";
+    const mappedReasons = (classification.reasons || [])
+      .map(r => reasonMap[r] ?? "other")
+      .filter((v, i, arr) => arr.indexOf(v) === i); // deduplicate
+
+    const isBlocked = classification.tier === "unsafe";
+    const needsReview = classification.tier === "needs_caution";
+
     const msg = await Message.create({
       senderId,
       receiverId,
-      content,
-      moderation: {
-        status: "pending",
+
+      // Use sanitized text if provided
+      content:
+        classification.sanitized?.trim()?.length > 0
+          ? classification.sanitized
+          : content,
+
+       moderation: {
+        status: mappedStatus,
+        flagReasons: mappedReasons,
+        reviewedAt: new Date(),
         autoModerated: true,
+        blocked: isBlocked,
+        needsReview: needsReview,
       },
     });
-      // Push to receiver instantly
-  const socketId = userSocketMap.get(receiverId);
-  if (socketId) {
-    io.to(socketId).emit('new_message', msg);
-  }
 
-    console.log("[MESSAGE SEND] Message created successfully:", msg._id);
+    // Only deliver to receiver if safe
+    if (!isBlocked && !needsReview) {
+      const socketId = userSocketMap.get(receiverId);
+      if (socketId) {
+        io.to(socketId).emit("new_message", msg);
+      }
+    }
 
-    return res.status(201).json(msg);
-  } catch (error) {
-    console.error("[MESSAGE SEND] Error creating message:", {
-      message: error.message,
-      stack: error.stack,
+    return res.status(201).json({
+      ...msg.toObject(),
+      delivered: !isBlocked && !needsReview,
+      moderationTier: classification.tier,
     });
+
+  } catch (error) {
+    console.error("[MESSAGE SEND ERROR]", error);
 
     return res.status(500).json({
       message: "Failed to send message",

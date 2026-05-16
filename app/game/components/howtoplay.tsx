@@ -6,17 +6,16 @@
 // • onStart prop removed — there is no "Let's Go" button; closing IS starting
 // • Can be reopened freely via a help button in the game — just toggle isVisible
 
-import { AppColors, AppFonts } from '@/constants/theme';
+import { AppColors, AppFonts, AppFontSizes } from '@/constants/theme';
 import React, { useEffect, useRef } from 'react';
 import {
   Animated,
-  Image,
   Modal,
   ScrollView,
   StyleSheet,
   Text,
   TouchableOpacity,
-  View,
+  View
 } from 'react-native';
 
 interface StepItem {
@@ -33,13 +32,12 @@ interface CharacterItem {
 interface HowToPlayModalProps {
   isVisible: boolean;
   onClose: () => void;          // ✕ pressed — dismiss and start/resume game
-
   title?: string;
   instructions: string;
   highlightPhrases?: string[];
   steps: StepItem[];
   characters?: CharacterItem[];
-  catImageSource?: any;
+  CatSvg?: React.ComponentType<{ width?: number; height?: number }>;
 }
 
 // ─── Highlight helper ─────────────────────────────────────────────────────────
@@ -72,7 +70,7 @@ export default function HowToPlayModal({
   highlightPhrases = [],
   steps,
   characters,
-  catImageSource,
+  CatSvg,
 }: HowToPlayModalProps) {
   const scaleAnim   = useRef(new Animated.Value(0.7)).current;
   const opacityAnim = useRef(new Animated.Value(0)).current;
@@ -101,11 +99,11 @@ export default function HowToPlayModal({
         <Animated.View
           style={[styles.modalContainer, { transform: [{ scale: scaleAnim }], opacity: opacityAnim }]}
         >
-          {catImageSource && (
-            <View style={styles.catContainer}>
-              <Image source={catImageSource} style={styles.catImage} resizeMode="contain" />
-            </View>
-          )}
+          {CatSvg && (
+          <View style={styles.catContainer}>
+            <CatSvg width={200} height={200} />
+          </View>
+        )}
 
           <View style={styles.modal}>
             <View style={[styles.pixelCorner, styles.pcTL]} />
@@ -160,19 +158,21 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     padding: 24,
+    overflow: 'visible'
   },
   modalContainer: {
     width: '100%',
-    maxWidth: 500,
+    maxWidth: 700,
     alignItems: 'center',
     position: 'relative',
+    overflow: 'visible',
   },
   catContainer: {
     position: 'absolute',
-    left: -150,
-    zIndex: 20,
+    left: -200,
+    zIndex: 999,
     alignSelf: 'center',
-    bottom: -110,
+    bottom: -10,
   },
   catImage: {
     width: 200,
@@ -212,9 +212,9 @@ const styles = StyleSheet.create({
     borderBottomColor: AppColors.dark,
   },
   headerTitle: {
-    ...AppFonts.body,
+    ...AppFonts.title,
     color: AppColors.lilac,
-    fontSize: 36,
+    fontSize: AppFontSizes.title,
     letterSpacing: 1,
   },
   closeBtn: {
@@ -283,7 +283,7 @@ const styles = StyleSheet.create({
   },
   instructionText: {
     ...AppFonts.body,
-    fontSize: 24,
+    fontSize: AppFontSizes.body,
     color: AppColors.blue,
     lineHeight: 24,
     marginBottom: 18,

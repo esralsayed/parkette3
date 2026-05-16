@@ -8,6 +8,9 @@ import { GameStep } from '../../adapters/LevelAdapter';
 import ChoiceModal, { ChoiceOption } from './minigames/ChoiceModal';
 
 import { TaskAnswer } from '../interfaces/TaskAnswer';
+import FindFriendsGame from './minigames/FindFriendsGame';
+import FireHazardGame from './minigames/FireHazardGame';
+import ImageChoiceGame from './minigames/imageChoice';
 
 // 1- has 2 props step and onAnswered. 
 // step is of type gameStep which is imported from levelAdapter -> go to levelAdapter to understand more
@@ -15,6 +18,8 @@ import { TaskAnswer } from '../interfaces/TaskAnswer';
 interface TaskRendererProps {
   step: GameStep;
   onAnswered: (answer: TaskAnswer) => void;
+  onInSceneComplete: (correct: boolean, extra?: any) => void; // add this
+
 }
 
 // 2- main function is TaskRenderer which takes step and onAnswered as props defined by the taskRendererProps interface., this helps in type casting
@@ -22,7 +27,7 @@ interface TaskRendererProps {
 // showChoiceModal is a boolean modalthat determins when the choice modal opens
 // choiceOptions is an array of choice options
 
-export default function TaskRenderer({ step, onAnswered }: TaskRendererProps) {
+export default function TaskRenderer({ step, onAnswered, onInSceneComplete }: TaskRendererProps) {
   const [showChoiceModal, setShowChoiceModal] = useState(false);
   const [choiceOptions, setChoiceOptions] = useState<ChoiceOption[]>([]);
 
@@ -60,23 +65,55 @@ export default function TaskRenderer({ step, onAnswered }: TaskRendererProps) {
     onAnswered(answer);
   };
 
-
-  // 5- this is where i render my choiceModal
-
-  if (step.taskType === 'choice') {
-    return (
-      <ChoiceModal
-        visible={showChoiceModal}
-        title="Choose Wisely!"
-        instruction={step.instruction || step.text || 'Select the correct answer'}
-        options={choiceOptions}
-        onSelect={handleChoiceSelect}
-        timeLimit={step.metadata?.timeLimit}
-        showCharacterHint={true}
-      />
+  // 5- this is where i render my tasks
+  switch (step.gameType) {
+    case 'choice':
+      return (
+        <ChoiceModal
+          visible={showChoiceModal}
+          title="Choose Wisely!"
+          instruction={step.instruction || step.text || 'Select the correct answer'}
+          options={choiceOptions}
+          onSelect={handleChoiceSelect}
+        />
     );
-  }
+    case 'slide_choice':
+      return (
+        <ImageChoiceGame
+        visible={true}
+        instruction={step.instruction || step.text || 'Select the correct image'}
+        options={step.content?.options || []}
+         onComplete={onInSceneComplete}
+       />
+      ); 
+    case 'find_friends':
+      return (
+        <FindFriendsGame
+          friends={step.content?.objectsToFind ?? []}
+          instruction={step.instruction ?? 'Find all your friends!'}
+          onComplete={(success, foundCount) =>
+          onInSceneComplete(success, { foundCount })
+          }
+          isEmbedded
+        />
+      );
+    case 'fire_hazard':
+      return (
+          <FireHazardGame
+            items={step.content?.items ?? []}
+            targets={step.content?.targets ?? []}
+            instruction={step.instruction ?? 'Find all the fire hazards!'}
+            //timeLimit={30}
+            onComplete={(success, foundCount) =>
+              onInSceneComplete(success, { foundCount })
+            }
+          />
+        );
+     default:
+        console.warn(`No in-scene game for gameType: "${step.gameType}"`);
+        return null;
 
-  // All other task types are rendered in-scene by levelPlayer — nothing to render here.
-  return null;
+      }
+      
+      
 }

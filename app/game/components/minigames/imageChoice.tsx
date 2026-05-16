@@ -1,16 +1,23 @@
+// components/minigames/ImageChoiceGame.tsx
+//
+// Image-card choice game — now uses GameModal for the shell + HowToPlay.
+// Only the card grid lives here; all modal chrome is in GameModal.
+
 import { AppColors, AppFonts } from '@/constants/theme';
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useRef, useState } from 'react';
 import {
   Animated,
   Image,
   ImageSourcePropType,
-  Modal,
   ScrollView,
   StyleSheet,
   Text,
   TouchableOpacity,
   View,
 } from 'react-native';
+import GameModal from './GameModal';
+
+// ─── Types ────────────────────────────────────────────────────────────────────
 
 export interface ImageChoiceOption {
   id: string;
@@ -24,35 +31,27 @@ interface ImageChoiceGameProps {
   visible?: boolean;
   instruction?: string;
   options: ImageChoiceOption[];
-  gameType?: 'slide_choice' | string;
+  gameType?: string;
   onComplete: (correct: boolean, selectedId: string, chosenText: string, correctText: string) => void;
 }
+
+// ─── ImageChoiceGame ──────────────────────────────────────────────────────────
 
 export default function ImageChoiceGame({
   visible = true,
   instruction = 'Choose the right one!',
   options,
-  gameType,
   onComplete,
 }: ImageChoiceGameProps) {
   const [selectedId, setSelectedId] = useState<string | null>(null);
-  const [phase, setPhase] = useState<'picking' | 'feedback'>('picking');
+  const [phase, setPhase]           = useState<'picking' | 'feedback'>('picking');
 
   const scales = useRef(options.map(() => new Animated.Value(1))).current;
-  const scaleAnim   = useRef(new Animated.Value(0.7)).current;
-  const opacityAnim = useRef(new Animated.Value(0)).current;
-
   const correctOption = options.find(o => o.correct)!;
 
-  useEffect(() => {
-    if (visible) {
-      Animated.parallel([
-        Animated.spring(scaleAnim, { toValue: 1, useNativeDriver: true, damping: 14, stiffness: 180 }),
-        Animated.timing(opacityAnim, { toValue: 1, duration: 200, useNativeDriver: true }),
-      ]).start();
-    } else {
-      scaleAnim.setValue(0.7);
-      opacityAnim.setValue(0);
+  // Reset when modal re-opens
+  React.useEffect(() => {
+    if (!visible) {
       setSelectedId(null);
       setPhase('picking');
     }
@@ -92,165 +91,74 @@ export default function ImageChoiceGame({
   };
 
   return (
-    <Modal
+    <GameModal
       visible={visible}
-      transparent
-      animationType="none"
-      statusBarTranslucent
+      title="Make a Choice"
+      howToPlay={{
+        instructions: instruction,
+        highlightPhrases: ['tap'],
+        steps: [
+          { icon: '👀', label: 'Look carefully' },
+          { icon: '👆', label: 'Tap your answer' },
+        ],
+      }}
     >
-      <View style={styles.overlay}>
-        <Animated.View
-          style={[styles.modalContainer, { transform: [{ scale: scaleAnim }], opacity: opacityAnim }]}
-        >
-          <View style={styles.modal}>
-            {/* Pixel corners — identical to HowToPlay */}
-            <View style={[styles.pixelCorner, styles.pcTL]} />
-            <View style={[styles.pixelCorner, styles.pcTR]} />
-            <View style={[styles.pixelCorner, styles.pcBL]} />
-            <View style={[styles.pixelCorner, styles.pcBR]} />
+      {/* ── Game content ── */}
+      <ScrollView contentContainerStyle={styles.body} showsVerticalScrollIndicator={false}>
 
-            {/* Header */}
-            <View style={styles.header}>
-              <Text style={styles.headerTitle}>Make a Choice</Text>
-            </View>
+        <View style={styles.divider} />
+        <Text style={styles.instructionText}>{instruction}</Text>
 
-            {/* Body */}
-            <ScrollView contentContainerStyle={styles.body} showsVerticalScrollIndicator={false}>
+        <View style={styles.cardsRow}>
+          {options.map((opt, i) => {
+            const isSelected = selectedId === opt.id;
+            const showResult = phase === 'feedback' && isSelected;
+            const isCorrect  = opt.correct;
+            let borderColor  = AppColors.blue;
+            if (showResult) borderColor = isCorrect ? '#27AE60' : '#E05555';
 
-              {/* Divider */}
-              <View style={styles.divider} />
+            return (
+              <Animated.View
+                key={opt.id}
+                style={[styles.cardWrap, { transform: [{ scale: scales[i] }] }]}
+              >
+                <TouchableOpacity
+                  activeOpacity={0.85}
+                  onPress={() => handlePick(opt, i)}
+                  disabled={phase === 'feedback'}
+                  style={[styles.card, { borderColor }, isSelected && styles.cardSelected]}
+                >
+                  {renderCardContent(opt)}
+                  {showResult && (
+                    <View style={[styles.resultOverlay, isCorrect ? styles.overlayCorrect : styles.overlayWrong]}>
+                      <Text style={styles.resultMark}>{isCorrect ? '✓' : '✕'}</Text>
+                    </View>
+                  )}
+                </TouchableOpacity>
 
-              {/* Instruction */}
-              <Text style={styles.instructionText}>{instruction}</Text>
+                <View style={[styles.labelBar, isSelected && { backgroundColor: borderColor, borderColor }]}>
+                  <Text style={styles.labelText}>{opt.label}</Text>
+                </View>
+              </Animated.View>
+            );
+          })}
+        </View>
 
-              {/* Cards */}
-              <View style={styles.cardsRow}>
-                {options.map((opt, i) => {
-                  const isSelected = selectedId === opt.id;
-                  const showResult = phase === 'feedback' && isSelected;
-                  const isCorrect  = opt.correct;
-                  let borderColor  = AppColors.blue;
-                  if (showResult) borderColor = isCorrect ? '#27AE60' : '#E05555';
-
-                  return (
-                    <Animated.View
-                      key={opt.id}
-                      style={[styles.cardWrap, { transform: [{ scale: scales[i] }] }]}
-                    >
-                      <TouchableOpacity
-                        activeOpacity={0.85}
-                        onPress={() => handlePick(opt, i)}
-                        disabled={phase === 'feedback'}
-                        style={[styles.card, { borderColor }, isSelected && styles.cardSelected]}
-                      >
-                        {renderCardContent(opt)}
-
-                        {showResult && (
-                          <View style={[styles.resultOverlay, isCorrect ? styles.overlayCorrect : styles.overlayWrong]}>
-                            <Text style={styles.resultMark}>{isCorrect ? '✓' : '✕'}</Text>
-                          </View>
-                        )}
-                      </TouchableOpacity>
-
-                      <View style={[styles.labelBar, isSelected && { backgroundColor: borderColor, borderColor }]}>
-                        <Text style={styles.labelText}>{opt.label}</Text>
-                      </View>
-                    </Animated.View>
-                  );
-                })}
-              </View>
-
-            </ScrollView>
-          </View>
-        </Animated.View>
-      </View>
-    </Modal>
+      </ScrollView>
+    </GameModal>
   );
 }
+
+// ─── Styles (game content only) ───────────────────────────────────────────────
 
 const CARD_SIZE = 110;
 
 const styles = StyleSheet.create({
-  overlay: {
-    flex: 1,
-    backgroundColor: 'rgba(10, 20, 50, 0.72)',
-    alignItems: 'center',
-    justifyContent: 'center',
-    padding: 24,
-  },
-  modalContainer: {
-    width: '100%',
-    maxWidth: 500,
-    alignItems: 'center',
-    position: 'relative',
-  },
-  modal: {
-    width: '100%',
-    backgroundColor: AppColors.lilac,
-    borderRadius: 14,
-    borderWidth: 3,
-    borderColor: AppColors.blue,
-    overflow: 'hidden',
-    shadowColor: AppColors.blue,
-    shadowOffset: { width: 6, height: 6 },
-    shadowOpacity: 1,
-    shadowRadius: 0,
-    elevation: 10,
-  },
-  pixelCorner: {
-    position: 'absolute',
-    width: 8,
-    height: 8,
-    backgroundColor: AppColors.lilac,
-    zIndex: 10,
-  },
-  pcTL: { top: 0, left: 0 },
-  pcTR: { top: 0, right: 0 },
-  pcBL: { bottom: 0, left: 0 },
-  pcBR: { bottom: 0, right: 0 },
-  header: {
-    backgroundColor: AppColors.blue,
-    paddingVertical: 13,
-    paddingHorizontal: 20,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    borderBottomWidth: 3,
-    borderBottomColor: AppColors.dark,
-  },
-  headerTitle: {
-    ...AppFonts.body,
-    color: AppColors.lilac,
-    fontSize: 36,
-    letterSpacing: 1,
-  },
   body: {
     padding: 20,
     paddingBottom: 24,
     gap: 16,
   },
-  howToRow: {
-    flexDirection: 'row',
-    gap: 8,
-  },
-  stepCard: {
-    flex: 1,
-    backgroundColor: AppColors.lilac,
-    borderRadius: 8,
-    borderWidth: 2,
-    borderColor: AppColors.blue,
-    paddingVertical: 10,
-    paddingHorizontal: 6,
-    alignItems: 'center',
-    gap: 4,
-    shadowColor: AppColors.blue,
-    shadowOffset: { width: 3, height: 3 },
-    shadowOpacity: 1,
-    shadowRadius: 0,
-    elevation: 4,
-  },
-  stepIcon: { fontSize: 20, lineHeight: 24 },
-  stepLabel: { fontSize: 14, fontWeight: '700', color: AppColors.dark, textAlign: 'center', lineHeight: 14 },
   divider: {
     borderBottomWidth: 2,
     borderBottomColor: AppColors.blue,
@@ -260,7 +168,7 @@ const styles = StyleSheet.create({
     ...AppFonts.body,
     fontSize: 24,
     color: AppColors.blue,
-    lineHeight: 24,
+    lineHeight: 28,
     textAlign: 'center',
   },
   cardsRow: {
@@ -269,7 +177,7 @@ const styles = StyleSheet.create({
     flexWrap: 'wrap',
     justifyContent: 'center',
   },
-  cardWrap: { alignItems: 'center', gap: 6 },
+  cardWrap:  { alignItems: 'center', gap: 6 },
   card: {
     width: CARD_SIZE,
     height: CARD_SIZE,
@@ -284,8 +192,8 @@ const styles = StyleSheet.create({
     shadowRadius: 0,
     elevation: 6,
   },
-  cardSelected: { borderWidth: 4 },
-  cardImage: { width: '100%', height: '100%' },
+  cardSelected:  { borderWidth: 4 },
+  cardImage:     { width: '100%', height: '100%' },
   svgWrapper: {
     flex: 1,
     alignItems: 'center',

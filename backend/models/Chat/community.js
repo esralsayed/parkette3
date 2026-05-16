@@ -23,6 +23,8 @@ const ModerationSchema = new Schema(
     },
     reviewedAt: { type: Date },
     autoModerated: { type: Boolean, default: true }, // true = AI flagged, false = human reviewed
+    blocked: { type: Boolean, default: false }, // for messages, whether to block delivery
+    needsReview: { type: Boolean, default: false }, // for messages, whether it needs human review
   },
   { _id: false }
 );

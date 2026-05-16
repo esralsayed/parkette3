@@ -7,18 +7,12 @@ import React, { useCallback, useEffect, useState } from 'react';
 import {
   SafeAreaView,
   StyleSheet,
-  Text,
-  TouchableOpacity,
   View
 } from 'react-native';
-import catImage from '../../assets/images/chapters/Cat.png';
 import { GameCharacter, GameScene, GameStep } from '../adapters/LevelAdapter';
 import NavBar from '../components/navbar';
 import { EndScreen, ErrorScreen, LoadingScreen } from "./components/Extra screens";
 import WrongAnswerFeedback from './components/Feedback';
-import HowToPlayModal from './components/howtoplay';
-import FindFriendsGame from './components/minigames/FindFriendsGame';
-import ImageChoiceGame from './components/minigames/imageChoice';
 import SceneStage from './components/SceneStage';
 import TaskRenderer from './components/TaskRenderer';
 import { TaskAnswer } from './interfaces/TaskAnswer';
@@ -40,10 +34,6 @@ export default function LevelPlayer() {
   const isAdvancingRef = React.useRef(false);
   const [feedbackPopup, setFeedbackPopup] = useState<{ chosenText: string; correctText: string } | null>(null);
   const [pendingNextStep, setPendingNextStep] = useState<GameStep | null>(null);
-  // ── How To Play ────────────────────────────────────────────────────────────
-  // true  → modal is open (auto-shown when task starts, or user taps ?)
-  // false → modal dismissed, in-scene game is visible
-  const [showHowToPlay, setShowHowToPlay] = useState(false);
 
   //variables
   const step = currentStep;
@@ -120,15 +110,6 @@ useEffect(() => {
     return () => { levelService.destroy(); };
   }, [levelId, chapterId]);
 
-  // Auto-show HowToPlay whenever we arrive at a new task step
-  useEffect(() => {
-    if (currentStep?.type === 'task' && currentStep?.gameType === 'slide_choice') {
-      setShowHowToPlay(true);
-    } else {
-      setShowHowToPlay(false);
-    }
-  }, [currentStep]);
-
   const advance = useCallback(async () => {
     if (step?.type === 'task') return;
     const result = await levelService.advanceToNextStep();
@@ -199,6 +180,7 @@ useEffect(() => {
   };
 
   const handleFeedbackDismiss = () => {
+  isAdvancingRef.current = false; // ← unlock here
   setFeedbackPopup(null);
   if (!pendingNextStep) finishLevel();
   else { setCurrentStep(pendingNextStep); setPendingNextStep(null); }
@@ -214,87 +196,6 @@ useEffect(() => {
     return null;
   }    await advanceStep({ isCorrect: correct, ...extra });
   }, [step]);
-
-  // ── Build in-scene game ────────────────────────────────────────────────────
-  // Returns null while HowToPlay is open — game appears only after X is tapped
-  const buildInSceneGame = (): React.ReactNode => {
-    if (!step || step.type !== 'task' || showHowToPlay) return null;
-
-    const gameType = step.gameType ?? step.taskType;
-    switch (gameType) {
-      case 'slide_choice':
-        return (
-           <ImageChoiceGame
-           visible={!showHowToPlay}
-            gameType={gameType}
-            instruction={step.instruction ?? step.content?.instruction ?? 'Choose the right one!'}
-            options={step.content?.options ?? []}
-            onComplete={(correct, selectedId, chosenText, correctText) =>
-              handleInSceneGameComplete(correct, { selectedId, chosenText, correctText })
-            }
-          />
-        );
-      case 'find_friends':
-        return (
-          <FindFriendsGame
-            friends={step.content?.objectsToFind ?? []}
-            instruction={step.instruction ?? 'Find all your friends!'}
-            onComplete={(success, foundCount) =>
-              handleInSceneGameComplete(success, { foundCount })
-            }
-            isEmbedded
-          />
-        );
-      case 'choice':
-        return null; // handled by TaskRenderer
-      default:
-        console.warn(`No in-scene game for gameType: "${gameType}"`);
-        return null;
-    }
-  };
-
-  // ── HowToPlay content per game type ───────────────────────────────────────
-  // Add a case here whenever you add a new game type
-  const getHowToPlayContent = (step: GameStep) => {
-    const gameType = step.gameType ?? step.taskType;
-    switch (gameType) {
-      case 'find_friends':
-        return {
-          title: 'How to Play',
-          instructions: 'Search for your friends and uncover their secret hideouts! Spot one? Tap them quick! Find them all!',
-          highlightPhrases: ['Tap them quick!', 'Find them all!'],
-          characters: [
-            { emoji: '🧒', label: 'You' },
-            { emoji: '❓', label: 'Friend', hidden: true },
-            { emoji: '❓', label: 'Friend', hidden: true },
-          ],
-          steps: [
-            { icon: '🔍', label: 'Search the scene' },
-            { icon: '👊', label: 'Tap to catch!' },
-            { icon: '🌟', label: 'Find them all!' },
-          ],
-        };
- case 'slide_choice':
-        return {
-          title: 'Make a Choice',
-          instructions: step.instruction ?? 'Look at the options and tap the one you think is right!',
-          highlightPhrases: ['tap'],
-          characters: undefined,
-          steps: [
-            { icon: '👀', label: 'Look carefully' },
-            { icon: '👆', label: 'Tap your answer' },
-          ],
-        };
-      default:
-        return {
-          title: 'How to Play',
-          instructions: step.instruction ?? 'Complete the task to continue!',
-          highlightPhrases: [] as string[],
-          characters: undefined,
-          steps: [] as { icon: string; label: string }[],
-        };
-    }
-  };
 
   // this function gets all the active characters to pass to scenestage
   const getActiveCharacters = (): GameCharacter[] => {
@@ -324,13 +225,10 @@ useEffect(() => {
     return <LoadingScreen />;
   }
   const isTaskStep = step.type === 'task';
-  const inSceneGame = buildInSceneGame();
-  const howToPlayContent = isTaskStep ? getHowToPlayContent(step) : null;
 
   return (
     <SafeAreaView style={styles.container}>
       <NavBar/>
-
         <>
           <View style={styles.sceneArea}>
             <SceneStage
@@ -340,7 +238,6 @@ useEffect(() => {
               backgroundImage={currentScene?.background}
               sceneKey={currentStep?.sceneKey}
               gameMode={false}
-              inSceneGame={inSceneGame}
             />
           </View>
           <WrongAnswerFeedback
@@ -351,20 +248,15 @@ useEffect(() => {
           />
 
           {/* Word-choice tasks still use the modal */}
-          {isTaskStep && step.taskType === 'choice' && (
+          {isTaskStep && step.gameType && (
+              console.log('🔑 Rendering TaskRenderer with key:', currentStepIndex),
             <View style={styles.taskRendererContainer}>
-              <TaskRenderer step={step} onAnswered={handleTaskAnswered} />
+              <TaskRenderer 
+              key={currentStepIndex}  // ← add this
+              step={step} 
+              onAnswered={handleTaskAnswered} 
+              onInSceneComplete={handleInSceneGameComplete} />
             </View>
-          )}
-
-          {/* ? button — floats top-right once HowToPlay is dismissed */}
-          {isTaskStep && step.taskType !== 'choice' && !showHowToPlay && (
-            <TouchableOpacity
-              style={styles.helpBtn}
-              onPress={() => setShowHowToPlay(true)}
-            >
-              <Text style={styles.helpBtnText}>?</Text>
-            </TouchableOpacity>
           )}
         </>
 
@@ -375,20 +267,6 @@ useEffect(() => {
           onNext={() => router.push(`/game/${chapterId}`)}
           onRetry={handleRetry}
           savingProgress={savingProgress}
-        />
-      )}
-
-      {/* HowToPlay — rendered last so it overlays everything */}
-      {isTaskStep && step.taskType !== 'choice' && howToPlayContent && (
-        <HowToPlayModal
-          isVisible={showHowToPlay}
-          onClose={() => setShowHowToPlay(false)}
-          title={howToPlayContent.title}
-          instructions={howToPlayContent.instructions}
-          highlightPhrases={howToPlayContent.highlightPhrases}
-          steps={howToPlayContent.steps}
-          characters={howToPlayContent.characters}
-          catImageSource={catImage}
         />
       )}
     </SafeAreaView>
@@ -404,33 +282,6 @@ const styles = StyleSheet.create({
     position: 'absolute', bottom: 0, left: 0, right: 0,
     borderTopLeftRadius: 20, borderTopRightRadius: 20,
     elevation: 5, zIndex: 10,
-  },
-  // Floating ? button
-  helpBtn: {
-    position: 'absolute',
-    top: 70,
-    right: 16,
-    width: 38,
-    height: 38,
-    borderRadius: 4,
-    backgroundColor: AppColors.lilac,
-    borderWidth: 2,
-    borderColor: AppColors.blue,
-    alignItems: 'center',
-    justifyContent: 'center',
-    zIndex: 50,
-    shadowColor: AppColors.blue,
-    shadowOffset: { width: 2, height: 2 },
-    shadowOpacity: 1,
-    shadowRadius: 0,
-    elevation: 6,
-  },
-  helpBtnText: {
-    color: AppColors.blue,
-    fontWeight: '800',
-    fontSize: 18,
-    fontFamily: 'monospace',
-    lineHeight: 20,
   },
 });
 

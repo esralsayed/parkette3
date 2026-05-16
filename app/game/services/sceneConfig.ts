@@ -8,19 +8,17 @@ import Frame2 from "@/assets/svgs/game/chapters/frame2.svg";
 import Table from "@/assets/svgs/game/chapters/table.svg";
 import TV from "@/assets/svgs/game/chapters/tv.svg";
 
+import Bag from "@/assets/svgs/game/chapters/bag.svg";
 import Book from "@/assets/svgs/game/chapters/book.svg";
+import Bottle from "@/assets/svgs/game/chapters/bottle.svg";
+import Counter2 from "@/assets/svgs/game/chapters/counter2.svg";
 import Curtain from "@/assets/svgs/game/chapters/curtain.svg";
 import Door2 from "@/assets/svgs/game/chapters/door2.svg";
 import Pen from "@/assets/svgs/game/chapters/pen.svg";
 import SmokeAlarm from "@/assets/svgs/game/chapters/smokealarm.svg";
-import Stove from "@/assets/svgs/game/chapters/stove.svg";
-import Window from "@/assets/svgs/game/chapters/window.svg";
-import Counter from "@/assets/svgs/game/chapters/counter.svg";
-import Counter2 from "@/assets/svgs/game/chapters/counter2.svg";
 import Spoon from "@/assets/svgs/game/chapters/spoon.svg";
+import Stove from "@/assets/svgs/game/chapters/stove.svg";
 import Towel from "@/assets/svgs/game/chapters/towel.svg";
-import Bag from "@/assets/svgs/game/chapters/bag.svg";
-import Bottle from "@/assets/svgs/game/chapters/bottle.svg";
 
 
 // image imports
@@ -141,6 +139,19 @@ export const SCENE_REGISTRY: Record<string, SceneDefinition> = {
       { kind: 'prop',      image: Counter2,    slot: 'center-right', size: 'semixxlarge', verticalOffset: -70 },
 
     ],
+  },
 
-  }
+  'kitchen4': {
+    atmosphere: 'day',
+    elements: [
+      { kind: 'character', image: MainGirl, slot: 'center', size: 'large' },
+      { kind: 'prop',      image: Door,     slot: 'center',      size: 'xxlarge', verticalOffset: -185 },
+      { kind: 'prop',      image: Couch,    slot: 'center-right', size: 'xxxlarge', verticalOffset: -305 },
+      { kind: 'prop',      image: Table,    slot: 'left',  size: 'xlarge',  verticalOffset: -90 },
+      { kind: 'prop',      image: Frame1,   slot: 'left', size: 'hero', verticalOffset: 300 },
+      { kind: 'prop',      image: Frame2,   slot: 'right', size: 'hero', verticalOffset: 315 },
+      { kind: 'prop',      image: TV,       slot: 'far-left', size: 'herox', verticalOffset: -65 },
+    ],
+  },
+
 };
