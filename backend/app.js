@@ -1,10 +1,13 @@
 import dotenv from "dotenv";
 dotenv.config();
 
+import { spawn } from "child_process";
 import cors from "cors";
 import express from "express";
 import { createServer } from 'http';
+import path from "path";
 import { Server } from 'socket.io';
+import { fileURLToPath } from "url";
 import { connectDB } from "./db.js";
 import authRoutes from "./routes/auth.js";
 import avatarRoutes from "./routes/avatar.js";
@@ -14,6 +17,10 @@ import diaryroutes from "./routes/diary.js";
 import levelroutes from "./routes/levels.js";
 import performanceRouter from "./routes/performance.js";
 import router from "./routes/progress.js";
+import { checkSidecarHealth } from "./utils/emotionAnalyser.js";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 const app = express();
 const httpServer = createServer(app); 
 const io = new Server(httpServer , {
@@ -63,6 +70,62 @@ app.use("/api/avatar", avatarRoutes);
 app.get("/api/health", (req, res) => {
   res.json({ message: "Server is running" });
 });
+
+//Emotion analysis 
+function startMLSidecar() {
+  return new Promise((resolve, reject) => {
+    const sidecar = spawn("python", [
+      path.join(__dirname, "ml", "emotion.py")
+    ]);
+
+    sidecar.stdout.on("data", (data) => {
+      const msg = data.toString();
+      console.log(`[ML] ${msg.trim()}`);
+
+      // Resolve once the model confirms it's ready
+      if (msg.includes("Model ready")) resolve(sidecar);
+    });
+
+    sidecar.stderr.on("data", (data) => {
+      // transformers logs to stderr by default — not always an error
+      console.log(`[ML stderr] ${data.toString().trim()}`);
+    });
+
+    sidecar.on("error", (err) => {
+      console.error("Failed to start ML sidecar:", err);
+      reject(err);
+    });
+
+    sidecar.on("close", (code) => {
+      if (code !== 0) {
+        console.error(`ML sidecar exited with code ${code}`);
+      }
+    });
+
+    // Fallback: if model takes too long to log "Model ready",
+    // resolve anyway after 30s (transformers logs go to stderr)
+    setTimeout(() => resolve(sidecar), 30000);
+  });
+}
+
+async function bootstrap() {
+  console.log("Starting ML sidecar...");
+  await startMLSidecar();
+
+  // Confirm it's actually reachable
+  const healthy = await checkSidecarHealth();
+  if (!healthy) {
+    console.error("ML sidecar health check failed — exiting.");
+    process.exit(1);
+  }
+
+  console.log("ML sidecar is up and healthy.");
+  app.listen(process.env.PORT || 3000, () => {
+    console.log(`Server running on port ${process.env.PORT || 3000}`);
+  });
+}
+
+bootstrap();
 
 // app.listen(PORT, () => {
 //   console.log(`Server running on port ${PORT}`);

@@ -1,42 +1,33 @@
 // components/minigames/FireHazardGame.tsx
-//
-// Tap-to-remove fire hazard game — uses GameModal for the shell + HowToPlay.
-// Positions mirror LevelDecorations.tsx exactly:
-//   left   = SLOT_MAP[el.slot]
-//   bottom = (H * 5/100) + el.verticalOffset
-//   size   = CHARACTER_SIZE_MAP[el.size] * DEPTH_SCALE[el.depth ?? 'near']
 
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
-    Animated,
-    Dimensions,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View,
+  Animated,
+  Dimensions,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from 'react-native';
 
-import Bag from '@/assets/svgs/game/chapters/bag.svg';
 import Bottle from '@/assets/svgs/game/chapters/bottle.svg';
-import Curtain from '@/assets/svgs/game/chapters/curtain.svg';
-import Spoon from '@/assets/svgs/game/chapters/spoon.svg';
-import Towel from '@/assets/svgs/game/chapters/towel.svg';
+import Frame from '@/assets/svgs/game/chapters/frame1.svg';
+import Pencil from '@/assets/svgs/game/chapters/pen.svg';
+import Table from '@/assets/svgs/game/chapters/table.svg';
+import Toys from '@/assets/svgs/game/chapters/toy1.svg';
+import TV from '@/assets/svgs/game/chapters/tv.svg';
 
 import {
-    CHARACTER_SIZE_MAP,
-    CharacterSize,
-    HorizontalSlot
+  CharacterSize,
+  HorizontalSlot,
 } from '../../services/sceneSystem';
 
 import { AppColors, AppFonts, AppFontSizes } from '@/constants/theme';
 import GameModal from './GameModal';
 
-// ─── Position helpers (mirror LevelDecorations exactly) ───────────────────────
+// ─── Sizing ───────────────────────────────────────────────────────────────────
 
-const { height: H, width: W } = Dimensions.get('window');
-function toSize(size: CharacterSize): number {
-  return CHARACTER_SIZE_MAP[size];
-}
+const { width: W } = Dimensions.get('window');
 
 // Items per row
 const ITEMS_PER_ROW = 3;
@@ -49,30 +40,30 @@ const ITEM_SIZE = Math.min(
   Math.floor((W - MODAL_H_PADDING) / ITEMS_PER_ROW),
   300  // hard cap — never bigger than 100px regardless of screen width
 );
-// ─── Item catalogue (copied from sceneRegistry kitchen3) ─────────────────────
+// ─── Item catalogue ───────────────────────────────────────────────────────────
 
 interface ItemDef {
   key: string;
-  name: string; // Display name
+  name: string;
   SvgComponent: React.ComponentType<{ width: number; height: number }>;
   slot: HorizontalSlot;
   size: CharacterSize;
   verticalOffset: number;
-    row: 0 | 1; // 0 = top row, 1 = bottom row
-
+  row: 0 | 1;
 }
 
 const ITEM_CATALOGUE: ItemDef[] = [
-  { key: 'wooden spoon', name: 'Wooden Spoon', SvgComponent: Spoon, slot: 'center', size: 'large', verticalOffset: 0, row: 0},
-  { key: 'towel', name: 'Towel', SvgComponent: Towel, slot: 'left', size: 'large', verticalOffset: 0, row: 0 },
-  { key: 'paper bag', name: 'Paper Bag', SvgComponent: Bag, slot: 'right', size: 'large', verticalOffset: 0, row: 1 },
-  { key: 'bottle', name: 'Bottle', SvgComponent: Bottle, slot: 'far-right', size: 'large', verticalOffset: 0, row: 1 },
-  { key: 'curtain', name: 'Curtain', SvgComponent: Curtain, slot: 'far-left', size: 'large', verticalOffset: 0, row: 1 },
+  { key: 'tv',      name: 'TV',        SvgComponent: TV,     slot: 'center',      size: 'medium', verticalOffset: 0, row: 0 },
+  { key: 'pencil',  name: 'Pencil',    SvgComponent: Pencil, slot: 'left',        size: 'medium', verticalOffset: 0, row: 0 },
+  { key: 'table',   name: 'Table',     SvgComponent: Table,  slot: 'center-left', size: 'medium', verticalOffset: 0, row: 0 },
+  { key: 'picture', name: 'Picture Frame', SvgComponent: Frame,  slot: 'right',       size: 'medium', verticalOffset: 0, row: 1 },
+  { key: 'bottle',   name: 'Water Bottle',    SvgComponent: Bottle, slot: 'far-right',   size: 'medium', verticalOffset: 0, row: 1 },
+  { key: 'toys',    name: 'Plastic Toys',   SvgComponent: Toys,   slot: 'far-left',    size: 'medium', verticalOffset: 0, row: 1 },
 ];
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
-interface FireHazardGameProps {
+interface ElectricityHazardGameProps {
   items: string[];
   targets: string[];
   instruction?: string;
@@ -82,80 +73,76 @@ interface FireHazardGameProps {
 
 // ─── HazardItem ───────────────────────────────────────────────────────────────
 
-function HazardItem({ def, isDangerous, onTap, index}: {
+function HazardItem({
+  def, isDangerous, onTap, index,
+}: {
   def: ItemDef;
   isDangerous: boolean;
   onTap: (key: string, isDangerous: boolean) => void;
   index: number;
 }) {
-  const fadeAnim  = useRef(new Animated.Value(1)).current;
-  const scaleAnim = useRef(new Animated.Value(1)).current;
-  const shakeAnim = useRef(new Animated.Value(0)).current;
-  const pulseAnim = useRef(new Animated.Value(1)).current;
+  const fadeAnim   = useRef(new Animated.Value(1)).current;
+  const scaleAnim  = useRef(new Animated.Value(1)).current;
+  const shakeAnim  = useRef(new Animated.Value(0)).current;
+  const pulseAnim  = useRef(new Animated.Value(1)).current;
   const bounceAnim = useRef(new Animated.Value(0)).current;
-  const tapped    = useRef(false);
+  const tapped     = useRef(false);
 
-  // Entrance animation
+  // Staggered entrance
   useEffect(() => {
     Animated.spring(bounceAnim, {
-      toValue: 1,
-      friction: 5,
-      tension: 100,
-      delay: (def.row === 0 ? index : index + 2) * 100, // Stagger based on position
-      useNativeDriver: true,
+      toValue: 1, friction: 5, tension: 100,
+      delay: index * 80, useNativeDriver: true,
     }).start();
   }, []);
 
-  // Pulse animation for dangerous items
+  // Pulse
   useEffect(() => {
-    //if (isDangerous) return;
     const loop = Animated.loop(Animated.sequence([
-      Animated.timing(pulseAnim, { toValue: 1.15, duration: 650, useNativeDriver: true }),
-      Animated.timing(pulseAnim, { toValue: 1.0, duration: 650, useNativeDriver: true }),
+      Animated.timing(pulseAnim, { toValue: 1.1, duration: 700, useNativeDriver: true }),
+      Animated.timing(pulseAnim, { toValue: 1.0, duration: 700, useNativeDriver: true }),
     ]));
     loop.start();
     return () => loop.stop();
   }, []);
 
-  // Idle floating animation for all items
+  // Idle float
   useEffect(() => {
-    const floatAnim = Animated.loop(Animated.sequence([
+    const loop = Animated.loop(Animated.sequence([
       Animated.timing(scaleAnim, { toValue: 1.02, duration: 1500, useNativeDriver: true }),
-      Animated.timing(scaleAnim, { toValue: 1.0, duration: 1500, useNativeDriver: true }),
+      Animated.timing(scaleAnim, { toValue: 1.0,  duration: 1500, useNativeDriver: true }),
     ]));
-    floatAnim.start();
-    return () => floatAnim.stop();
+    loop.start();
+    return () => loop.stop();
   }, []);
 
   const triggerRemove = () => {
     Animated.parallel([
-      Animated.timing(scaleAnim, { toValue: 1.8, duration: 180, useNativeDriver: true }),
-      Animated.timing(fadeAnim, { toValue: 0, duration: 260, delay: 100, useNativeDriver: true }),
-      Animated.timing(bounceAnim, { toValue: 0, duration: 200, useNativeDriver: true }),
+      Animated.timing(scaleAnim, { toValue: 1.8, duration: 180,             useNativeDriver: true }),
+      Animated.timing(fadeAnim,  { toValue: 0,   duration: 260, delay: 100, useNativeDriver: true }),
     ]).start();
   };
 
   const triggerShake = () => {
     shakeAnim.setValue(0);
     Animated.sequence([
-      Animated.timing(shakeAnim, { toValue: 12, duration: 55, useNativeDriver: true }),
-      Animated.timing(shakeAnim, { toValue: -12, duration: 55, useNativeDriver: true }),
-      Animated.timing(shakeAnim, { toValue: 8, duration: 55, useNativeDriver: true }),
-      Animated.timing(shakeAnim, { toValue: -8, duration: 55, useNativeDriver: true }),
-      Animated.timing(shakeAnim, { toValue: 4, duration: 55, useNativeDriver: true }),
-      Animated.timing(shakeAnim, { toValue: 0, duration: 55, useNativeDriver: true }),
+      Animated.timing(shakeAnim, { toValue:  10, duration: 55, useNativeDriver: true }),
+      Animated.timing(shakeAnim, { toValue: -10, duration: 55, useNativeDriver: true }),
+      Animated.timing(shakeAnim, { toValue:   6, duration: 55, useNativeDriver: true }),
+      Animated.timing(shakeAnim, { toValue:  -6, duration: 55, useNativeDriver: true }),
+      Animated.timing(shakeAnim, { toValue:   0, duration: 55, useNativeDriver: true }),
     ]).start();
   };
 
   const handlePress = () => {
     if (tapped.current) return;
-    if (isDangerous) { 
-      tapped.current = true; 
-      triggerRemove(); 
-      setTimeout(() => onTap(def.key, true), 300); 
-    } else { 
-      triggerShake(); 
-      onTap(def.key, false); 
+    if (isDangerous) {
+      tapped.current = true;
+      triggerRemove();
+      setTimeout(() => onTap(def.key, true), 300);
+    } else {
+      triggerShake();
+      onTap(def.key, false);
     }
   };
 
@@ -175,14 +162,12 @@ function HazardItem({ def, isDangerous, onTap, index}: {
         },
       ],
     }]}>
-      <TouchableOpacity activeOpacity={0.75} onPress={handlePress} style={styles.fill}>
+      <TouchableOpacity activeOpacity={0.75} onPress={handlePress}>
         <View style={styles.itemContainer}>
           <View style={styles.nameTag}>
-            <Text style={styles.itemName}>{def.name}</Text>
+            <Text style={styles.itemName} numberOfLines={1}>{def.name}</Text>
           </View>
-          <View style={styles.svgContainer}>
-            <SvgComponent width={ITEM_SIZE} height={ITEM_SIZE} />
-          </View>
+          <SvgComponent width={ITEM_SIZE} height={ITEM_SIZE} />
         </View>
       </TouchableOpacity>
     </Animated.View>
@@ -193,25 +178,24 @@ function HazardItem({ def, isDangerous, onTap, index}: {
 
 function SafeToast({ trigger }: { trigger: number }) {
   const opacity = useRef(new Animated.Value(0)).current;
-  const scale = useRef(new Animated.Value(0.5)).current;
-  
+  const scale   = useRef(new Animated.Value(0.5)).current;
+
   useEffect(() => {
     if (trigger === 0) return;
     opacity.setValue(0);
     scale.setValue(0.5);
     Animated.parallel([
-      Animated.timing(opacity, { toValue: 1, duration: 140, useNativeDriver: true }),
-      Animated.spring(scale, { toValue: 1, friction: 6, useNativeDriver: true }),
+      Animated.timing(opacity, { toValue: 1,   duration: 140, useNativeDriver: true }),
+      Animated.spring(scale,   { toValue: 1,   friction: 6,   useNativeDriver: true }),
     ]).start();
-    
     setTimeout(() => {
       Animated.parallel([
-        Animated.timing(opacity, { toValue: 0, duration: 380, useNativeDriver: true }),
-        Animated.timing(scale, { toValue: 0.5, duration: 380, useNativeDriver: true }),
+        Animated.timing(opacity, { toValue: 0,   duration: 380, useNativeDriver: true }),
+        Animated.timing(scale,   { toValue: 0.5, duration: 380, useNativeDriver: true }),
       ]).start();
     }, 1000);
   }, [trigger]);
-  
+
   return (
     <Animated.View style={[styles.safeToast, { opacity, transform: [{ scale }] }]}>
       <Text style={styles.safeToastText}>✅ That's safe!</Text>
@@ -222,20 +206,20 @@ function SafeToast({ trigger }: { trigger: number }) {
 // ─── TimerBar ─────────────────────────────────────────────────────────────────
 
 function TimerBar({ progress, timeLeft }: { progress: number; timeLeft: number }) {
-  const color = progress > 0.5 ? '#4CAF50' : progress > 0.25 ? '#FFC107' : '#F44336';
+  const color     = progress > 0.5 ? '#4CAF50' : progress > 0.25 ? '#FFC107' : '#F44336';
   const pulseAnim = useRef(new Animated.Value(1)).current;
-  
+
   useEffect(() => {
     if (progress < 0.25) {
       const loop = Animated.loop(Animated.sequence([
         Animated.timing(pulseAnim, { toValue: 1.1, duration: 500, useNativeDriver: true }),
-        Animated.timing(pulseAnim, { toValue: 1, duration: 500, useNativeDriver: true }),
+        Animated.timing(pulseAnim, { toValue: 1,   duration: 500, useNativeDriver: true }),
       ]));
       loop.start();
       return () => loop.stop();
     }
-  }, [progress]);
-  
+  }, [progress < 0.25]);
+
   return (
     <View style={styles.timerContainer}>
       <View style={styles.timerHeader}>
@@ -253,16 +237,13 @@ function TimerBar({ progress, timeLeft }: { progress: number; timeLeft: number }
 
 // ─── FireHazardGame ───────────────────────────────────────────────────────────
 
-export default function FireHazardGame({
+export default function ElectricalGame({
   items, targets,
-  instruction = 'Tap dangerous items before time runs out!',
   timeLimit = 30,
   onComplete,
-}: FireHazardGameProps) {
-  const activeItems = ITEM_CATALOGUE.filter(def => items.includes(def.key));
-  
-  // Separate items by row
-  const topRowItems = activeItems.filter(item => item.row === 0);
+}: ElectricityHazardGameProps) {
+  const activeItems    = ITEM_CATALOGUE.filter(def => items.includes(def.key));
+  const topRowItems    = activeItems.filter(item => item.row === 0);
   const bottomRowItems = activeItems.filter(item => item.row === 1);
 
   const [removedKeys,  setRemovedKeys]  = useState<Set<string>>(new Set());
@@ -275,7 +256,10 @@ export default function FireHazardGame({
 
   useEffect(() => {
     timerRef.current = setInterval(() => {
-      setTimeLeft(prev => { if (prev <= 1) { clearInterval(timerRef.current!); return 0; } return prev - 1; });
+      setTimeLeft(prev => {
+        if (prev <= 1) { clearInterval(timerRef.current!); return 0; }
+        return prev - 1;
+      });
     }, 1000);
     return () => clearInterval(timerRef.current!);
   }, []);
@@ -303,7 +287,7 @@ export default function FireHazardGame({
     else setSafeToastKey(k => k + 1);
   }, []);
 
-    const renderRow = (rowItems: ItemDef[], offset: number) =>
+  const renderRow = (rowItems: ItemDef[], offset: number) =>
     rowItems.map((def, i) => (
       <HazardItem
         key={def.key}
@@ -318,20 +302,20 @@ export default function FireHazardGame({
     <GameModal
       visible={visible}
       height={800}
-      title="FIRE HAZARD!"
+      title="ELECTRICITY HAZARD!"
       howToPlay={{
-        instructions: 'Tap items that could catch fire and remove them before time runs out!',
+        instructions: 'Tap items that could cause electric shocks and remove them before time runs out!',
         highlightPhrases: ['Tap items', 'before time runs out'],
         steps: [
-          { icon: '🔥', label: 'Spot the danger' },
+          { icon: '⚡', label: 'Spot the danger' },
           { icon: '👆', label: 'Tap to remove' },
           { icon: '⏱️', label: 'Beat the clock!' },
         ],
       }}
     >
       <View style={styles.gameArea}>
-         <TimerBar progress={timeLeft / timeLimit} timeLeft={timeLeft} />
-        
+        <TimerBar progress={timeLeft / timeLimit} timeLeft={timeLeft} />
+
         <View style={styles.itemsContainer}>
           <View style={styles.row}>
             {renderRow(topRowItems, 0)}
@@ -340,9 +324,9 @@ export default function FireHazardGame({
             {renderRow(bottomRowItems, topRowItems.length)}
           </View>
         </View>
+
         <SafeToast trigger={safeToastKey} />
-        
-        {/* Progress counter */}
+
         <View style={styles.progressContainer}>
           <Text style={styles.progressText}>
             🎯 {Array.from(removedKeys).filter(k => targets.includes(k)).length} / {targets.length} hazards removed
@@ -356,26 +340,26 @@ export default function FireHazardGame({
 // ─── Styles ───────────────────────────────────────────────────────────────────
 
 const styles = StyleSheet.create({
-  fill: { width: '100%', height: '100%' },
   gameArea: {
     flex: 1,
     paddingBottom: 56, // room for progress bar at bottom
   },
 
-  
   itemsContainer: {
     flex: 1,
     justifyContent: 'space-evenly',
   },
 
-    row: {
+  // nowrap + space-evenly: items always spread across the full row width
+  row: {
     flexDirection: 'row',
     flexWrap: 'nowrap',
     justifyContent: 'space-evenly',
     alignItems: 'center',
   },
 
-    itemWrapper: {
+  // Exact fixed width = 1/3 of modal interior; SVG rendered at same size
+  itemWrapper: {
     width: ITEM_SIZE,
     alignItems: 'center',
   },
@@ -385,19 +369,40 @@ const styles = StyleSheet.create({
     width: ITEM_SIZE,
   },
 
-  timerContainer: {
-    margin: 16,
-    marginBottom: 8,
+  nameTag: {
+    backgroundColor: 'rgba(0,0,0,0.75)',
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 10,
+    marginBottom: 6,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.3)',
+    maxWidth: ITEM_SIZE - 4,
   },
-  
+
+  itemName: {
+    ...AppFonts.bodySmall,
+    color: '#fff',
+    fontSize: AppFontSizes.bodySmall,
+    fontWeight: '700',
+    textAlign: 'center',
+    letterSpacing: 0.3,
+  },
+
+  timerContainer: {
+    marginHorizontal: 16,
+    marginTop: 8,
+    marginBottom: 4,
+  },
+
   timerHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'baseline',
-    marginBottom: 8,
+    marginBottom: 6,
     paddingHorizontal: 4,
   },
-  
+
   timerLabel: {
     ...AppFonts.bodySmall,
     fontSize: AppFontSizes.bodySmall,
@@ -405,79 +410,28 @@ const styles = StyleSheet.create({
     color: AppColors.blue,
     letterSpacing: 1,
   },
-  
+
   timerValue: {
     fontSize: AppFontSizes.bodySmall,
     fontWeight: '900',
     fontFamily: 'monospace',
   },
-  
+
   timerTrack: {
     height: 12,
     backgroundColor: 'rgba(0,0,0,0.12)',
     borderRadius: 6,
     overflow: 'hidden',
   },
-  
-  timerFill: { 
-    height: '100%', 
+
+  timerFill: {
+    height: '100%',
     borderRadius: 6,
-  },
-  
-  nameTag: {
-    backgroundColor: 'rgba(0,0,0,0.75)',
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 12,
-    marginBottom: 8,
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.3)',
-  },
-  
-  itemName: {
-    ...AppFonts.bodySmall,
-    color: '#fff',
-    fontSize: AppFontSizes.bodySmall,
-    fontWeight: '700',
-    textAlign: 'center',
-    letterSpacing: 0.5,
-  },
-  
-  svgContainer: {
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 6,
-    elevation: 5,
-  },
-  
-  dangerBadge: {
-    position: 'absolute',
-    top: -6,
-    right: -6,
-    width: 28,
-    height: 28,
-    borderRadius: 14,
-    backgroundColor: 'rgba(255,60,0,0.95)',
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderWidth: 2,
-    borderColor: '#fff',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.3,
-    shadowRadius: 3,
-    elevation: 3,
-  },
-  
-  dangerEmoji: { 
-    fontSize: 14, 
-    lineHeight: 16,
   },
 
   safeToast: {
     position: 'absolute',
-    bottom: '25%',
+    bottom: '30%',
     alignSelf: 'center',
     backgroundColor: 'rgba(76,175,80,0.95)',
     paddingHorizontal: 24,
@@ -490,23 +444,23 @@ const styles = StyleSheet.create({
     shadowRadius: 6,
     elevation: 6,
   },
-  
-  safeToastText: { 
-    color: '#fff', 
-    fontWeight: '800', 
+
+  safeToastText: {
+    color: '#fff',
+    fontWeight: '800',
     fontSize: 16,
   },
-  
+
   progressContainer: {
     position: 'absolute',
-    bottom: 16,
+    bottom: 12,
     left: 0,
     right: 0,
     alignItems: 'center',
   },
-  
+
   progressText: {
-    ...AppFonts.bodySmall, 
+    ...AppFonts.bodySmall,
     backgroundColor: 'rgba(0,0,0,0.7)',
     paddingHorizontal: 16,
     paddingVertical: 8,

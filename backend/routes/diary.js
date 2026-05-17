@@ -1,7 +1,9 @@
 import express from "express";
 import mongoose from "mongoose";
 import Diary, { DiaryEntry } from "../models/Diary.js";
-import { User } from "../models/User.js";
+import { Parent, User } from "../models/User.js";
+import { assessSeverity, classifyEmotion, extractText } from "../utils/emotionAnalyser.js";
+import { sendAlert } from "../utils/sendAlerts.js";
 const diaryroutes = express.Router(); 
 
 // GET /api/diary/ => to get the diary
@@ -131,6 +133,9 @@ diaryroutes.post("/entry/:diaryId/save", async (req, res) => {
 
     // Check diary exists
     const diary = await Diary.findById(diaryId);
+    const user = await User.findById(diary.userId);
+    const parent = await Parent.findById(user.parentId);
+    const parentEmail = parent ? parent.email : null;
     console.log(diary);
     if (!diary) return res.status(404).json({ message: "Diary not found" });
 
@@ -155,6 +160,35 @@ diaryroutes.post("/entry/:diaryId/save", async (req, res) => {
       },
       { new: true, upsert: true }
     );
+
+    if (parent.permissions.get(user._id.toString())?.diaryEmotionalAnalysis) {
+
+    // ── Emotion analysis (non-blocking — won't fail the save) ──
+    try {
+      const text = extractText(content);
+
+      if (text.length > 10) { // skip if entry is too short to analyze
+        const emotions   = await classifyEmotion(text);
+        const assessment = assessSeverity(emotions);
+
+        console.log(`Emotion result for entry ${entry._id}:`, assessment);
+
+        if (assessment.shouldAlert) {
+          await sendAlert({
+            diaryId,
+            entryId: entry._id,
+            severity:   assessment.severity,
+            topEmotion: assessment.topEmotion,
+            confidence: assessment.confidence,
+            parentEmail: parentEmail ?? null, // adjust to your Diary schema
+          });
+        }
+      }
+    } catch (analysisErr) {
+      // Never block the save response over analysis failure
+      console.error("Emotion analysis failed:", analysisErr.message);
+    }
+  }
 
     res.status(201).json({ message: "Entry saved", entry });
   } catch (err) {

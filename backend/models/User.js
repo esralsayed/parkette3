@@ -81,6 +81,7 @@ const ParentSchema = new Schema(
       of: new Schema(
         {
           communityAccess: { type: Boolean, default: false },
+          diaryEmotionalAnalysis: { type: Boolean, default: true },
           diaryAiSuggestions: { type: Boolean, default: true },
           insightReports: { type: Boolean, default: true },
         },

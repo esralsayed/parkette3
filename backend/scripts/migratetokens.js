@@ -1,32 +1,45 @@
-// scripts/removeUnlockedChapters.js
-
 import dotenv from "dotenv";
 import mongoose from "mongoose";
-import Progress from "../models/content agent/Progress.js";
+import { Parent } from "../models/User.js";
 
 dotenv.config();
 
-const run = async () => {
+async function migrate() {
   try {
     await mongoose.connect(process.env.MONGO_URI);
 
-    const result = await Progress.updateMany(
-      {},
-      {
-        $unset: {
-          unlockedChapters: "",
-        },
+    console.log("Connected");
+
+    const parents = await Parent.find({});
+
+    for (const parent of parents) {
+
+      for (const [key, perms] of parent.permissions.entries()) {
+
+        // convert to plain object
+        const updatedPerms = {
+          ...perms.toObject(),
+          diaryEmotionalAnalysis: true,
+        };
+
+        parent.permissions.set(key, updatedPerms);
       }
-    );
 
-    console.log("unlockedChapters removed:", result.modifiedCount);
+      // IMPORTANT
+      parent.markModified("permissions");
 
-    await mongoose.disconnect();
+      await parent.save();
+
+      console.log("Updated:", parent._id);
+    }
+
+    console.log("Done");
     process.exit(0);
+
   } catch (err) {
     console.error(err);
     process.exit(1);
   }
-};
+}
 
-run();
+migrate();

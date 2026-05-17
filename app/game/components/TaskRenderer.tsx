@@ -8,6 +8,7 @@ import { GameStep } from '../../adapters/LevelAdapter';
 import ChoiceModal, { ChoiceOption } from './minigames/ChoiceModal';
 
 import { TaskAnswer } from '../interfaces/TaskAnswer';
+import ElectricalGame from './minigames/ElectricityHazard';
 import FindFriendsGame from './minigames/FindFriendsGame';
 import FireHazardGame from './minigames/FireHazardGame';
 import ImageChoiceGame from './minigames/imageChoice';
@@ -103,12 +104,25 @@ export default function TaskRenderer({ step, onAnswered, onInSceneComplete }: Ta
             items={step.content?.items ?? []}
             targets={step.content?.targets ?? []}
             instruction={step.instruction ?? 'Find all the fire hazards!'}
-            //timeLimit={30}
+            timeLimit={30}
             onComplete={(success, foundCount) =>
               onInSceneComplete(success, { foundCount })
             }
           />
         );
+    
+    case 'electricity':
+      return (
+        <ElectricalGame
+            items={step.content?.items ?? []}
+            targets={step.content?.targets ?? []}
+            instruction={step.instruction ?? 'Find all the electricity hazards!'}
+            timeLimit={30}
+            onComplete={(success, foundCount) =>
+              onInSceneComplete(success, { foundCount })
+            }
+          />
+      );
      default:
         console.warn(`No in-scene game for gameType: "${step.gameType}"`);
         return null;

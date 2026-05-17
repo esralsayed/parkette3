@@ -14,11 +14,24 @@ import Bottle from "@/assets/svgs/game/chapters/bottle.svg";
 import Counter2 from "@/assets/svgs/game/chapters/counter2.svg";
 import Curtain from "@/assets/svgs/game/chapters/curtain.svg";
 import Door2 from "@/assets/svgs/game/chapters/door2.svg";
+import House from "@/assets/svgs/game/chapters/house.svg";
 import Pen from "@/assets/svgs/game/chapters/pen.svg";
 import SmokeAlarm from "@/assets/svgs/game/chapters/smokealarm.svg";
+import Socket from "@/assets/svgs/game/chapters/socket.svg";
 import Spoon from "@/assets/svgs/game/chapters/spoon.svg";
 import Stove from "@/assets/svgs/game/chapters/stove.svg";
 import Towel from "@/assets/svgs/game/chapters/towel.svg";
+import Toy1 from "@/assets/svgs/game/chapters/toy1.svg";
+import Tree1 from "@/assets/svgs/game/chapters/tree1.svg";
+import Tree2 from "@/assets/svgs/game/chapters/tree2.svg";
+
+//school chapter
+import Board from "@/assets/svgs/game/chapters/board.svg";
+import Clock from "@/assets/svgs/game/chapters/clock.svg";
+import Desk from "@/assets/svgs/game/chapters/desk.svg";
+import Exit from "@/assets/svgs/game/chapters/exit.svg";
+import Locker from "@/assets/svgs/game/chapters/locker.svg";
+import Teacher from "@/assets/svgs/game/chapters/teacher.svg";
 
 
 // image imports
@@ -130,13 +143,13 @@ export const SCENE_REGISTRY: Record<string, SceneDefinition> = {
     atmosphere: 'day',
     elements: [
       { kind: 'character', image: MainGirl, slot: 'left', size: 'large' },
-      { kind: 'prop',      image: Stove,    slot: 'center', size: 'xlarge', verticalOffset: -165 },
+      { kind: 'prop',      image: Stove,    slot: 'center', size: 'xlarge', verticalOffset: -80 },
       { kind: 'prop',      image: Curtain,    slot: 'left', size: 'semixlarge', verticalOffset: 235 },  
-      { kind: 'prop',      image: Spoon,    slot: 'center-toward-right', size: 'medium', verticalOffset: 335 },
-      { kind: 'prop',      image: Towel,    slot: 'right', size: 'medium', verticalOffset: 335 },
-      { kind: 'prop',      image: Bag,    slot: 'before-before-far-right', size: 'medium', verticalOffset: 335 },
-      { kind: 'prop',      image: Bottle,    slot: 'before-far-right', size: 'medium', verticalOffset: 335 },
-      { kind: 'prop',      image: Counter2,    slot: 'center-right', size: 'semixxlarge', verticalOffset: -70 },
+      { kind: 'prop',      image: Spoon,    slot: 'center-toward-right', size: 'medium', verticalOffset: 305 },
+      { kind: 'prop',      image: Towel,    slot: 'right', size: 'medium', verticalOffset: 310 },
+      { kind: 'prop',      image: Bag,    slot: 'before-before-far-right', size: 'medium', verticalOffset: 305 },
+      { kind: 'prop',      image: Bottle,    slot: 'before-far-right', size: 'medium', verticalOffset: 300 },
+      { kind: 'prop',      image: Counter2,    slot: 'center-right', size: 'semixxlarge', verticalOffset: -75 },
 
     ],
   },
@@ -153,5 +166,55 @@ export const SCENE_REGISTRY: Record<string, SceneDefinition> = {
       { kind: 'prop',      image: TV,       slot: 'far-left', size: 'herox', verticalOffset: -65 },
     ],
   },
+  
+  'kitchen5': {
+    atmosphere: 'day',
+    elements: [
+      { kind: 'character', image: MainGirl, slot: 'center-left', size: 'large' },
+      { kind: 'prop',      image: House,    slot: 'center', size: 'xxxlarge', verticalOffset: -150 },
+      { kind: 'prop',      image: Tree1,    slot: 'before-before-far-right', size: 'xlarge', verticalOffset: -75 },
+      { kind: 'prop',      image: Tree2,    slot: 'far-left', size: 'xlarge', verticalOffset: -25 },
+    ]
+  },
+
+  'living_room': {
+    atmosphere: 'day',
+    elements: [
+      { kind: 'character', image: MainGirl, slot: 'center', size: 'large' },
+      { kind: 'prop',      image: Toy1,       slot: 'center-slightly-right', size: 'herox', verticalOffset: -185 },
+      { kind : 'prop',      image: Pen,     slot: '15% left',      size: 'medium', verticalOffset: 180 },
+      { kind: 'character', image: Mom,      slot: 'right', size: 'hero' , depth: 'near',verticalOffset: 20},
+      { kind: 'prop',      image: Socket,     slot: 'fifty-percent', size: 'medium', verticalOffset: 270 },
+      { kind: 'prop',      image: Table,    slot: 'left',  size: 'xlarge',  verticalOffset: -90 },
+      { kind: 'prop' ,     image: Bottle,   slot: 'center-left', size: 'medium', verticalOffset: 250 },
+      { kind: 'prop',      image: Frame1,   slot: 'left', size: 'hero', verticalOffset: 420 },
+      { kind: 'prop',      image: Frame2,   slot: 'right', size: 'hero', verticalOffset: 360 },
+      { kind: 'prop',      image: TV,       slot: 'far-left', size: 'herox', verticalOffset: -65 },
+    ],
+  },
+
+    'hallway_start': {
+    atmosphere: 'day',
+    elements: [
+      { kind: 'character', image: MainGirl, slot: 'left', size: 'large' },
+      { kind: 'character', image: Teacher,      slot: '15% left', size: 'hero' , depth: 'near',verticalOffset: 20},
+      { kind: 'prop',      image: Board,     slot: 'left',      size: 'xxlarge', verticalOffset: -100 },
+      { kind: 'prop',      image: Clock,    slot: 'center-right', size: 'large', verticalOffset: 530 },
+      { kind: 'prop',      image: Desk,    slot: 'right',  size: 'xlarge',  verticalOffset: -90 },
+    ],
+  },
+
+  'hallway_busy': {
+    atmosphere: 'day',
+    elements: [
+      { kind: 'character', image: MainGirl, slot: 'left', size: 'large' },
+      { kind: 'character', image: Teacher,      slot: 'right', size: 'hero' , depth: 'near',verticalOffset: 20},
+      { kind: 'prop',      image: Exit,     slot: 'right',      size: 'medium', verticalOffset: 530 },
+      { kind: 'prop',      image: Clock,    slot: 'center-right', size: 'large', verticalOffset: 530 },
+      { kind: 'prop',      image: Locker,    slot: 'center',  size: 'medium',  verticalOffset: -90 },
+
+    ],
+  },
+
 
 };

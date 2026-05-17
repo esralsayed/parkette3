@@ -31,11 +31,13 @@ export const CHARACTER_SIZE_MAP: Record<CharacterSize, number> = {
 import { DimensionValue } from "react-native";
 
 // Horizontal positions are named slots, not raw percentages
-export type HorizontalSlot = 'far-far-left' | 'far-left' | 'left' | 'center-left' | 'center' | 'center-slightly-right' | 'fifty-percent' | 'center-right' | 'center-toward-right' | 'right' | 'before-before-far-right' | 'before-far-right' | 'far-right';
+export type HorizontalSlot = 'far-far-left' | 'far-left' | 'left' | '15% left' | 'left-towards-center' | 'center-left' | 'center' | 'center-slightly-right' | 'fifty-percent' | 'center-right' | 'center-toward-right' | 'right' | 'before-before-far-right' | 'before-far-right' | 'far-right';
 export const SLOT_MAP: Record<HorizontalSlot, DimensionValue> = {
   'far-far-left': '-10%',
   'far-left':     '-5%',
   'left':         '10%',
+  '15% left': '15%',
+  'left-towards-center': '20%',
   'center-left':  '25%',
   'center':       '35%',
   'center-slightly-right': '45%',
