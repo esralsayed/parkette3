@@ -1,3 +1,9 @@
+import StarFilled from '@/assets/images/welcomepage/blue star.svg';
+import Img2 from '@/assets/images/welcomepage/Group 165.svg';
+import Img3 from '@/assets/images/welcomepage/Group 166.svg';
+import CTAImage from '@/assets/images/welcomepage/pic taht awy.png';
+import Img1 from '@/assets/images/welcomepage/Salma character.svg';
+import { default as StarEmpty } from '@/assets/images/welcomepage/starempty.svg';
 import { AppColors, AppFonts, AppFontSizes, ButtonStyles, CardStyles, Spacing } from '@/constants/theme';
 import { useRouter } from 'expo-router';
 import React from 'react';
@@ -11,14 +17,11 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import Svg from 'react-native-svg';
+import Footer from '../components/Footer';
+import NavBar from '../components/navbar';
+
 
 const { width } = Dimensions.get('window');
-
-// ─── DECORATIVE SVG ILLUSTRATION ─────────────────────────
-const HeroIllustration = () => (
-  <Svg width={300} height={300} viewBox="0 0 300 300" fill="none"></Svg>
-);
 
 // ─── SUB-COMPONENTS ──────────────────────────────────────
 const Tag = ({
@@ -34,31 +37,6 @@ const Tag = ({
     <Text style={[styles.tagText, { color: textColor }]}>{label.toUpperCase()}</Text>
   </View>
 );
-
-const NavBar = () => {
-  const router = useRouter();
-  return (
-    <View style={styles.navbar}>
-      <Text style={styles.navLogo}>Parkette</Text>
-      <View style={styles.navLinks}>
-        <Text style={styles.navLink}>Game</Text>
-        <Text style={styles.navLink}>Community</Text>
-        <Text style={styles.navLink}>Diary</Text>
-      </View>
-      <View style={styles.navActions}>
-        <TouchableOpacity onPress={() => router.push('/main components/login')}>
-          <Text style={styles.navLogin}>Login</Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={styles.navSignupBtn}
-          onPress={() => router.push('/main components/signup')}
-        >
-          <Text style={styles.navSignupText}>Sign Up</Text>
-        </TouchableOpacity>
-      </View>
-    </View>
-  );
-};
 
 // ─── SECTION 1: HERO ─────────────────────────────────────
 const HeroSection = () => {
@@ -88,13 +66,6 @@ const HeroSection = () => {
   );
 };
 
-// ─── SECTION 2: GAME ─────────────────────────────────────
-const games = [
-  { emoji: '🏃', bg: AppColors.blue, title: 'Sprint Challenge', desc: 'Race through the park and beat your personal best. Compete with players worldwide in real time.' },
-  { emoji: '🎯', bg: AppColors.lilacMid, title: 'Target Hunt', desc: 'Sharpen your aim in this fast-paced target challenge. Can you hit them all before time runs out?' },
-  { emoji: '🧩', bg: AppColors.dark, title: 'Puzzle Park', desc: 'Solve nature-inspired puzzles and unlock hidden park areas. New puzzles drop every day.' },
-];
-
 const GameSection = () => (
   <View style={styles.gameSection}>
     <Text style={styles.sectionTitle}>Game</Text>
@@ -105,7 +76,7 @@ const GameSection = () => (
         resizeMode="cover"
       />
       <Image
-        source={require('../../assets/images/welcomepage/left.png')}
+        source={require('../../assets/images/welcomepage/center.png')}
         style={styles.cardcenter}
         resizeMode="cover"
       />
@@ -194,18 +165,16 @@ const DiarySection = () => (
 
 // ─── SECTION 5: IMPRESSIONS ──────────────────────────────
 const impressions = [
-  { name: 'Menna Roushdy', stars: 3, quote: 'Ooooo !!' },
-  { name: 'Salma Madkour', stars: 4, quote: 'The website is very thoughtful and cute!! Kids learn a lot from it everyday' },
-  { name: 'Zahra Elsherpiny', stars: 5, quote: "BEST WEBSITE EVERRR!!!! my kid are literally obsessed xD" },
+  { name: 'Salma Madkour', stars: 4, quote: 'The website is very thoughtful and cute!! Kids learn a lot from it everyday', Img: Img2 },
+    { name: 'Menna Roushdy', stars: 3, quote: 'Ooooo !!', Img: Img1 },
+  { name: 'Zahra Elsherpiny', stars: 5, quote: "BEST WEBSITE EVERRR!!!! my kid are literally obsessed xD", Img: Img3 },
 ];
 
 const StarRating = ({ count, total = 5 }: { count: number; total?: number }) => (
   <View style={styles.starsRow}>
-    {Array.from({ length: total }).map((_, i) => (
-      <Text key={i} style={[styles.star, i < count ? styles.starFilled : styles.starEmpty]}>
-        ★
-      </Text>
-    ))}
+    {Array.from({ length: total }).map((_, i) =>
+      i < count ? <StarFilled key={i} /> : <StarEmpty key={i} />
+    )}
   </View>
 );
 
@@ -221,27 +190,28 @@ const ImpressionsSection = () => (
             index === 1 && styles.impressionCardCenter,
           ]}
         >
-          {/* Browser title bar */}
+          {/* ── Section 1: Close button bar */}
           <View style={styles.cardTitleBar}>
             <View style={styles.cardCloseBtn}>
-              <Text style={styles.cardCloseBtnText}>✕</Text>
+              <Text style={styles.cardCloseBtnText}>X</Text>
             </View>
           </View>
 
-          {/* Avatar placeholder */}
-          <View style={styles.avatarPlaceholder}>
-            <View style={styles.avatarHead} />
-            <View style={styles.avatarBody} />
+          {/* ── Section 2: Character SVG placeholder */}
+          <View style={styles.cardCharacter}>
+            <imp.Img />
           </View>
 
-          {/* Name */}
-          <Text style={styles.impressionName}>{imp.name}</Text>
+          {/* ── Section 3: Name + star rating */}
+          <View style={styles.cardIdentity}>
+            <Text style={styles.impressionName}>{imp.name}</Text>
+            <StarRating count={imp.stars} />
+          </View>
 
-          {/* Stars */}
-          <StarRating count={imp.stars} />
-
-          {/* Quote */}
-          <Text style={styles.impressionText}>{imp.quote}</Text>
+          {/* ── Section 4: Quote text */}
+          <View style={styles.cardQuote}>
+            <Text style={styles.impressionText}>{imp.quote}</Text>
+          </View>
         </View>
       ))}
     </View>
@@ -252,48 +222,11 @@ const ImpressionsSection = () => (
 const CTASection = () => (
   <View style={styles.ctaSection}>
     <View style={styles.ctaCard}>
-      <Text style={styles.ctaTitle}>Ready to Enter the Park?</Text>
-      <Text style={styles.ctaDesc}>
-        Join the Parkette community today. Play games, journal your days, and connect
-        with people who love the park as much as you do.
-      </Text>
-    </View>
-  </View>
-);
-
-// ─── FOOTER ──────────────────────────────────────────────
-const footerCols = [
-  { title: 'Play', links: ['Games', 'Leaderboard', 'Challenges'] },
-  { title: 'Connect', links: ['Community', 'Chat', 'Events'] },
-  { title: 'You', links: ['Diary', 'Profile', 'Settings'] },
-];
-
-const Footer = () => (
-  <View style={styles.footer}>
-    <Text style={styles.footerBrand}>Parkette</Text>
-    <Text style={styles.footerBrandDesc}>
-      Your playful home for games, community, and personal journaling. Built with love
-      for park enthusiasts everywhere.
-    </Text>
-    <View style={styles.footerGrid}>
-      {footerCols.map((col) => (
-        <View key={col.title} style={styles.footerCol}>
-          <Text style={styles.footerColTitle}>{col.title.toUpperCase()}</Text>
-          {col.links.map((link) => (
-            <Text key={link} style={styles.footerLink}>{link}</Text>
-          ))}
-        </View>
-      ))}
-    </View>
-    <View style={styles.footerBottom}>
-      <Text style={styles.footerCopy}>© 2026 Parkette. All rights reserved.</Text>
-      <View style={styles.footerSocials}>
-        {['𝕏', 'in', 'ig'].map((s) => (
-          <View key={s} style={styles.socialDot}>
-            <Text style={styles.socialDotText}>{s}</Text>
-          </View>
-        ))}
-      </View>
+      <Image
+        source={CTAImage}
+        style={{ width: '100%', height: '100%'}} // match your image's actual ratio
+        resizeMode="cover"  // or "cover" if you want it to fill and crop
+      />
     </View>
   </View>
 );
@@ -322,66 +255,6 @@ const styles = StyleSheet.create({
   root: {
     flex: 1,
     backgroundColor: AppColors.lilacLight,
-  },
-
-  // ── Navbar
-  navbar: {
-    backgroundColor: AppColors.blue,
-    height: 60,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: Spacing.md,
-    elevation: 6,
-    shadowColor: AppColors.blue,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.2,
-    shadowRadius: 8,
-    zIndex: 100,
-  },
-  navLogo: {
-    color: AppColors.lilac,
-    fontSize: 24,
-    //fontWeight: '800',
-    //letterSpacing: 0.5,
-    fontFamily: AppFonts.title.fontFamily,
-    padding: Spacing.md
-  },
-  navLinks: {
-    flexDirection: 'row',
-    gap: 16,
-    position: 'absolute',
-    left: 0,
-    right: 0,
-    justifyContent: 'center',
-  },
-  navLink: {
-    color: AppColors.lilac,
-    fontSize: 16,
-    //fontWeight: '500',
-    //opacity: 0.85,
-    fontFamily: AppFonts.title.fontFamily,
-  },
-  navActions: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: Spacing.lg,
-    marginRight: Spacing.sm,
-  },
-  navLogin: {
-    color: AppColors.lilac,
-    fontSize: 16,
-    fontFamily: AppFonts.title.fontFamily,
-  },
-  navSignupBtn: {
-    backgroundColor: AppColors.lilac,
-    paddingHorizontal: Spacing.sm,
-    paddingVertical: Spacing.sm,
-  },
-  navSignupText: {
-    color: AppColors.blue,
-    fontSize: 16,
-    fontFamily: AppFonts.title.fontFamily,
   },
 
   // ── Tag
@@ -438,17 +311,18 @@ const styles = StyleSheet.create({
 
   // ── Section shared
   sectionTitle: {
-    fontSize: 40,
+    fontSize: AppFontSizes.title,
     color: AppColors.blue,
     marginBottom: Spacing.sm,
     fontFamily: AppFonts.subhead.fontFamily,
   },
   sectionDesc: {
-    fontSize: 18,
+    fontSize: AppFontSizes.body,
     color: AppColors.blue,
     opacity: 0.65,
     lineHeight: 32,
     marginBottom: Spacing.xl,
+    marginLeft: Spacing.md,
     fontFamily: AppFonts.bodySmall.fontFamily,
   },
 
@@ -513,7 +387,7 @@ const styles = StyleSheet.create({
     marginBottom: Spacing.lg,
   },
   heroDesc: {
-    fontSize: 32,
+    fontSize: AppFontSizes.subhead,
     color: AppColors.blue,
     lineHeight: 32,
     marginBottom: Spacing.sm,
@@ -524,8 +398,11 @@ const styles = StyleSheet.create({
   // ── Section 2: Game
   gameSection: {
     backgroundColor: AppColors.lilac,
+    paddingLeft: Spacing.xl,
+    paddingRight: Spacing.md,
     padding: Spacing.xl,
     paddingVertical: 48,
+    marginLeft: Spacing.md,
   },
   gameCards: {
   flexDirection: 'row',
@@ -542,7 +419,7 @@ cardleft: {
   height: 260,
   backgroundColor: AppColors.lilac,
   borderRadius: 20,
-  borderWidth: 2,
+  borderWidth: 4,
   borderColor: AppColors.blue,
   overflow: 'hidden',
   transform: [{ rotate: '-12deg' }, { translateX: 20 }],
@@ -553,16 +430,16 @@ cardcenter: {
   height: 325,
   backgroundColor: AppColors.lilac,
   borderRadius: 20,
-  borderWidth: 2,
+  borderWidth: 4,
   borderColor: AppColors.blue,
   overflow: 'hidden',
   transform: [{ translateY: -6 }],
   zIndex: 3,
-  elevation: 12,
   shadowColor: AppColors.blue,
-  shadowOffset: { width: 0, height: 8 },
-  shadowOpacity: 0.25,
-  shadowRadius: 16,
+  shadowOffset: { width: 8, height: 6 },
+    shadowOpacity: 1,
+    shadowRadius: 0,
+    elevation: 10,
 },
 cardright: {
   marginTop: 75,
@@ -570,16 +447,21 @@ cardright: {
   height: 260,
   backgroundColor: AppColors.lilac,
   borderRadius: 20,
-  borderWidth: 2,
+  borderWidth: 4,
   borderColor: AppColors.blue,
   overflow: 'hidden',
   transform: [{ rotate: '12deg' }, { translateX: -20 }],
   zIndex: 1,
+      shadowColor: AppColors.blue,
+    shadowOffset: { width: 6, height: 6 },
+    shadowOpacity: 1,
+    shadowRadius: 0,
+    elevation: 10,
 },
 
 gameDesc:{
   marginTop: 75,
-   fontSize: 32,
+   fontSize: AppFontSizes.body,
     color: AppColors.blue,
     lineHeight: 32,
     marginBottom: Spacing.sm,
@@ -590,11 +472,12 @@ communitySection: {
   backgroundColor: AppColors.lilac,
   paddingVertical: 48,
   paddingHorizontal: Spacing.xl,
+  marginLeft: Spacing.md,
   alignItems: 'center',
 },
 
   subtitle:{
-    fontSize: 30,
+    fontSize: AppFontSizes.subhead,
     fontWeight: '500',
     color: AppColors.blue,
     fontFamily: AppFonts.subhead.fontFamily,
@@ -668,6 +551,7 @@ impressionsSection: {
   backgroundColor: AppColors.lilacLight,
   padding: Spacing.xl,
   paddingVertical: 48,
+  marginLeft: Spacing.md,
 },
 impressionsCards: {
   flexDirection: 'row',
@@ -681,9 +565,8 @@ impressionCard: {
   borderWidth: 2,
   borderColor: AppColors.blue,
   overflow: 'hidden',
-  alignItems: 'center',
-  paddingBottom: Spacing.md,
 },
+
 impressionCardCenter: {
   // slightly taller / more prominent
   marginBottom: 16,
@@ -701,11 +584,43 @@ cardTitleBar: {
   alignItems: 'center',
   paddingHorizontal: Spacing.sm,
   paddingVertical: 4,
-  marginBottom: Spacing.md,
+},
+// ── Section 2
+cardCharacter: {
+  alignItems: 'center',
+  paddingVertical: Spacing.md,
+  borderBottomWidth: 1,
+  borderBottomColor: 'rgba(58,42,114,0.15)',
+},
+characterPlaceholder: {
+  width: 72,
+  height: 80,
+  borderRadius: 4,
+  backgroundColor: 'rgba(58,42,114,0.1)',
+  borderWidth: 1.5,
+  borderColor: 'rgba(58,42,114,0.25)',
+  borderStyle: 'dashed',
+},
+
+// ── Section 3
+cardIdentity: {
+  alignItems: 'center',
+  paddingVertical: Spacing.sm,
+  paddingHorizontal: Spacing.sm,
+  gap: 6,
+  borderBottomWidth: 1,
+  borderBottomColor: 'rgba(58,42,114,0.15)',
+},
+
+// ── Section 4
+cardQuote: {
+  flex: 1,
+  paddingHorizontal: Spacing.sm,
+  paddingVertical: Spacing.md,
 },
 cardCloseBtn: {
-  width: 18,
-  height: 18,
+  width: 32,
+  height: 32,
   borderRadius: 2,
   borderWidth: 1.5,
   borderColor: AppColors.lilac,
@@ -713,34 +628,13 @@ cardCloseBtn: {
   justifyContent: 'center',
 },
 cardCloseBtnText: {
+  ...AppFonts.title,
   color: AppColors.lilac,
-  fontSize: 9,
-  fontFamily: AppFonts.subhead.fontFamily,
-},
-// Pixel avatar placeholder
-avatarPlaceholder: {
-  alignItems: 'center',
-  marginBottom: Spacing.sm,
-},
-avatarHead: {
-  width: 56,
-  height: 56,
-  borderRadius: 4,
-  backgroundColor: AppColors.blue,
-  borderWidth: 2,
-  borderColor: AppColors.blue,
-},
-avatarBody: {
-  width: 80,
-  height: 30,
-  borderRadius: 4,
-  backgroundColor: AppColors.blue,
-  marginTop: 4,
-  opacity: 0.5,
+  fontSize: AppFontSizes.bodySmall,
 },
 impressionName: {
-  fontSize: 13,
-  fontWeight: '700',
+  fontSize: AppFontSizes.body,
+  //fontWeight: '700',
   color: AppColors.blue,
   fontFamily: AppFonts.subhead.fontFamily,
   marginBottom: 4,
@@ -761,7 +655,7 @@ starEmpty: {
   opacity: 0.25,
 },
 impressionText: {
-  fontSize: 12,
+  fontSize: AppFontSizes.bodySmall,
   color: AppColors.blue,
   lineHeight: 18,
   textAlign: 'center',
@@ -775,12 +669,15 @@ impressionText: {
     backgroundColor: AppColors.lilac,
     padding: Spacing.xl,
     paddingVertical: 48,
+    marginLeft: Spacing.md,
+    alignItems: 'center',
   },
   ctaCard: {
     backgroundColor: AppColors.blue,
     borderRadius: 28,
-    padding: Spacing.xxl * 2,
-    alignItems: 'center',
+    width: 1200,
+    height: 400,
+    overflow: 'hidden',
     shadowColor: AppColors.blue,
     shadowOffset: { width: 0, height: 16 },
     shadowOpacity: 0.28,
@@ -802,82 +699,6 @@ impressionText: {
     lineHeight: 22,
     textAlign: 'center',
     marginBottom: Spacing.xl,
-    fontFamily: AppFonts.bodySmall.fontFamily,
-  },
-
-  // ── Footer
-  footer: {
-    backgroundColor: AppColors.dark,
-    padding: Spacing.xl,
-    paddingVertical: 48,
-  },
-  footerBrand: {
-    fontSize: 26,
-    fontWeight: '900',
-    color: AppColors.lilac,
-    marginBottom: Spacing.sm,
-    fontFamily: AppFonts.subhead.fontFamily,
-  },
-  footerBrandDesc: {
-    fontSize: 13,
-    color: AppColors.lilac,
-    opacity: 0.5,
-    lineHeight: 20,
-    marginBottom: Spacing.xxl,
-    fontFamily: AppFonts.bodySmall.fontFamily,
-  },
-  footerGrid: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: Spacing.xxl,
-  },
-  footerCol: { gap: Spacing.sm },
-  footerColTitle: {
-    fontSize: 10,
-    fontWeight: '700',
-    color: AppColors.lilac,
-    opacity: 0.5,
-    letterSpacing: 1.5,
-    marginBottom: Spacing.xs,
-    fontFamily: AppFonts.subhead.fontFamily,
-  },
-  footerLink: {
-    fontSize: 13,
-    color: AppColors.lilac,
-    opacity: 0.7,
-    fontFamily: AppFonts.bodySmall.fontFamily,
-  },
-  footerBottom: {
-    borderTopWidth: 1,
-    borderTopColor: 'rgba(201,184,232,0.1)',
-    paddingTop: Spacing.xl,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  footerCopy: {
-    fontSize: 11,
-    color: AppColors.lilac,
-    opacity: 0.35,
-    fontFamily: AppFonts.bodySmall.fontFamily,
-  },
-  footerSocials: {
-    flexDirection: 'row',
-    gap: Spacing.sm,
-  },
-  socialDot: {
-    width: 34,
-    height: 34,
-    borderRadius: 17,
-    borderWidth: 1,
-    borderColor: 'rgba(201,184,232,0.2)',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  socialDotText: {
-    color: AppColors.lilac,
-    fontSize: 11,
-    opacity: 0.6,
     fontFamily: AppFonts.bodySmall.fontFamily,
   },
 });

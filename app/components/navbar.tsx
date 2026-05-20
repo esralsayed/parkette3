@@ -2,13 +2,13 @@ import { AppColors, AppFonts, Spacing } from '@/constants/theme';
 import { useRouter } from 'expo-router';
 import React, { useRef, useState } from 'react';
 import {
-    Image,
-    Modal,
-    Pressable,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View,
+  Image,
+  Modal,
+  Pressable,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from 'react-native';
 import { useSessionStore as useCommunityStore } from '../community/hooks/sessionStore';
 import { useSessionStore } from '../community/services/userSession';
@@ -42,7 +42,7 @@ const NavBar: React.FC<NavBarProps> = ({ onLogout }) => {
 
   return (
     <View style={styles.navbar}>
-      <TouchableOpacity onPress={() => router.push('/dashboard')}>
+      <TouchableOpacity onPress={() => router.push('/main components/dashboard')}>
         <Text style={styles.navLogo}>Parkette</Text>
       </TouchableOpacity>
 
@@ -85,12 +85,12 @@ const NavBar: React.FC<NavBarProps> = ({ onLogout }) => {
         ) : (
           // ── Logged-out
           <>
-            <TouchableOpacity onPress={() => router.push('/login')}>
+            <TouchableOpacity onPress={() => router.push('/main components/login')}>
               <Text style={styles.navLogin}>Login</Text>
             </TouchableOpacity>
             <TouchableOpacity
               style={styles.navSignupBtn}
-              onPress={() => router.push('/signup')}
+              onPress={() => router.push('/main components/signup')}
             >
               <Text style={styles.navSignupText}>Sign Up</Text>
             </TouchableOpacity>

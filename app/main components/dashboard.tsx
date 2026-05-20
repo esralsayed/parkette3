@@ -1,3 +1,4 @@
+import Section3Card from '@/assets/svgs/main/game screen.svg';
 import { AppColors, AppFonts, AppFontSizes, ButtonStyles, CardStyles, Spacing } from '@/constants/theme';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useRouter } from 'expo-router';
@@ -15,6 +16,7 @@ import {
   View,
 } from 'react-native';
 import { Calendar as RnCalendar } from 'react-native-calendars';
+import { useCommunity } from '../community/hooks/useComm';
 import Footer from '../components/Footer';
 import NavBar from '../components/navbar';
 
@@ -118,12 +120,54 @@ const HeroSection = ({
   );
 };
 
-// ─── FOOTER COLS ─────────────────────────────────────────
-const footerCols = [
-  { title: 'Play', links: ['Games', 'Leaderboard', 'Challenges'] },
-  { title: 'Connect', links: ['Community', 'Chat', 'Events'] },
-  { title: 'You', links: ['Diary', 'Profile', 'Settings'] },
-];
+// ─── SECTION 3: GAME + FRIENDS ────────────────────────────
+const Section3 = () => {
+  const router = useRouter();
+  const { friends, loading } = useCommunity();
+
+  return (
+    <View style={styles.section3Wrapper}>
+      <View style={styles.section3SvgContainer}>
+        {/* SVG background */}
+        <Section3Card width="100%" />
+
+          {/* Join Friends button — top right */}
+          <TouchableOpacity
+            style={styles.joinFriendsBtn}
+            onPress={() => router.push('../community/friendsList')}
+            activeOpacity={0.85}
+          >
+            <Text style={styles.joinFriendsBtnText}>Join Friends</Text>
+          </TouchableOpacity>
+
+          {/* Friends list — bottom area */}
+          <View style={styles.friendsListOverlay}>
+            <Text style={styles.friendsListTitleOverlay}>My Friends</Text>
+            {loading ? (
+              <ActivityIndicator size="small" color="#fff" />
+            ) : friends.length === 0 ? (
+              <Text style={styles.friendsEmptyOverlay}>No friends yet — add some!</Text>
+            ) : (
+              friends.map((f) => (
+                <View key={f._id} style={styles.friendRowOverlay}>
+                  <View style={styles.friendAvatarOverlay}>
+                    <Text style={styles.friendAvatarTextOverlay}>
+                      {f.username.slice(0, 2).toUpperCase()}
+                    </Text>
+                  </View>
+                  <View style={{ flex: 1 }}>
+                    <Text style={styles.friendNameOverlay}>{f.username}</Text>
+                    <Text style={styles.friendLevelOverlay}>Level {f.level}</Text>
+                  </View>
+                </View>
+              ))
+            )}
+          </View>
+
+      </View>
+    </View>
+  );
+};
 
 // ─── MAIN SCREEN ─────────────────────────────────────────
 export default function dashboard() {
@@ -193,8 +237,10 @@ export default function dashboard() {
           onOpenCalendar={() => setCalendarVisible(true)}
           onOpenDiary={() => router.push('/diary/Diary')}
         />
+        <Section3 />
         <View></View>
-        <View></View>
+      <Footer />
+
       </ScrollView>
 
       <Modal visible={calendarVisible} animationType="slide" transparent>
@@ -225,7 +271,6 @@ export default function dashboard() {
           </View>
         </View>
       </Modal>
-      <Footer />
     </View>
   );
 }
@@ -235,9 +280,9 @@ const styles = StyleSheet.create({
   root: {
     flex: 1,
     backgroundColor: AppColors.lilacLight,
+    overflow: 'hidden',
   },
   main: {
-    flex: 1,
     flexDirection: 'column',
   },
 
@@ -416,25 +461,7 @@ const styles = StyleSheet.create({
     fontSize: AppFontSizes.bodySmall,
   },
 
-  // ── Shared card bits
-  card: {
-    ...CardStyles.default,
-    width: '100%',
-    height: 100,
-  },
-  cardTitle: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: AppColors.blue,
-    marginBottom: Spacing.sm,
-    fontFamily: AppFonts.subhead.fontFamily,
-  },
-  cardCaption: {
-    fontSize: 13,
-    color: AppColors.blue,
-    opacity: 0.75,
-    fontFamily: AppFonts.bodySmall.fontFamily,
-  },
+
 
   // ── Section shared
   sectionTitle: {
@@ -506,6 +533,123 @@ const styles = StyleSheet.create({
   modalButtonText: {
     ...ButtonStyles.primary,
     textAlign: 'center',
+  },
+
+section3Wrapper: {
+    paddingHorizontal: Spacing.xl,
+    paddingBottom: Spacing.xl,
+    marginTop: Spacing.lg,
+  },
+  section3SvgContainer: {
+    position: 'relative',
+    width: '100%',
+    borderRadius: 20,
+    overflow: 'hidden',
+  },
+  section3Overlay: {
+    position: 'absolute',
+    top: 0,
+    left: 1300,
+    right: 0,
+    bottom: 350,
+    padding: Spacing.md,
+    justifyContent: 'space-between',
+  },
+
+  // ── Button (top-right)
+  joinFriendsBtn: {
+    position: 'absolute',
+    bottom: 35, 
+    left: '45%', 
+    right: 0,
+    top: 0,
+    width: 200,
+    alignSelf: 'flex-end',
+    alignItems: 'center',
+    backgroundColor: AppColors.lilac,
+        borderWidth: 3,
+    borderColor: AppColors.blue,
+    paddingVertical: Spacing.sm,
+    paddingHorizontal: Spacing.lg,
+    borderRadius: 8,
+    shadowColor: AppColors.blue,
+    shadowOffset: { width: 4, height: 3 },
+    shadowOpacity: 1,
+    shadowRadius: 0,
+    elevation: 4, 
+  },
+  joinFriendsBtnText: {
+    ...AppFonts.body,
+    color: AppColors.blue,
+    fontSize: AppFontSizes.body,
+    //fontWeight: '700',
+  },
+
+  // ── Friends list (bottom, blended)
+  friendsListOverlay: {
+    position: 'absolute',
+    top: '12%',
+    left: '66%',
+    right: 0,
+    width: 200,
+    backgroundColor: 'rgba(255,255,255,0.15)',
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.3)',
+    overflow: 'hidden',
+    backdropFilter: 'blur(8px)', // web only; harmless on native
+  },
+  friendsListTitleOverlay: {
+    ...AppFonts.subhead,
+    fontSize: AppFontSizes.body,
+    color: '#fff',
+    padding: Spacing.sm,
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(255,255,255,0.2)',
+  },
+  friendsEmptyOverlay: {
+    ...AppFonts.bodySmall,
+    color: '#fff',
+    opacity: 0.7,
+    padding: Spacing.sm,
+    textAlign: 'center',
+    fontSize: AppFontSizes.bodySmall,
+  },
+  friendRowOverlay: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    paddingHorizontal: Spacing.sm,
+    paddingVertical: 6,
+    borderBottomWidth: 0.5,
+    borderBottomColor: 'rgba(255,255,255,0.15)',
+  },
+  friendAvatarOverlay: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: 'rgba(255,255,255,0.25)',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.4)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  friendAvatarTextOverlay: {
+    ...AppFonts.body,
+    fontSize: AppFontSizes.bodySmall,
+    color: '#fff',
+    fontWeight: '600',
+  },
+  friendNameOverlay: {
+    ...AppFonts.body,
+    fontSize: AppFontSizes.bodySmall,
+    color: '#fff',
+  },
+  friendLevelOverlay: {
+    ...AppFonts.bodySmall,
+    fontSize: AppFontSizes.bodySmall,
+    color: 'rgba(255,255,255,0.65)',
+    marginTop: 1,
   },
 
 });
