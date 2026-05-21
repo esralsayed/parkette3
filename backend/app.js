@@ -120,8 +120,8 @@ async function bootstrap() {
   }
 
   console.log("ML sidecar is up and healthy.");
-  app.listen(process.env.PORT || 3000, () => {
-    console.log(`Server running on port ${process.env.PORT || 3000}`);
+  httpServer.listen(PORT, () => {
+    console.log(`Server + Socket.IO running on port ${PORT}`);
   });
 }
 
