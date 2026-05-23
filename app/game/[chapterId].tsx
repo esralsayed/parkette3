@@ -84,7 +84,7 @@ const StarRow = ({ count }: { count: number }) => (
 
 const starStyles = StyleSheet.create({
   row: { flexDirection: "row", gap: 2, marginBottom: Spacing.xs },
-  star: { fontSize: 12, color: AppColors.lilacMid },
+  star: { fontSize: 22, color: AppColors.lilacMid, ...AppFonts.bodySmall },
   filled: { color: "#F5C842" },
 });
 

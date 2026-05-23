@@ -14,7 +14,7 @@ export type SceneImageSource = SvgComponent | RasterSource;
 export type LayerType = 'sky' | 'background' | 'midground' | 'ground' | 'foreground' | 'ui';
 
 // Character sizes are named, not arbitrary numbers
-export type CharacterSize = 'small' | 'medium' | 'large' | 'hero' | 'herox' | 'xlarge' | 'semixlarge' | 'semixxlarge' | 'xxlarge' | 'xxxlarge';
+export type CharacterSize = 'small' | 'medium' | 'large' | 'hero' | 'herox' | 'xlarge' | 'semixlarge' | 'semixxlarge' | 'xxlarge' | 'xxxlarge' | 'fourxlarge';
 export const CHARACTER_SIZE_MAP: Record<CharacterSize, number> = {
   small:  120,
   medium: 200,
@@ -26,20 +26,24 @@ export const CHARACTER_SIZE_MAP: Record<CharacterSize, number> = {
   semixxlarge: 830,
   xxlarge: 900,
   xxxlarge: 1100,
+  fourxlarge: 1500,
 };
 
 import { DimensionValue } from "react-native";
 
 // Horizontal positions are named slots, not raw percentages
-export type HorizontalSlot = 'far-far-left' | 'far-left' | 'left' | '15% left' | 'left-towards-center' | 'center-left' | 'center' | 'center-slightly-right' | 'fifty-percent' | 'center-right' | 'center-toward-right' | 'right' | 'before-before-far-right' | 'before-far-right' | 'far-right';
+export type HorizontalSlot = 'far-far-left' | 'far-left' | '0% left' | 'left' | '15% left' | 'left-towards-center' | 'center-left' | '30% left' | 'center' | '55% right' | 'center-slightly-right' | 'fifty-percent' | 'center-right' | 'center-toward-right' | 'right' | 'before-before-far-right' | 'before-far-right' | 'far-right';
 export const SLOT_MAP: Record<HorizontalSlot, DimensionValue> = {
   'far-far-left': '-10%',
   'far-left':     '-5%',
+  '0% left': '0%',
   'left':         '10%',
   '15% left': '15%',
   'left-towards-center': '20%',
   'center-left':  '25%',
+  '30% left': '30%',
   'center':       '35%',
+  '55% right': '40%',
   'center-slightly-right': '45%',
   'fifty-percent': '50%',
   'center-right': '55%',

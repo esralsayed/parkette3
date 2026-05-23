@@ -1,9 +1,8 @@
-import CatEnd from "@/assets/svgs/game/Cat winking.svg";
-import Confetti from "@/assets/svgs/game/Confettileft.svg";
-import Confetti2 from "@/assets/svgs/game/Confettiright.svg";
+//import CatEnd from "@/assets/svgs/game/Cat winking.svg";
 import { AppColors, AppFonts, AppFontSizes, Spacing } from '@/constants/theme';
 import {
   ActivityIndicator,
+  Image,
   StyleSheet,
   Text,
   TouchableOpacity,
@@ -23,7 +22,8 @@ export function EndScreen({ stars, onNext, onRetry, savingProgress }: EndScreenP
     <View style={styles.endScreen}>
       <View style={styles.contentContainer}>
         <View style={styles.catWrapper}>
-          <CatEnd />
+          <Image source={require('@/assets/images/Cat winking.png')} style={{ width: 300, height: 300 }} resizeMode="contain" />
+          {/* <CatEnd /> */}
         </View>
         <View style={styles.textContainer}>
           <Text style={styles.endTitle}>{count === 3 ? 'Level Complete!' : 'Level Finished'}</Text>
@@ -33,7 +33,8 @@ export function EndScreen({ stars, onNext, onRetry, savingProgress }: EndScreenP
       
       <View style={styles.buttonRow}>
         <View style={styles.confettiWrapper}>
-          <Confetti />
+         {/*<Confetti /> */}
+         <Image source={require('@/assets/images/Confettileft.png')} style={{ width: 300, height: 300 }} resizeMode="contain" />
         </View>
         <View style={[{flexDirection:'column', gap:8}]}>
           <View style={styles.starsDisplay}>
@@ -47,7 +48,7 @@ export function EndScreen({ stars, onNext, onRetry, savingProgress }: EndScreenP
           </TouchableOpacity>
         </View>
         <View style={styles.confettiWrapperRight}>
-          <Confetti2 />
+          <Image source={require('@/assets/images/Confettiright.png')} style={{ width: 300, height: 300 }} resizeMode="contain" />
         </View>
       </View>
     </View>
@@ -90,7 +91,7 @@ endScreen: {
   alignItems: 'center',
   paddingHorizontal: Spacing.lg, 
   backgroundColor: AppColors.lilac,
-  opacity: 0.8
+  opacity: 0.9
 },
   contentContainer: {
     alignItems: 'center',

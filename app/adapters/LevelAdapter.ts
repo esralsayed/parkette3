@@ -240,6 +240,14 @@ private static adaptDialogSteps(
         scale: 1.0,
         side: 'right'
       },
+      'teacher' : {
+        displayName: 'Teacher',
+        spritePath: 'teacher/teacher-normal.png',
+        position: 'center',
+        voiceId: 'en-US-female-professional',
+        scale: 1.1,
+        side: 'left'
+      }
     };
     
     return characterNames.map(name => {
@@ -305,6 +313,7 @@ private static resolveImage(key: string | undefined): any {
       'stranger/stranger-normal.png': require('../../assets/images/chapters/Man pp.png'),
       'friend/friend1.png': require('../../assets/images/chapters/friend1.png'),
       'friend/friend2.png': require('../../assets/images/chapters/friend2.png'),
+      'teacher/teacher-normal.png': require('../../assets/images/chapters/teacher.png'),
     };
     
     return SPRITE_MAP[path] || { uri: path };
@@ -321,6 +330,7 @@ private static getSpriteForObject(objectName: string): ImageSourcePropType {
     'mom':      require('../../assets/images/chapters/Mom PP.png'),
     'friend':   require('../../assets/images/chapters/Friend.png'),
     'stranger': require('../../assets/images/chapters/Man pp.png'),
+    'teacher': require('../../assets/images/chapters/teacher.png'),
   };
 
   const key = objectName.toLowerCase().trim();
@@ -349,7 +359,7 @@ private static getSpriteForObject(objectName: string): ImageSourcePropType {
       'Dad': 'father',
       'Me': 'child',
       'friend': 'friend',
-      'Ms. Johnson': 'teacher',
+      'Teacher': 'teacher',
       'stranger': 'stranger',
     };
     return mapping[speakerName] || speakerName.toLowerCase();

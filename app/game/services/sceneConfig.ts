@@ -26,12 +26,17 @@ import Tree1 from "@/assets/svgs/game/chapters/tree1.svg";
 import Tree2 from "@/assets/svgs/game/chapters/tree2.svg";
 
 //school chapter
+import Cloud1 from "@/assets/svgs/community/cloud2.svg";
+import Cloud2 from "@/assets/svgs/community/cloud3.svg";
 import Board from "@/assets/svgs/game/chapters/board.svg";
 import Clock from "@/assets/svgs/game/chapters/clock.svg";
+import Crosswalk from "@/assets/svgs/game/chapters/crosswalk.svg";
 import Desk from "@/assets/svgs/game/chapters/desk.svg";
 import Exit from "@/assets/svgs/game/chapters/exit.svg";
 import Locker from "@/assets/svgs/game/chapters/locker.svg";
+import School from "@/assets/svgs/game/chapters/school.svg";
 import Teacher from "@/assets/svgs/game/chapters/teacher.svg";
+import Traffic from "@/assets/svgs/game/chapters/traffic.svg";
 
 
 // image imports
@@ -57,6 +62,8 @@ export const SCENE_REGISTRY: Record<string, SceneDefinition> = {
       { kind: 'character', image: Mom,      slot: 'left',         size: 'hero'   },
       { kind: 'character', image: Cat,      slot: 'center-left',  size: 'small'  },
       { kind: 'character', image: MainGirl, slot: 'center-right', size: 'medium' },
+      { kind: 'prop',      image: Cloud1,     slot: 'center',       size: 'medium', depth: 'mid'  },
+      { kind: 'prop',      image: Cloud2,     slot: 'center-right', size: 'medium', depth: 'mid'  },
     ],
   },
 
@@ -69,6 +76,8 @@ export const SCENE_REGISTRY: Record<string, SceneDefinition> = {
       { kind: 'character', image: Friend1,  slot: 'center-right', size: 'medium' },
       { kind: 'character', image: Friend2,  slot: 'right',        size: 'medium' },
       { kind: 'character', image: Friend3,  slot: 'far-right',    size: 'medium' },
+      { kind: 'prop',      image: Cloud1,     slot: 'center',       size: 'medium', depth: 'mid'  },
+      { kind: 'prop',      image: Cloud2,     slot: 'center-right', size: 'medium', depth: 'mid'  },
     ],
   },
 
@@ -196,23 +205,39 @@ export const SCENE_REGISTRY: Record<string, SceneDefinition> = {
     'hallway_start': {
     atmosphere: 'day',
     elements: [
-      { kind: 'character', image: MainGirl, slot: 'left', size: 'large' },
-      { kind: 'character', image: Teacher,      slot: '15% left', size: 'hero' , depth: 'near',verticalOffset: 20},
-      { kind: 'prop',      image: Board,     slot: 'left',      size: 'xxlarge', verticalOffset: -100 },
-      { kind: 'prop',      image: Clock,    slot: 'center-right', size: 'large', verticalOffset: 530 },
+      { kind: 'character', image: MainGirl, slot: 'center-slightly-right', size: 'large' },
+      { kind: 'character', image: Teacher,      slot: 'far-left', size: 'hero' , depth: 'near',verticalOffset: 20},
+      { kind: 'prop',      image: Board,     slot: 'left',      size: 'xxlarge', verticalOffset: -130 },
+      { kind: 'prop',      image: Clock,    slot: 'center-right', size: 'large', verticalOffset: 460 },
       { kind: 'prop',      image: Desk,    slot: 'right',  size: 'xlarge',  verticalOffset: -90 },
+      { kind: 'prop',      image: Desk,    slot: 'fifty-percent',  size: 'xlarge',  verticalOffset: -90 },
+
     ],
   },
 
   'hallway_busy': {
     atmosphere: 'day',
     elements: [
-      { kind: 'character', image: MainGirl, slot: 'left', size: 'large' },
-      { kind: 'character', image: Teacher,      slot: 'right', size: 'hero' , depth: 'near',verticalOffset: 20},
+      { kind: 'character', image: MainGirl, slot: '15% left', size: 'large' },
+      { kind: 'character', image: Teacher,      slot: 'far-left', size: 'hero' , depth: 'near',verticalOffset: 20},
       { kind: 'prop',      image: Exit,     slot: 'right',      size: 'medium', verticalOffset: 530 },
       { kind: 'prop',      image: Clock,    slot: 'center-right', size: 'large', verticalOffset: 530 },
-      { kind: 'prop',      image: Locker,    slot: 'center',  size: 'medium',  verticalOffset: -90 },
+      { kind: 'prop',      image: Locker,    slot: 'right',  size: 'xlarge',  verticalOffset: -5 },
+      { kind: 'prop',      image: Locker,    slot: 'center-right',  size: 'xlarge',  verticalOffset: -5 },
+      { kind: 'prop',      image: Locker,    slot: '55% right',  size: 'xlarge',  verticalOffset: -5 },
+      { kind: 'prop',      image: Locker,    slot: 'center-left',  size: 'xlarge',  verticalOffset: -5 },
+    ],
+  },
 
+    'school_exit': {
+    atmosphere: 'day',
+    elements: [
+      { kind: 'character', image: MainGirl, slot: 'center-slightly-right', size: 'large' },
+      { kind: 'character', image: Teacher,      slot: 'far-left', size: 'hero' , depth: 'near',verticalOffset: 20},
+      { kind: 'prop',      image: Crosswalk,     slot: '15% left',      size: 'semixlarge', verticalOffset: -330 },
+      { kind: 'prop',      image: School,     slot: 'fifty-percent',      size: 'fourxlarge', verticalOffset: -510 },
+      { kind: 'prop',      image: Traffic,    slot: '0% left',  size: 'herox',  verticalOffset: 100 },
+      { kind: 'prop',      image: Cloud1,    slot: 'center-left',  size: 'xlarge',  verticalOffset: 400 },
     ],
   },
 
