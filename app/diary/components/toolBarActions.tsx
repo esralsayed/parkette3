@@ -356,14 +356,15 @@ const styles2 = StyleSheet.create({
 
 
 // ── replace these with your actual SVG imports ──────────────────
+import Sticker10 from "@/assets/svgs/diary/music.svg";
 import Sticker1 from '@/assets/svgs/diary/stickers/Sticker.svg';
 import Sticker2 from '@/assets/svgs/diary/stickers/sticker1.svg';
 import Sticker3 from '@/assets/svgs/diary/stickers/sticker2.svg';
 import Sticker4 from '@/assets/svgs/diary/stickers/sticker3.svg';
 import Sticker5 from '@/assets/svgs/diary/stickers/sticker4.svg';
 import Sticker6 from '@/assets/svgs/diary/stickers/sticker5.svg';
-import Sticker7 from '@/assets/svgs/diary/stickers/sticker6.svg';
-import Sticker8 from '@/assets/svgs/diary/stickers/sticker7.svg';
+//import Sticker7 from '@/assets/svgs/diary/stickers/sticker6.svg';
+//import Sticker8 from '@/assets/svgs/diary/stickers/sticker7.svg';
 
 export interface PlacedSticker {
   id: string;
@@ -378,8 +379,9 @@ export const STICKER_DEFS = [
   { id: 'sticker4', component: Sticker4 },
   { id: 'sticker5', component: Sticker5 },
   { id: 'sticker6', component: Sticker6 },
-  { id: 'sticker7', component: Sticker7 },
-  { id: 'sticker8', component: Sticker8 },
+ // { id: 'sticker7', component: Sticker7 },
+ // { id: 'sticker8', component: Sticker8 },
+  { id: 'sticker10', component: Sticker10}
 ];
 
 interface StickersWindowProps {
@@ -394,14 +396,14 @@ export function StickersWindow({
   selectedStickerId,
 }: StickersWindowProps) {
   const rows = [];
-  for (let i = 0; i < STICKER_DEFS.length; i += 2) {
-    rows.push(STICKER_DEFS.slice(i, i + 2));
+  for (let i = 0; i < STICKER_DEFS.length; i += 3) {
+    rows.push(STICKER_DEFS.slice(i, i + 3));
   }
   const { width: screenWidth, height:screenHeight } = useWindowDimensions();
   if (!screenHeight || !screenWidth) return null; 
 
   return (
-    <View style={[styles3.window , {    width: screenWidth * 0.25,}]}>
+    <View style={[styles3.window , {    width: screenWidth * 0.26,}]}>
       <View style={styles3.upperWindow}>
         <Text style={[styles3.windowText , {    fontSize: screenWidth * 0.025,}]}>Stickers</Text>
         <TouchableOpacity onPress={onClose} style={[styles3.close , {    width: screenWidth * 0.035,
@@ -422,7 +424,7 @@ export function StickersWindow({
                   onPress={() => onStickerSelected?.(sticker.id)}
                   style={[styles3.cell, isSelected && styles3.cellSelected]}
                 >
-                  <StickerComponent width={screenWidth * 0.06} height={screenWidth * 0.06} />
+                  <StickerComponent width={screenWidth * 0.04} height={screenWidth * 0.04} />
                 </TouchableOpacity>
               );
             })}
@@ -474,7 +476,10 @@ const styles3 = StyleSheet.create({
     justifyContent: 'center',
   },
   cell: {
-    flex: 1,
+    width: 150, 
+    height: 150,
+    padding: 5,
+    //flex: 1,
     aspectRatio: 1,
     borderWidth: 1.5,
     borderColor: AppColors.blue,

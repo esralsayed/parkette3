@@ -88,6 +88,7 @@ const styles = StyleSheet.create({
   alignSelf: 'flex-start',
 },
   wrapper: {
+    marginTop: 30,
     flexDirection: 'row',
     alignItems: 'center',
     alignSelf: 'center',

@@ -1,45 +1,51 @@
-import dotenv from "dotenv";
-import mongoose from "mongoose";
-import { Parent } from "../models/User.js";
+// migrate-stickers.js
+// Run once with: node migrate-stickers.js
+// Adds page: "left" to all existing stickers that don't have a page field yet.
+// Since we have no spread width stored, we default everything to "left" —
+// which is safe because the old code placed stickers on both pages arbitrarily
+// and there's no reliable way to know which page they were on without PAGE_W.
 
-dotenv.config();
+import mongoose from "mongoose";
+import { DiaryEntry } from "../models/Diary.js"; // adjust path to your model
+
+const MONGO_URI = "mongodb+srv://esraahmed109_db_user:esraa109db@cluster0.p9kerpy.mongodb.net/parkette?appName=Cluster0";
 
 async function migrate() {
-  try {
-    await mongoose.connect(process.env.MONGO_URI);
+  await mongoose.connect(MONGO_URI);
+  console.log("Connected to MongoDB");
 
-    console.log("Connected");
+  // Find all entries that have at least one sticker missing the page field
+  const entries = await DiaryEntry.find({
+    "stickers.0": { $exists: true },          // has at least one sticker
+    "stickers.page": { $exists: false },      // at least one missing page
+  });
 
-    const parents = await Parent.find({});
+  console.log(`Found ${entries.length} entries to migrate`);
 
-    for (const parent of parents) {
+  let updated = 0;
 
-      for (const [key, perms] of parent.permissions.entries()) {
+  for (const entry of entries) {
+    let dirty = false;
 
-        // convert to plain object
-        const updatedPerms = {
-          ...perms.toObject(),
-          diaryEmotionalAnalysis: true,
-        };
-
-        parent.permissions.set(key, updatedPerms);
+    entry.stickers = entry.stickers.map(s => {
+      if (!s.page) {
+        dirty = true;
+        return { ...s.toObject(), page: "left" };
       }
+      return s;
+    });
 
-      // IMPORTANT
-      parent.markModified("permissions");
-
-      await parent.save();
-
-      console.log("Updated:", parent._id);
+    if (dirty) {
+      await entry.save();
+      updated++;
     }
-
-    console.log("Done");
-    process.exit(0);
-
-  } catch (err) {
-    console.error(err);
-    process.exit(1);
   }
+
+  console.log(`Migration complete — updated ${updated} entries`);
+  await mongoose.disconnect();
 }
 
-migrate();
+migrate().catch(err => {
+  console.error("Migration failed:", err);
+  process.exit(1);
+});

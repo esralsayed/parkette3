@@ -31,6 +31,7 @@ export interface DiarySticker {
   id: string
   x: number
   y: number
+  page: "left" | "right"
 }
 
 export interface DiaryEntry {
@@ -39,7 +40,7 @@ export interface DiaryEntry {
   date: string
   favorite: boolean
   content: {leftPage: string[]; rightPage: string[]}
-  drawings: {
+  drawing: {
     strokeType: "pen" | "brush"
     strokeSize: "big" | "small"
     strokeColor: "lilac" | "blue"

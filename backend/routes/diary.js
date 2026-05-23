@@ -125,7 +125,7 @@ diaryroutes.post("/entry/:diaryId/save", async (req, res) => {
   try {
     console.log("are we in route?"); 
     const { diaryId } = req.params;
-    const { date, day, content } = req.body;
+    const { date, day, content, drawing, stickers, favorite, fillColor } = req.body;
     console.log(diaryId); 
 
     if (!diaryId) return res.status(400).json({ message: "diaryId required" });
@@ -133,6 +133,8 @@ diaryroutes.post("/entry/:diaryId/save", async (req, res) => {
 
     // Check diary exists
     const diary = await Diary.findById(diaryId);
+    if (!diary) return res.status(404).json({ message: "Diary not found" });
+
     const user = await User.findById(diary.userId);
     const parent = await Parent.findById(user.parentId);
     const parentEmail = parent ? parent.email : null;
@@ -156,6 +158,9 @@ diaryroutes.post("/entry/:diaryId/save", async (req, res) => {
           Date: new Date(date),
           Day: day,
           content,
+          drawing,
+          stickers,
+          favorite
         },
       },
       { new: true, upsert: true }
@@ -227,6 +232,9 @@ diaryroutes.get("/:diaryId/entry", async (req, res) => {
       Date: date,
       Day: date.toLocaleDateString("en-US", { weekday: "long" }),
       content: { leftPage: Array(9).fill(""), rightPage: Array(9).fill("") },
+      drawing: [],
+      stickers: [],
+      favorite: false,
     };
 
     res.json({ entry: scaffold, isNew: true });

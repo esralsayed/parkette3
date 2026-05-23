@@ -5,21 +5,22 @@ const { Schema } = mongoose;
 // ── Diary Entry ─────────────────────────────────────────────
 const DiaryEntrySchema = new Schema(
   {
-      diaryId: {
-        type: Schema.Types.ObjectId,
-        ref: "Diary",
-        required: true,
-        index: true
+    diaryId: {
+      type: Schema.Types.ObjectId,
+      ref: "Diary",
+      required: true,
+      index: true
       },
-      Date: {type: Date, required:true, index:true},
-      Day: {type: String},
-      content:{type: Schema.Types.Mixed},
-      favorite: {type: Boolean}, 
-      stickers: [{
+    Date: {type: Date, required:true, index:true},
+    Day: {type: String},
+    content:{type: Schema.Types.Mixed},
+    favorite: {type: Boolean}, 
+    stickers: [{
       id: String,
       x: Number,
-      y:Number,
-    }], 
+      y: Number,
+      page: { type: String, enum: ["left", "right"], default: "left" },
+    }],
     drawing: [{
     strokeType: { type: String, enum: ["brush", "pen"] },
     strokeSize: { type: String, enum: ["big", "small"] },
