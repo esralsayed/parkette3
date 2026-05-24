@@ -42,7 +42,7 @@ export interface PerformanceData {
   trendDirection?: 'improving' | 'declining' | 'stable'; // Are they getting better or worse?
 }
 
-const API_URL = 'http://localhost:5000'; // Replace with your actual backend URL
+const API_URL = process.env.EXPO_PUBLIC_API_URL || 'http://localhost:5000'; // Replace with your actual backend URL
 
 
 // ──────────────────────────────────────────────────────────────

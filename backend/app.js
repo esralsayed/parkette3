@@ -23,9 +23,12 @@ import router from "./routes/progress.js";
 // const __dirname = path.dirname(__filename);
 const app = express();
 const httpServer = createServer(app); 
-const io = new Server(httpServer , {
-  cors: {origin: '*'}
-})
+const io = new Server(httpServer, {
+  cors: {
+    origin: ['http://localhost:8081', 'https://your-vercel-app.vercel.app'],
+    credentials: true
+  }
+});
 const PORT = process.env.PORT || 5000;
 
 const userSocketMap = new Map();
@@ -53,7 +56,10 @@ export { io, userSocketMap };
 connectDB();
 
 // Middleware
-app.use(cors());
+app.use(cors({
+  origin: ['http://localhost:8081', 'https://your-vercel-app.vercel.app'],
+  credentials: true
+}));
 app.use(express.json());
 
 // Routes

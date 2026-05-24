@@ -8,7 +8,7 @@ interface SessionStore {
   hydrateSession: (sessionId: string) => Promise<void>;
 }
 
-const API_URL = 'http://localhost:5000/api/community';  // same as Community.ts
+const API_URL = `${process.env.EXPO_PUBLIC_API_URL}/api/community`|| 'http://localhost:5000/api/community';  // same as Community.ts
 
 
 export const useSessionStore = create<SessionStore>((set) => ({

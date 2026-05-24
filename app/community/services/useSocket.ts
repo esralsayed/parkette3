@@ -1,7 +1,7 @@
 import { useEffect, useRef } from "react";
 import { io, Socket } from "socket.io-client";
 
-const SOCKET_URL = "http://localhost:5000"; // 🔁 replace with your server URL
+const SOCKET_URL = process.env.EXPO_PUBLIC_API_URL || "http://localhost:5000"; // 🔁 replace with your server URL
 
 let socketInstance: Socket | null = null;
 console.log("useSocket module loaded");

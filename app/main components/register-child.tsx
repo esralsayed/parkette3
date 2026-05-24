@@ -5,7 +5,7 @@ import { useRouter } from 'expo-router';
 import React, { useEffect, useState } from 'react';
 import { Alert, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 
-const API_URL = 'http://localhost:5000/api/auth'; // Update this for production
+const API_URL = `${process.env.EXPO_PUBLIC_API_URL}/api/auth` || 'http://localhost:5000/api/auth'; // Update this for production
 
 export default function RegisterChild() {
   const router = useRouter();
@@ -64,7 +64,7 @@ export default function RegisterChild() {
       if (response.ok) {
         Alert.alert('Success', 'Child registered successfully!');
         // Navigate to tabs
-        router.replace('/(tabs)');
+        router.replace('/main components/welcome');
       } else {
         Alert.alert('Error', data.message || 'Registration failed');
       }

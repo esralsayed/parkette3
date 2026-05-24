@@ -24,7 +24,7 @@ export function useSessionInvite(currentUserId: string | null) {
           {
             text: "Join",
             onPress: () =>
-              router.replace("/community/communityLanding"),
+              router.replace("/community/components/communityLanding"),
           },
           { text: "Decline", style: "cancel" },
         ]

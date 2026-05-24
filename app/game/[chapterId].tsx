@@ -20,7 +20,7 @@ import {
 import BackgroundSVG from "@/assets/svgs/game/Background.svg";
 import NavBar from "../components/navbar";
 
-const APIURL = "http://localhost:5000/api/levels";
+const APIURL = `${process.env.EXPO_PUBLIC_API_URL}/api/levels` || "http://localhost:5000/api/levels";
 
 type Level = {
   id: string;

@@ -2,7 +2,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useEffect, useState } from "react";
 import { ActivityIndicator, ScrollView, Text, View } from "react-native";
 
-const API_URL = "http://localhost:5000/api/calendar";
+const API_URL = `${process.env.EXPO_PUBLIC_API_URL}/api/calender` || "http://localhost:5000/api/calendar";
 
 const STATUS_COLORS: Record<string, string> = {
   completed: "#E7E1FF",

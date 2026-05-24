@@ -169,6 +169,9 @@ const Section3 = () => {
   );
 };
 
+const API_URL = `${process.env.EXPO_PUBLIC_API_URL}/api/calender` || "http://localhost:5000/api/calendar"
+
+
 // ─── MAIN SCREEN ─────────────────────────────────────────
 export default function dashboard() {
   const router = useRouter(); // ← must be inside the component
@@ -194,12 +197,13 @@ export default function dashboard() {
     loadUserName();
   }, []);
 
+
   useEffect(() => {
     if (!calendarVisible || !userId) return;
     const fetchCalendar = async () => {
       setCalendarLoading(true);
       try {
-        const response = await fetch(`http://localhost:5000/api/calendar/${userId}`);
+        const response = await fetch(`${API_URL}/${userId}`);
         const data = await response.json();
         setCalendarDays(data.days || []);
       } catch (error) {

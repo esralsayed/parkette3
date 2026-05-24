@@ -4,7 +4,7 @@
 // ─────────────────────────────────────────────────────────────
 //import type { JSONContent } from '@tiptap/react';
 
-const BASE_URL = 'http://localhost:5000/api/diary';
+const BASE_URL = `${process.env.EXPO_PUBLIC_API_URL}/api/diary` || 'http://localhost:5000/api/diary';
 
 // JSONContent is tiptap's format: a recursive node tree
 export type JSONContent = {
