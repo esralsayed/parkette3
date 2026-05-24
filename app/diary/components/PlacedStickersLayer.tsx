@@ -127,7 +127,7 @@ const styles = StyleSheet.create({
     position: "absolute",
     top:      0,
     left:     0,
-    zIndex:   15,   // above lines, below brush popup
+    zIndex:   5,   // above lines, below brush popup
   },
   stickerWrap: {
     position: "absolute",

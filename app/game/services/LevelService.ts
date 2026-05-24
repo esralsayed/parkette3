@@ -371,9 +371,13 @@ private async completeLevel(): Promise<StepResult> {
     passed: true,
     attempts: session.attempts,
     lastAttemptAt: new Date(),
-    completedAt: new Date()
+    completedAt: new Date(),
+    preQuestionAnswers:  this.preQuestionAnswers  ?? null,  // ← ADD
+    postQuestionAnswers: this.postQuestionAnswers ?? null,  // ← ADD
   });
 
+  this.preQuestionAnswers  = null;
+  this.postQuestionAnswers = null;
   // ✅ Update chapter progress after every level completion.
   // levelRepository.getChapterLevels(chapterId) should return all level docs for the chapter.
   // levelRepository.getPassedLevelIds(userId, chapterId) should return the set of levelIds
@@ -415,6 +419,18 @@ private async completeLevel(): Promise<StepResult> {
     const userJson = await AsyncStorage.getItem('user');
     const user = userJson ? JSON.parse(userJson) : null;
     return user?.id || 'anonymous';
+  }
+
+  //saving questionnaire progress
+  private preQuestionAnswers: { score: number; total: number } | null = null;
+  private postQuestionAnswers: { score: number; total: number } | null = null;
+
+   setPreQuestionAnswers(answers: { score: number; total: number }) {
+    this.preQuestionAnswers = answers;
+  }
+
+  setPostQuestionAnswers(answers: { score: number; total: number }) {
+    this.postQuestionAnswers = answers;
   }
   
   // Clean up when done

@@ -65,6 +65,8 @@ router.post('/level', async (req, res) => {
       attempts = 1,
       lastAttemptAt,
       completedAt,
+      preQuestionAnswers,
+      postQuestionAnswers,
     } = req.body;
 
     // ── Strong Validation ─────────────────────────────────────
@@ -104,6 +106,8 @@ router.post('/level', async (req, res) => {
         : starsEarned,
       lastAttemptAt: lastAttemptAt || new Date(),
       completedAt: completedAt || new Date(),
+      preQuestionAnswers:  preQuestionAnswers  ?? null,  // ← ADD
+      postQuestionAnswers: postQuestionAnswers ?? null,  // ← ADD
       servedDifficulty: 'base',
       servedLanguage: 'base',
     };

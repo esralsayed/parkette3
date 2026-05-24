@@ -11,6 +11,7 @@ import {
 } from 'react-native';
 import { GameCharacter, GameScene, GameStep } from '../adapters/LevelAdapter';
 import NavBar from '../components/navbar';
+import QuestionScreen, { Question } from '../game/components/Questions';
 import { EndScreen, ErrorScreen, LoadingScreen } from "./components/Extra screens";
 import WrongAnswerFeedback from './components/Feedback';
 import SceneStage from './components/SceneStage';
@@ -34,6 +35,9 @@ export default function LevelPlayer() {
   const isAdvancingRef = React.useRef(false);
   const [feedbackPopup, setFeedbackPopup] = useState<{ chosenText: string; correctText: string } | null>(null);
   const [pendingNextStep, setPendingNextStep] = useState<GameStep | null>(null);
+  const [preQuestions, setPreQuestions]   = useState<Question[]>([]);
+const [postQuestions, setPostQuestions] = useState<Question[]>([]); 
+const [questionPhase, setQuestionPhase] = useState<'pre' | 'game' | 'post'>('pre');
 
   //variables
   const step = currentStep;
@@ -85,13 +89,23 @@ useEffect(() => {
       try {
         setLoading(true);
         const userId = await getCurrentUserId();
-        
+
+            await levelService.clearLevelCache(levelId as string); // ← ADD TEMPORARILY
+
         const gameLevel = await levelService.initializeLevel(levelId as string, chapterId as string, userId);
         
         const scene = gameLevel.scenes[0];
         setCurrentScene(scene);
         setLevelTitle(gameLevel.title);
         setStars(gameLevel.reward?.stars || 3);
+        const pre  = gameLevel.preQuestions  ?? [];
+        const post = gameLevel.postQuestions ?? [];
+
+        setPreQuestions(pre);
+        setPostQuestions(post);
+
+        setQuestionPhase(pre.length > 0 ? 'pre' : 'game');  // ← key fix
+
 
         const firstStep = levelService.getCurrentStep();
         setCurrentStep(firstStep);
@@ -130,9 +144,24 @@ useEffect(() => {
         }
       }, [step]);
 
+    const handlePreQuestionsComplete = (score: number, total: number) => {
+      setQuestionPhase('game');
+      levelService.setPreQuestionAnswers({ score, total });  // ← ADD
+    };
+
+    const handlePostQuestionsComplete = (score: number, total: number) => {
+      levelService.setPostQuestionAnswers({ score, total }); // ← ADD
+      setQuestionPhase('game');  // ← exit the post gate first
+      setPhase('end');
+    };
+
   const finishLevel = async () => {
     if (phase === 'end') return; 
+    if (postQuestions.length > 0) {
+    setQuestionPhase('post');      
+    } else {
     setPhase('end');
+    }
     const finalStars = levelService.getStars();
     setStars(finalStars);
     for (let i = 0; i < finalStars; i++) {
@@ -221,6 +250,30 @@ useEffect(() => {
 
     if (loading) return <LoadingScreen />;
     if (error) return <ErrorScreen message={error} onBack={() => router.back()} />;
+      // ── Pre-questions gate ─────────────────────────────────────────────────────
+  if (questionPhase === 'pre' && preQuestions.length > 0) {
+    return (
+      <QuestionScreen
+        mode="pre"
+        questions={preQuestions}
+        levelTitle={levelTitle}
+        onComplete={handlePreQuestionsComplete}
+        onSkip={() => setQuestionPhase('game')}   // optional — remove if you want forced
+      />
+    );
+  }
+ 
+  // ── Post-questions ─────────────────────────────────────────────────────────
+  if (questionPhase === 'post' && postQuestions.length > 0) {
+    return (
+      <QuestionScreen
+        mode="post"
+        questions={postQuestions}
+        levelTitle={levelTitle}
+        onComplete={handlePostQuestionsComplete}
+      />
+    );
+  }
     if (!step) {
     return <LoadingScreen />;
   }

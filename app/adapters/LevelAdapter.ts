@@ -1,7 +1,7 @@
 // adapters/LevelAdapter.ts
 
 import { ImageSourcePropType } from 'react-native';
-import { DialogStep, DifficultyVariant, LevelData } from '../game/types/level.types';
+import { DialogStep, DifficultyVariant, LevelData, Question } from '../game/types/level.types';
 
 import Slide2 from '../../assets/svgs/game/chapters/slide1.svg';
 import Slide1 from '../../assets/svgs/game/chapters/slide2.svg';
@@ -19,6 +19,8 @@ export interface GameLevel {
   scenes: GameScene[];           // Array of scenes (your level may have multiple)
   reward: { stars: number };
   maxRetries: number;
+  preQuestions:  Question[];
+  postQuestions: Question[];
 }
 
 export interface GameScene {
@@ -110,6 +112,8 @@ export class LevelAdapter {
       }],
       reward: dbLevel.reward || { stars: 3 },
       maxRetries: dbLevel.maxRetries ?? 3,
+      preQuestions:  dbLevel.preQuestions  ?? [],   // ← ADD
+      postQuestions: dbLevel.postQuestions ?? [],   // ← ADD
     };
   }
 

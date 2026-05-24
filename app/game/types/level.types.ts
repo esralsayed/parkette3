@@ -29,6 +29,13 @@ export interface DifficultyVariant {
   dialog: DialogStep[];
 }
 
+export interface Question {
+  text: string;
+  options: string[];       // 2–4 choices
+  correctIndex: number;    // 0-based
+  hint?: string;           // optional, shown after wrong answer
+}
+
 export interface LevelData {
   _id: string;
   chapterId: string;        // Matches backend
@@ -49,6 +56,9 @@ export interface LevelData {
   reward?: { stars: number };
   maxRetries?: number;
   isActive?: boolean;
+  preQuestions: Question[]; 
+  postQuestions: Question[];
+
   
   createdAt?: Date;
   updatedAt?: Date;
@@ -63,6 +73,8 @@ export interface LevelProgress {
   attempts: number;
   lastAttemptAt: Date;
   completedAt?: Date;
+  preQuestionAnswers?:  { score: number; total: number } | null;
+  postQuestionAnswers?: { score: number; total: number } | null; 
   lastStepIndex?: number;
   metadata?: {
     timeSpent?: number;
