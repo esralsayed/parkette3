@@ -1,6 +1,3 @@
-import Dog from "@/assets/svgs/community/animals/dog.svg";
-import Hamster from "@/assets/svgs/community/animals/hamester.svg";
-import Rabbit from "@/assets/svgs/community/animals/rabbit.svg";
 import Boat1 from "@/assets/svgs/community/boat1.svg";
 import Bush1 from "@/assets/svgs/community/bush1.svg";
 import Character1 from "@/assets/svgs/community/char1.svg";
@@ -21,11 +18,12 @@ import { AppColors, AppFonts, AppFontSizes, Spacing } from "@/constants/theme";
 import React from "react";
 import {
   Dimensions,
+  Image,
   ScrollView,
   Text,
   TouchableOpacity,
   View,
-  ViewStyle,
+  ViewStyle
 } from "react-native";
 import NavBar from "../../components/navbar";
 import { useSessionStore as useCommunitySession } from "../hooks/sessionStore";
@@ -34,6 +32,8 @@ import { useDirectMessages } from "../services/useMessages";
 import { useSessionStore } from "../services/userSession";
 import { useSessionChat } from "../services/useSessionChat";
 import { EmojiBar, InstantMessageBar, MessageBar } from "./Messages&Posts";
+import FeedGame from "./minigames/FeedGame";
+import CatchFishGame from "./minigames/FishGame";
 
 const { width, height } = Dimensions.get("window");
 const isDesktopLike = width > 800;
@@ -203,7 +203,7 @@ const Page2 = ({ offsetX, groundY }: { offsetX: number; groundY: number }) => (
 /**
  * Page 3: Boat, Fishes
  */
-const Page3 = ({ offsetX, groundY }: { offsetX: number; groundY: number }) => {
+const Page3 = ({ offsetX, groundY, onFishPress }: { offsetX: number; groundY: number, onFishPress : () => void }) => {
   const waterTop = groundY;
   return (
     <>
@@ -233,7 +233,7 @@ const Page3 = ({ offsetX, groundY }: { offsetX: number; groundY: number }) => {
       name="Fish"
       x={offsetX + PAGE_WIDTH / 2 + 200}
       y={groundY + 10}
-      onPress={() => console.log("Fish clicked")}
+      onPress={onFishPress}
     />
 
       {/* Boat button */}
@@ -250,7 +250,7 @@ const Page3 = ({ offsetX, groundY }: { offsetX: number; groundY: number }) => {
 /**
  * Page 4: Animals, Trees, Bushes, Feed button
  */
-const Page4 = ({ offsetX, groundY }: { offsetX: number; groundY: number }) => (
+const Page4 = ({ offsetX, groundY, onFeedPress }: { offsetX: number; groundY: number, onFeedPress:() => void }) => (
   <>
     {/* Clouds */}
     <Cloud2 style={{ position: 'absolute', left: offsetX + 650, top: groundY - 650 }}
@@ -275,17 +275,23 @@ const Page4 = ({ offsetX, groundY }: { offsetX: number; groundY: number }) => (
       height={300} />
 
     {/* Octopus / main pet */}
-    <Dog style={{ position: 'absolute', left: offsetX + 350, top: groundY - 150 }}
+    <Image style={{ position: 'absolute', left: offsetX + 350, top: groundY - 150 }} 
+    source={require('@/assets/svgs/community/animals/dog.png')} />
+    {/* <Dog style={{ position: 'absolute', left: offsetX + 350, top: groundY - 150 }}
       width={300}
-      height={300} />
+      height={300} /> */}
 
     {/* Animals */}
-    <Rabbit style={{ position: 'absolute', left: offsetX + 50, top: groundY - 50 }}
+    <Image style={{ position: 'absolute', left: offsetX + 50, top: groundY - 50 }} 
+    source={require('@/assets/svgs/community/animals/rabbit.png')} />
+    {/* <Rabbit style={{ position: 'absolute', left: offsetX + 50, top: groundY - 50 }}
       width={300}
-      height={300} />
-    <Hamster style={{ position: 'absolute', left: offsetX + 650, top: groundY - 50 }}
+      height={300} /> */}
+    <Image style={{ position: 'absolute', left: offsetX + 650, top: groundY - 50 }} 
+    source={require('@/assets/svgs/community/animals/hamester.png')} />
+    {/* <Hamster style={{ position: 'absolute', left: offsetX + 650, top: groundY - 50 }}
       width={250}
-      height={250} />
+      height={250} /> */}
 
     {/* Flowers on ground */}
     
@@ -295,7 +301,7 @@ const Page4 = ({ offsetX, groundY }: { offsetX: number; groundY: number }) => (
       name="Feed"
       x={offsetX + PAGE_WIDTH / 2 - 40}
       y={groundY + 10}
-      onPress={() => console.log("Feed clicked")}
+      onPress={onFeedPress} 
     />
   </>
 );
@@ -307,9 +313,13 @@ const Page4 = ({ offsetX, groundY }: { offsetX: number; groundY: number }) => (
 const Scene = ({
   messages,
   groundY,
+  onFeedPress,
+  onFishPress
 }: {
   messages: { id: number; name: string; content: string; x: number; y: number }[];
   groundY: number;
+  onFeedPress: () => void
+  onFishPress : () => void
 }) => {
   return (
     <>
@@ -320,8 +330,8 @@ const Scene = ({
       {/* 4 Pages */}
       <Page1 offsetX={0} groundY={groundY} />
       <Page2 offsetX={PAGE_WIDTH} groundY={groundY} />
-      <Page3 offsetX={PAGE_WIDTH * 2} groundY={groundY} />
-      <Page4 offsetX={PAGE_WIDTH * 3} groundY={groundY} />
+      <Page3 offsetX={PAGE_WIDTH * 2} groundY={groundY} onFishPress={onFishPress} />
+      <Page4 offsetX={PAGE_WIDTH * 3} groundY={groundY} onFeedPress={onFeedPress} />
 
       {/* Page dividers (subtle) */}
       {[1, 2, 3].map((i) => (
@@ -361,6 +371,10 @@ export default function CommunityLanding() {
   const session = useCommunitySession((state) => state.session);
   const currentUserId = useSessionStore((state) => state.user?.id);
   const sessionId = session?._id ?? null;
+
+  //all games
+  const [showFeedGame, setShowFeedGame] = React.useState(false);
+  const [showFishGame, setShowFishGame] = React.useState(false);
 
   const { emojis } = useSessionChat(sessionId, currentUserId ?? null);
   const { messages } = useDirectMessages(currentUserId ?? null);
@@ -479,10 +493,13 @@ console.log("[FRIENDS]", friends);
             position: "relative",
           }}
         >
-          <Scene messages={sceneMessages} groundY={groundY} />
+          <Scene messages={sceneMessages} groundY={groundY}
+          onFeedPress={() => setShowFeedGame(true)}
+          onFishPress={() => setShowFishGame(true)} />
         </View>
       </ScrollView>
-
+      <FeedGame visible={showFeedGame} onClose={() => setShowFeedGame(false)} />
+      <CatchFishGame visible={showFishGame} onClose={() => setShowFishGame(false)} />
     </View>
   );
 }
