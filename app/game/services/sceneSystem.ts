@@ -16,17 +16,17 @@ export type LayerType = 'sky' | 'background' | 'midground' | 'ground' | 'foregro
 // Character sizes are named, not arbitrary numbers
 export type CharacterSize = 'small' | 'medium' | 'large' | 'hero' | 'herox' | 'xlarge' | 'semixlarge' | 'semixxlarge' | 'xxlarge' | 'xxxlarge' | 'fourxlarge';
 export const CHARACTER_SIZE_MAP: Record<CharacterSize, number> = {
-  small:  120,
-  medium: 200,
-  large:  300,
-  hero:   420,
-  herox: 520,
-  xlarge: 620,
-  semixlarge: 720,
-  semixxlarge: 830,
-  xxlarge: 900,
-  xxxlarge: 1100,
-  fourxlarge: 1500,
+  small:  20,
+  medium: 100,
+  large:  200,
+  hero:   320,
+  herox: 420,
+  xlarge: 520,
+  semixlarge: 620,
+  semixxlarge: 730,
+  xxlarge: 800,
+  xxxlarge: 1000,
+  fourxlarge: 1400,
 };
 
 import { DimensionValue } from "react-native";
