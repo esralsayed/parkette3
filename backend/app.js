@@ -57,7 +57,7 @@ connectDB();
 
 // Middleware
 app.use(cors({
-  origin: ['http://localhost:8081', 'https://your-vercel-app.vercel.app'],
+  origin: ['http://localhost:8081', 'https://parkette.vercel.app'],
   credentials: true
 }));
 app.use(express.json());
