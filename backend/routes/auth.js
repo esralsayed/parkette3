@@ -1,6 +1,9 @@
+import crypto from 'crypto';
 import express from "express";
 import jwt from "jsonwebtoken";
+import OTP from '../models/OTP.js';
 import { Parent, User } from "../models/User.js";
+import { sendVerificationEmail } from '../utils/mailer.js';
 import { createDiaryForUser } from "./diary.js";
 
 const router = express.Router();
@@ -42,6 +45,69 @@ router.post("/signup", async (req, res) => {
   } catch (error) {
     console.error("Signup error:", error);
     res.status(500).json({ message: "Server error" });
+  }
+});
+
+// POST /api/auth/send-otp
+// Called right after signup — sends OTP to the parent's email
+router.post('/send-otp', async (req, res) => {
+  try {
+    const { userId } = req.body;
+    console.log(userId);
+    const user = await Parent.findById(userId);
+    console.log(user)
+    if (!user) return res.status(404).json({ message: 'User not found' });
+    if (user.isVerified) return res.status(400).json({ message: 'Already verified' });
+
+    // Invalidate any existing unused OTPs for this user
+    await OTP.deleteMany({ userId });
+
+    // Generate 6-digit code
+    const code = crypto.randomInt(100000, 999999).toString();
+
+    // Save to DB with 15 min expiry
+    await OTP.create({
+      userId,
+      code,
+      expiresAt: new Date(Date.now() + 15 * 60 * 1000),
+    });
+
+    await sendVerificationEmail(user.email, code);
+
+    res.json({ message: 'OTP sent' });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: 'Failed to send OTP' });
+  }
+});
+
+// POST /api/auth/verify-otp
+// Called when the parent submits the 6-digit code
+router.post('/verify-otp', async (req, res) => {
+  try {
+    const { userId, code } = req.body;
+
+    const otp = await OTP.findOne({ userId, code, used: false });
+
+    if (!otp) {
+      return res.status(400).json({ message: 'Invalid code' });
+    }
+
+    if (otp.expiresAt < new Date()) {
+      return res.status(400).json({ message: 'Code has expired' });
+    }
+
+    // Mark OTP as used
+    otp.used = true;
+    await otp.save();
+
+    // Mark user as verified
+    await Parent.findByIdAndUpdate(userId, { isVerified: true });
+
+    res.json({ message: 'Email verified successfully' });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: 'Verification failed' });
   }
 });
 

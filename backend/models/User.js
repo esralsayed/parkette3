@@ -92,6 +92,7 @@ const ParentSchema = new Schema(
  
     notificationEmail: { type: String },  // where reports are sent
     isActive: { type: Boolean, default: true },
+    isVerified: { type: Boolean, default: false }
   },
   { timestamps: true }
 );
