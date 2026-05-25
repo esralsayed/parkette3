@@ -38,7 +38,7 @@ const MODAL_H_PADDING = 48;
 // ITEM_SIZE fills the row exactly — no guesswork, no overflow
 const ITEM_SIZE = Math.min(
   Math.floor((W - MODAL_H_PADDING) / ITEMS_PER_ROW),
-  300  // hard cap — never bigger than 100px regardless of screen width
+  200  // hard cap — never bigger than 100px regardless of screen width
 );
 // ─── Item catalogue ───────────────────────────────────────────────────────────
 

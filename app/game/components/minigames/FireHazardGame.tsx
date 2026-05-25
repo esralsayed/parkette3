@@ -8,12 +8,12 @@
 
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
-    Animated,
-    Dimensions,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View,
+  Animated,
+  Dimensions,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from 'react-native';
 
 import Bag from '@/assets/svgs/game/chapters/bag.svg';
@@ -23,9 +23,9 @@ import Spoon from '@/assets/svgs/game/chapters/spoon.svg';
 import Towel from '@/assets/svgs/game/chapters/towel.svg';
 
 import {
-    CHARACTER_SIZE_MAP,
-    CharacterSize,
-    HorizontalSlot
+  CHARACTER_SIZE_MAP,
+  CharacterSize,
+  HorizontalSlot
 } from '../../services/sceneSystem';
 
 import { AppColors, AppFonts, AppFontSizes } from '@/constants/theme';
@@ -47,7 +47,7 @@ const MODAL_H_PADDING = 48;
 // ITEM_SIZE fills the row exactly — no guesswork, no overflow
 const ITEM_SIZE = Math.min(
   Math.floor((W - MODAL_H_PADDING) / ITEMS_PER_ROW),
-  300  // hard cap — never bigger than 100px regardless of screen width
+  200  // hard cap — never bigger than 100px regardless of screen width
 );
 // ─── Item catalogue (copied from sceneRegistry kitchen3) ─────────────────────
 

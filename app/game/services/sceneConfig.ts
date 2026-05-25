@@ -22,7 +22,6 @@ import Spoon from "@/assets/svgs/game/chapters/spoon.svg";
 import Stove from "@/assets/svgs/game/chapters/stove.svg";
 import Towel from "@/assets/svgs/game/chapters/towel.svg";
 import Toy1 from "@/assets/svgs/game/chapters/toy1.svg";
-import Tree1 from "@/assets/svgs/game/chapters/tree1.svg";
 import Tree2 from "@/assets/svgs/game/chapters/tree2.svg";
 
 //school chapter
@@ -61,7 +60,7 @@ export const SCENE_REGISTRY: Record<string, SceneDefinition> = {
       { kind: 'tree',      variant: 'oak',  slot: 'far-right', size: 'large', depth: 'near' },
       { kind: 'character', image: Mom,      slot: 'left',         size: 'hero'   },
       { kind: 'character', image: Cat,      slot: 'center-left',  size: 'small'  },
-      { kind: 'character', image: MainGirl, slot: 'center-right', size: 'medium' },
+      { kind: 'character', image: MainGirl, slot: 'center-right', size: 'hero' },
       { kind: 'prop',      image: Cloud1,     slot: 'center',       size: 'medium', depth: 'mid'  },
       { kind: 'prop',      image: Cloud2,     slot: 'center-right', size: 'medium', depth: 'mid'  },
     ],
@@ -105,8 +104,8 @@ export const SCENE_REGISTRY: Record<string, SceneDefinition> = {
   'park_slide': {
     atmosphere: 'day',
     elements: [
-      { kind: 'character', image: Friend2,  slot: 'far-right',    size: 'medium' },
-      { kind: 'character', image: MainGirl, slot: 'center',       size: 'medium' },
+      { kind: 'character', image: Friend2,  slot: 'far-right',    size: 'hero' },
+      { kind: 'character', image: MainGirl, slot: 'center',       size: 'hero' },
       { kind: 'tree',      variant: 'oak',  slot: 'center-right', size: 'large', depth: 'near' },
       { kind: 'tree',      variant: 'oak',  slot: 'far-left',     size: 'large', depth: 'near' },
     ],
@@ -117,7 +116,7 @@ export const SCENE_REGISTRY: Record<string, SceneDefinition> = {
     elements: [
       { kind: 'character', image: MainGirl, slot: 'center', size: 'large' },
       { kind: 'prop',      image: Door,     slot: 'center',      size: 'xxlarge', verticalOffset: -185 },
-      { kind: 'prop',      image: Couch,    slot: 'center-right', size: 'xxxlarge', verticalOffset: -305 },
+      { kind: 'prop',      image: Couch,    slot: 'center-right', size: 'xxlarge', verticalOffset: -305 },
       { kind: 'prop',      image: Table,    slot: 'left',  size: 'xlarge',  verticalOffset: -90 },
       { kind: 'prop',      image: Frame1,   slot: 'left', size: 'hero', verticalOffset: 300 },
       { kind: 'prop',      image: Frame2,   slot: 'right', size: 'hero', verticalOffset: 315 },
@@ -128,21 +127,21 @@ export const SCENE_REGISTRY: Record<string, SceneDefinition> = {
   'kitchen': {
     atmosphere: 'day',
     elements: [
-      { kind: 'character', image: MainGirl, slot: 'center', size: 'large' },
-      { kind: 'prop',      image: Door2,    slot: 'center-toward-right', size: 'xxlarge', verticalOffset: -210 },
-      { kind: 'prop',      image: Couch,    slot: 'far-far-left', size: 'xxxlarge', verticalOffset: -300 },
+      { kind: 'character', image: MainGirl, slot: 'center', size: 'hero' },
+      { kind: 'prop',      image: Door2,    slot: 'center-right', size: 'xxlarge', verticalOffset: -210 },
+      { kind: 'prop',      image: Couch,    slot: 'far-far-left', size: 'xxlarge', verticalOffset: -300 },
       { kind: 'prop',      image: Book,    slot: 'center-right',  size: 'medium',  verticalOffset: 10 },
       { kind: 'prop',      image: Pen,    slot: 'center-toward-right', size: 'medium', verticalOffset: -50 },
-      { kind: 'prop',      image: SmokeAlarm,    slot: 'center-toward-right', size: 'large', verticalOffset: 455 },
+      { kind: 'prop',      image: SmokeAlarm,    slot: 'center-toward-right', size: 'large', verticalOffset: 355 },
     ],
   },
 
   'kitchen2': {
     atmosphere: 'day',
     elements: [
-      { kind: 'character', image: MainGirl, slot: 'left', size: 'large' },
+      { kind: 'character', image: MainGirl, slot: 'left', size: 'hero' },
       { kind: 'prop',      image: Stove,    slot: 'center-slightly-right', size: 'xlarge', verticalOffset: -165 },
-      { kind: 'prop',      image: Curtain,    slot: 'center-left', size: 'semixlarge', verticalOffset: 135 },  
+      { kind: 'prop',      image: Curtain,    slot: 'center-left', size: 'semixlarge', verticalOffset: 35 },  
       { kind: 'prop',      image: Counter2,    slot: 'center-toward-right', size: 'semixxlarge', verticalOffset: -70 },
 
     ],
@@ -151,13 +150,13 @@ export const SCENE_REGISTRY: Record<string, SceneDefinition> = {
   'kitchen3': {
     atmosphere: 'day',
     elements: [
-      { kind: 'character', image: MainGirl, slot: 'left', size: 'large' },
+      { kind: 'character', image: MainGirl, slot: 'left', size: 'hero' },
       { kind: 'prop',      image: Stove,    slot: 'center', size: 'xlarge', verticalOffset: -80 },
-      { kind: 'prop',      image: Curtain,    slot: 'left', size: 'semixlarge', verticalOffset: 235 },  
-      { kind: 'prop',      image: Spoon,    slot: 'center-toward-right', size: 'medium', verticalOffset: 305 },
-      { kind: 'prop',      image: Towel,    slot: 'right', size: 'medium', verticalOffset: 310 },
-      { kind: 'prop',      image: Bag,    slot: 'before-before-far-right', size: 'medium', verticalOffset: 305 },
-      { kind: 'prop',      image: Bottle,    slot: 'before-far-right', size: 'medium', verticalOffset: 300 },
+      { kind: 'prop',      image: Curtain,    slot: 'left', size: 'semixlarge', verticalOffset: 135 },  
+      { kind: 'prop',      image: Spoon,    slot: 'center-toward-right', size: 'medium', verticalOffset: 285 },
+      { kind: 'prop',      image: Towel,    slot: 'right', size: 'medium', verticalOffset: 290 },
+      { kind: 'prop',      image: Bag,    slot: 'before-before-far-right', size: 'medium', verticalOffset: 285 },
+      { kind: 'prop',      image: Bottle,    slot: 'before-far-right', size: 'medium', verticalOffset: 280 },
       { kind: 'prop',      image: Counter2,    slot: 'center-right', size: 'semixxlarge', verticalOffset: -75 },
 
     ],
@@ -166,9 +165,9 @@ export const SCENE_REGISTRY: Record<string, SceneDefinition> = {
   'kitchen4': {
     atmosphere: 'day',
     elements: [
-      { kind: 'character', image: MainGirl, slot: 'center', size: 'large' },
+      { kind: 'character', image: MainGirl, slot: 'center', size: 'hero' },
       { kind: 'prop',      image: Door,     slot: 'center',      size: 'xxlarge', verticalOffset: -185 },
-      { kind: 'prop',      image: Couch,    slot: 'center-right', size: 'xxxlarge', verticalOffset: -305 },
+      { kind: 'prop',      image: Couch,    slot: 'center-right', size: 'xxlarge', verticalOffset: -305 },
       { kind: 'prop',      image: Table,    slot: 'left',  size: 'xlarge',  verticalOffset: -90 },
       { kind: 'prop',      image: Frame1,   slot: 'left', size: 'hero', verticalOffset: 300 },
       { kind: 'prop',      image: Frame2,   slot: 'right', size: 'hero', verticalOffset: 315 },
@@ -179,9 +178,8 @@ export const SCENE_REGISTRY: Record<string, SceneDefinition> = {
   'kitchen5': {
     atmosphere: 'day',
     elements: [
-      { kind: 'character', image: MainGirl, slot: 'center-left', size: 'large' },
+      { kind: 'character', image: MainGirl, slot: 'center-left', size: 'hero' },
       { kind: 'prop',      image: House,    slot: 'center', size: 'xxxlarge', verticalOffset: -150 },
-      { kind: 'prop',      image: Tree1,    slot: 'before-before-far-right', size: 'xlarge', verticalOffset: -75 },
       { kind: 'prop',      image: Tree2,    slot: 'far-left', size: 'xlarge', verticalOffset: -25 },
     ]
   },
@@ -189,14 +187,14 @@ export const SCENE_REGISTRY: Record<string, SceneDefinition> = {
   'living_room': {
     atmosphere: 'day',
     elements: [
-      { kind: 'character', image: MainGirl, slot: 'center', size: 'large' },
+      { kind: 'character', image: MainGirl, slot: 'center', size: 'hero' },
       { kind: 'prop',      image: Toy1,       slot: 'center-slightly-right', size: 'herox', verticalOffset: -185 },
       { kind : 'prop',      image: Pen,     slot: '15% left',      size: 'medium', verticalOffset: 180 },
       { kind: 'character', image: Mom,      slot: 'right', size: 'hero' , depth: 'near',verticalOffset: 20},
       { kind: 'prop',      image: Socket,     slot: 'fifty-percent', size: 'medium', verticalOffset: 270 },
       { kind: 'prop',      image: Table,    slot: 'left',  size: 'xlarge',  verticalOffset: -90 },
       { kind: 'prop' ,     image: Bottle,   slot: 'center-left', size: 'medium', verticalOffset: 250 },
-      { kind: 'prop',      image: Frame1,   slot: 'left', size: 'hero', verticalOffset: 420 },
+      { kind: 'prop',      image: Frame1,   slot: 'left', size: 'hero', verticalOffset: 320 },
       { kind: 'prop',      image: Frame2,   slot: 'right', size: 'hero', verticalOffset: 360 },
       { kind: 'prop',      image: TV,       slot: 'far-left', size: 'herox', verticalOffset: -65 },
     ],
@@ -205,9 +203,9 @@ export const SCENE_REGISTRY: Record<string, SceneDefinition> = {
     'hallway_start': {
     atmosphere: 'day',
     elements: [
-      { kind: 'character', image: MainGirl, slot: 'center-slightly-right', size: 'large' },
+      { kind: 'character', image: MainGirl, slot: 'center-slightly-right', size: 'hero' },
       { kind: 'character', image: Teacher,      slot: 'far-left', size: 'hero' , depth: 'near',verticalOffset: 20},
-      { kind: 'prop',      image: Board,     slot: 'left',      size: 'xxlarge', verticalOffset: -130 },
+      { kind: 'prop',      image: Board,     slot: 'left',      size: 'semixxlarge', verticalOffset: -130 },
       { kind: 'prop',      image: Clock,    slot: 'center-right', size: 'large', verticalOffset: 460 },
       { kind: 'prop',      image: Desk,    slot: 'right',  size: 'xlarge',  verticalOffset: -90 },
       { kind: 'prop',      image: Desk,    slot: 'fifty-percent',  size: 'xlarge',  verticalOffset: -90 },
@@ -235,9 +233,9 @@ export const SCENE_REGISTRY: Record<string, SceneDefinition> = {
       { kind: 'character', image: MainGirl, slot: 'center-slightly-right', size: 'large' },
       { kind: 'character', image: Teacher,      slot: 'far-left', size: 'hero' , depth: 'near',verticalOffset: 20},
       { kind: 'prop',      image: Crosswalk,     slot: '15% left',      size: 'semixlarge', verticalOffset: -330 },
-      { kind: 'prop',      image: School,     slot: 'fifty-percent',      size: 'fourxlarge', verticalOffset: -510 },
+      { kind: 'prop',      image: School,     slot: 'fifty-percent',      size: 'threexhalf', verticalOffset: -510 },
       { kind: 'prop',      image: Traffic,    slot: '0% left',  size: 'herox',  verticalOffset: 100 },
-      { kind: 'prop',      image: Cloud1,    slot: 'center-left',  size: 'xlarge',  verticalOffset: 400 },
+      { kind: 'prop',      image: Cloud1,    slot: 'center-left',  size: 'herox',  verticalOffset: 400 },
     ],
   },
 

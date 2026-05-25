@@ -14,7 +14,7 @@ export type SceneImageSource = SvgComponent | RasterSource;
 export type LayerType = 'sky' | 'background' | 'midground' | 'ground' | 'foreground' | 'ui';
 
 // Character sizes are named, not arbitrary numbers
-export type CharacterSize = 'small' | 'medium' | 'large' | 'hero' | 'herox' | 'xlarge' | 'semixlarge' | 'semixxlarge' | 'xxlarge' | 'xxxlarge' | 'fourxlarge';
+export type CharacterSize = 'small' | 'medium' | 'large' | 'hero' | 'herox' | 'xlarge' | 'semixlarge' | 'semixxlarge' | 'xxlarge' | 'xxxlarge' | 'threexhalf' | 'fourxlarge';
 export const CHARACTER_SIZE_MAP: Record<CharacterSize, number> = {
   small:  20,
   medium: 100,
@@ -26,6 +26,7 @@ export const CHARACTER_SIZE_MAP: Record<CharacterSize, number> = {
   semixxlarge: 730,
   xxlarge: 800,
   xxxlarge: 1000,
+  threexhalf: 1200,
   fourxlarge: 1400,
 };
 
