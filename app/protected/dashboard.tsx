@@ -239,7 +239,7 @@ export default function dashboard() {
         <HeroSection
           userName={userName}
           onOpenCalendar={() => setCalendarVisible(true)}
-          onOpenDiary={() => router.push('/diary/Diary')}
+          onOpenDiary={() => router.push('/protected/Diary')}
         />
         <Section3 />
         <View></View>

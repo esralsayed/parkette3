@@ -13,16 +13,16 @@ import Sunflower from "@/assets/svgs/community/food/sunflower.svg";
 import { AppColors, AppFonts, AppFontSizes } from "@/constants/theme";
 import React, { useRef, useState } from "react";
 import {
-    Animated,
-    Dimensions,
-    Image,
-    ImageSourcePropType,
-    Modal,
-    PanResponder,
-    Text,
-    TouchableOpacity,
-    Vibration,
-    View
+  Animated,
+  Dimensions,
+  Image,
+  ImageSourcePropType,
+  Modal,
+  PanResponder,
+  Text,
+  TouchableOpacity,
+  Vibration,
+  View
 } from "react-native";
 import { SvgProps } from "react-native-svg";
 

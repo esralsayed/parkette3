@@ -43,16 +43,28 @@ const HeroSection = () => {
   const router = useRouter();
   return (
     <View style={styles.heroSection}>
-      {/* LEFT: text content aligned to the left */}
       <View style={styles.heroLeft}>
         <Text style={styles.heroTitle}>Parkette</Text>
         <Text style={styles.heroDesc}>
           Join us in a world of full of wonder and opportunities, and what-ifs. where your choices shape the story, your friends join the fun, and every adventure helps you grow into a real-life hero!
         </Text>
-        <TouchableOpacity style={styles.btnAction} onPress={() => router.push('/main components/login')}>
-          <View style={{alignContent: 'center', justifyContent: 'center', alignItems: 'center'}}>
-          <Text style={styles.btnActionText}>Play Now</Text>
+
+        {/* PRIMARY: Parent signup */}
+        <TouchableOpacity
+          style={styles.btnAction}
+          onPress={() => router.push('/auth/signup')}
+        >
+          <View style={{ alignItems: 'center', justifyContent: 'center' }}>
+            <Text style={styles.btnActionText}>Parent Signup</Text>
           </View>
+        </TouchableOpacity>
+
+        {/* SECONDARY: Returning child login */}
+        <TouchableOpacity
+          style={styles.btnSecondary}
+          onPress={() => router.push('/auth/login')}
+        >
+          <Text style={styles.btnSecondaryText}>I already play →</Text>
         </TouchableOpacity>
       </View>
 
@@ -308,6 +320,20 @@ const styles = StyleSheet.create({
     elevation: 6,
     marginTop: Spacing.lg,
   },
+
+  btnSecondary: {
+  marginTop: Spacing.md,
+  alignSelf: 'flex-start',
+  paddingHorizontal: Spacing.sm,
+  paddingVertical: 8,
+},
+btnSecondaryText: {
+  color: AppColors.blue,
+  fontFamily: AppFonts.body.fontFamily,
+  fontSize: AppFontSizes.body,
+  opacity: 0.75,
+  textDecorationLine: 'underline',
+},
 
   // ── Section shared
   sectionTitle: {

@@ -44,7 +44,7 @@ export default function Login() {
         setUser(data.user);
         console.log(data.user)
         Alert.alert('Success', 'Login successful!');
-        router.replace('/main components/dashboard');
+        router.replace('/protected/dashboard');
       } else {
         Alert.alert('Error', data.message || 'Login failed');
       }
@@ -116,15 +116,21 @@ export default function Login() {
         {/* Back links section */}
         <View style={styles.linksContainer}>
           <LinkText
-            title="New to the game? Signup!"
-            onPress={() => router.push('/main components/signup')}
+            title="Want to sign up as a parent?"
+            onPress={() => router.push('/auth/signup')}
           />
 
           <LinkText
             title="back to welcome?"
             variant="secondary"
-            onPress={() => router.push('/main components/welcome')}
+            onPress={() => router.push('/auth/welcome')}
           />
+          <View style={styles.divider} />
+            <Text style={styles.dividerLabel}>Already signed as a parent? register your child</Text>
+            <LinkText
+              title="Register a child account →"
+              onPress={() => router.push('/protected/register-child')}
+            />
         </View>
       </View>
     </View>
@@ -224,4 +230,18 @@ const styles = StyleSheet.create({
     gap: Spacing.sm,
     marginTop: Spacing.sm,
   },
+  divider: {
+  height: 1,
+  backgroundColor: AppColors.blue,
+  opacity: 0.15,
+  width: '80%',
+  marginVertical: Spacing.sm,
+},
+dividerLabel: {
+  color: AppColors.blue,
+  opacity: 0.5,
+  fontSize: 11,
+  letterSpacing: 1.5,
+  fontFamily: AppFonts.bodySmall.fontFamily,
+},
 });

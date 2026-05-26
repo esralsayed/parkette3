@@ -8,6 +8,7 @@ import {
   StyleSheet,
   Text,
   TextInput,
+  TouchableOpacity,
   View
 } from 'react-native';
 import PrimaryButton from '../components/style/buttonHovered';
@@ -23,9 +24,6 @@ export default function Signup() {
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [focusedField, setFocusedField] = useState<string | null>(null);
-  const [signupHover, setSignupHover] = useState(false);
-  const [backLoginHover, setBackLoginHover] = useState(false);
-  const [backWelcomeHover, setBackWelcomeHover] = useState(false);
 
   const handleSignup = async () => {
     if (!name || !username || !email || !password) {
@@ -43,8 +41,8 @@ export default function Signup() {
       if (response.ok) {
         await AsyncStorage.setItem('token', data.token);
         await AsyncStorage.setItem('user', JSON.stringify(data.user));
-        Alert.alert('Success', 'Account created successfully!');
-        router.push('/main components/register-child');
+        // Go to email verification screen, not directly to register-child
+        router.push('/auth/verifymail');
       } else {
         Alert.alert('Error', data.message || 'Signup failed');
       }
@@ -57,13 +55,13 @@ export default function Signup() {
 
   return (
     <View style={styles.container}>
-      {/* Header section with cat and title */}
+      {/* Header */}
       <View style={styles.headerContainer}>
-        <Image 
+        <Image
           source={require('../../assets/images/chapters/Cat.png')}
           style={styles.catImage}
         />
-        <Text style={[AppFonts.header, styles.headerTitle]}>Sign Up</Text>
+        <Text style={[AppFonts.header, styles.headerTitle]}>Parent Sign Up</Text>
       </View>
 
       {/* Card */}
@@ -71,14 +69,11 @@ export default function Signup() {
         <View style={styles.cornerTL} />
         <View style={styles.cornerBR} />
 
-        {/* Full Name Field */}
+        {/* Full Name */}
         <View style={styles.field}>
           <Text style={styles.label}>FULL NAME</Text>
           <TextInput
-            style={[
-              styles.input,
-              focusedField === 'name' && styles.inputFocused
-            ]}
+            style={[styles.input, focusedField === 'name' && styles.inputFocused]}
             placeholder="Full name"
             placeholderTextColor={AppColors.lilac}
             value={name}
@@ -88,14 +83,11 @@ export default function Signup() {
           />
         </View>
 
-        {/* Username Field */}
+        {/* Username */}
         <View style={styles.field}>
           <Text style={styles.label}>USERNAME</Text>
           <TextInput
-            style={[
-              styles.input,
-              focusedField === 'username' && styles.inputFocused
-            ]}
+            style={[styles.input, focusedField === 'username' && styles.inputFocused]}
             placeholder="Username"
             placeholderTextColor={AppColors.lilac}
             value={username}
@@ -106,14 +98,11 @@ export default function Signup() {
           />
         </View>
 
-        {/* Email Field */}
+        {/* Email */}
         <View style={styles.field}>
           <Text style={styles.label}>EMAIL</Text>
           <TextInput
-            style={[
-              styles.input,
-              focusedField === 'email' && styles.inputFocused
-            ]}
+            style={[styles.input, focusedField === 'email' && styles.inputFocused]}
             placeholder="Email"
             placeholderTextColor={AppColors.lilac}
             value={email}
@@ -125,14 +114,11 @@ export default function Signup() {
           />
         </View>
 
-        {/* Password Field */}
+        {/* Password */}
         <View style={styles.field}>
           <Text style={styles.label}>PASSWORD</Text>
           <TextInput
-            style={[
-              styles.input,
-              focusedField === 'password' && styles.inputFocused
-            ]}
+            style={[styles.input, focusedField === 'password' && styles.inputFocused]}
             placeholder="Password"
             placeholderTextColor={AppColors.lilac}
             value={password}
@@ -149,18 +135,20 @@ export default function Signup() {
           loading={loading}
         />
 
-        {/* Back links section */}
+        {/* Bottom links — clean and minimal */}
         <View style={styles.linksContainer}>
-          <LinkText
-            title="← Back to Login"
-            onPress={() => router.push('/main components/login')}
-          />
-
           <LinkText
             title="back to welcome?"
             variant="secondary"
-            onPress={() => router.push('/main components/welcome')}
+            onPress={() => router.push('/auth/welcome')}
           />
+          <View style={styles.divider} />
+          <View style={styles.loginRow}>
+            <Text style={styles.loginPrompt}>Already have an account? </Text>
+            <TouchableOpacity onPress={() => router.push('/auth/login')}>
+              <Text style={styles.loginLink}>Log in</Text>
+            </TouchableOpacity>
+          </View>
         </View>
       </View>
     </View>
@@ -178,13 +166,15 @@ const styles = StyleSheet.create({
   headerContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between', // cleaner
+    justifyContent: 'space-between',
+    gap: Spacing.lg,
   },
   catImage: {
     width: 130,
     height: 130,
   },
   headerTitle: {
+    fontSize: 48,
     color: AppColors.blue,
     letterSpacing: 2,
     textAlign: 'right',
@@ -227,6 +217,8 @@ const styles = StyleSheet.create({
   },
   label: {
     color: AppColors.blue,
+    fontFamily: AppFonts.bodySmall.fontFamily,
+    fontSize: 11,
     letterSpacing: 1.5,
     marginBottom: 6,
     opacity: 0.8,
@@ -239,6 +231,7 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     padding: Spacing.md,
     color: AppColors.blue,
+    fontFamily: AppFonts.body.fontFamily,
   },
   inputFocused: {
     borderColor: '#4a6adc',
@@ -250,39 +243,34 @@ const styles = StyleSheet.create({
     shadowRadius: 6,
     elevation: 4,
   },
-  signupBtn: {
-    width: '100%',
-    backgroundColor: '#ffffff',
-    borderWidth: 2.5,
-    borderColor: AppColors.blue,
-    borderRadius: 10,
-    paddingVertical: Spacing.md,
-    alignItems: 'center',
-    shadowColor: AppColors.blue,
-    shadowOffset: { width: 3, height: 3 },
-    shadowOpacity: 1,
-    shadowRadius: 0,
-    elevation: 3,
-    marginTop: Spacing.sm,
-    marginBottom: Spacing.lg,
-  },
-  disabled: {
-    backgroundColor: '#ccc',
-  },
   linksContainer: {
     flexDirection: 'column',
     alignItems: 'center',
     gap: Spacing.sm,
+    marginTop: Spacing.md,
   },
-  backLoginLink: {
+  divider: {
+    height: 1,
+    backgroundColor: AppColors.blue,
+    opacity: 0.15,
+    width: '80%',
+    marginVertical: Spacing.sm,
+  },
+  loginRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  loginPrompt: {
     color: AppColors.blue,
+    fontFamily: AppFonts.bodySmall.fontFamily,
+    fontSize: 13,
+    opacity: 0.6,
   },
-  backWelcomeLink: {
+  loginLink: {
     color: AppColors.blue,
-    fontSize: 15
-  },
-  linkHover: {
-    color: '#4a6adc',
+    fontFamily: AppFonts.bodySmall.fontFamily,
+    fontSize: 13,
     textDecorationLine: 'underline',
+    fontWeight: '700',
   },
 });

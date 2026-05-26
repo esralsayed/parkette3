@@ -64,7 +64,7 @@ export default function RegisterChild() {
       if (response.ok) {
         Alert.alert('Success', 'Child registered successfully!');
         // Navigate to tabs
-        router.replace('/main components/welcome');
+        router.replace('/auth/welcome');
       } else {
         Alert.alert('Error', data.message || 'Registration failed');
       }

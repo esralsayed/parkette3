@@ -108,7 +108,7 @@ const HeroSection = ({
             <Text style={styles.actionBtnText}>Start</Text>
           </TouchableOpacity>
           <TouchableOpacity
-            onPress={() => router.push("/game/chapters")}
+            onPress={() => router.push("/protected/chapters")}
             style={[styles.actionBtn, styles.chapterBtn]}
           >
             <Text style={styles.actionBtnText}>Chapter</Text>

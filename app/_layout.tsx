@@ -116,20 +116,10 @@ export default function RootLayout() {
   return (
     <ThemeProvider value={DefaultTheme}>
       <Stack screenOptions={{ headerShown: false }}>
-        <Stack.Screen name="welcome" />
-        <Stack.Screen name="login" />
-        <Stack.Screen name="signup" />
-
-        <Stack.Screen name="dashboard" />
-        <Stack.Screen name="game" />
-        <Stack.Screen name="community" />
-        <Stack.Screen name="diary" />
-        <Stack.Screen name="chapters" />
-
-        <Stack.Screen name="register-child" />
+        <Stack.Screen name="(auth)" />
+        <Stack.Screen name="(protected)" />
         <Stack.Screen name="modal" options={{ presentation: 'modal' }} />
       </Stack>
-
       <StatusBar style="auto" />
     </ThemeProvider>
   );

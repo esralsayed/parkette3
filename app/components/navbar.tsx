@@ -1,4 +1,5 @@
 import { AppColors, AppFonts, Spacing } from '@/constants/theme';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useRouter } from 'expo-router';
 import React, { useRef, useState } from 'react';
 import {
@@ -35,19 +36,27 @@ const NavBar: React.FC<NavBarProps> = ({ onLogout }) => {
     });
   };
 
-  const handleLogout = () => {
+// Replace handleLogout
+  const handleLogout = async () => {
     setShowDropdown(false);
+    try {
+      await AsyncStorage.multiRemove(['token', 'user']);
+      useSessionStore.getState().clearUser();
+    } catch (e) {
+      console.error('Logout error:', e);
+    }
     onLogout?.();
+    router.replace('/auth/welcome');
   };
 
   return (
     <View style={styles.navbar}>
-      <TouchableOpacity onPress={() => router.push('/main components/dashboard')}>
+      <TouchableOpacity onPress={() => router.push('/protected/dashboard')}>
         <Text style={styles.navLogo}>Parkette</Text>
       </TouchableOpacity>
 
       <View style={styles.navLinks}>
-        <TouchableOpacity onPress={() => router.push('/game/main')}>
+        <TouchableOpacity onPress={() => router.push('/protected/Game')}>
           <Text style={styles.navLink}>Game</Text>
         </TouchableOpacity>
         <TouchableOpacity
@@ -55,13 +64,13 @@ const NavBar: React.FC<NavBarProps> = ({ onLogout }) => {
     if (communitySession) {
       router.push('/community/components/communityLanding');
     } else {
-      router.push('/community/main');
+      router.push('/protected/Community');
     }
   }}
 >
           <Text style={styles.navLink}>Community</Text>
         </TouchableOpacity>
-        <TouchableOpacity onPress={() => router.push('/diary/Diary')}>
+        <TouchableOpacity onPress={() => router.push('/protected/Diary')}>
           <Text style={styles.navLink}>Diary</Text>
         </TouchableOpacity>
       </View>
@@ -85,14 +94,14 @@ const NavBar: React.FC<NavBarProps> = ({ onLogout }) => {
         ) : (
           // ── Logged-out
           <>
-            <TouchableOpacity onPress={() => router.push('/main components/login')}>
-              <Text style={styles.navLogin}>Login</Text>
+            <TouchableOpacity onPress={() => router.push('/auth/login')}>
+              <Text style={styles.navLogin}>I already play</Text>
             </TouchableOpacity>
             <TouchableOpacity
               style={styles.navSignupBtn}
-              onPress={() => router.push('/main components/signup')}
+              onPress={() => router.push('/auth/signup')}
             >
-              <Text style={styles.navSignupText}>Sign Up</Text>
+              <Text style={styles.navSignupText}>Parent signup</Text>
             </TouchableOpacity>
           </>
         )}
