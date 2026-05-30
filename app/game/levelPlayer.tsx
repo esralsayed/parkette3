@@ -163,7 +163,7 @@ useEffect(() => {
       setPhase('end');
     };
 
-  const API_URL = 'http://localhost:5000/api'
+  const API_URL = `${process.env.EXPO_PUBLIC_API_URL}/api` || 'http://localhost:5000/api'
 
   const finishLevel = async () => {
     if (phase === 'end') return; 

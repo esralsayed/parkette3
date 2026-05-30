@@ -15,7 +15,7 @@ import {
 import Footer from '../components/Footer';
 import NavBar from '../components/navbar';
 
-const API_URL = 'http://localhost:5000/api/auth';
+const API_URL = `${process.env.EXPO_PUBLIC_API_URL}/api/auth` || 'http://localhost:5000/api/auth';
 
 type Child = {
   _id: string;

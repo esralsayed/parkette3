@@ -34,13 +34,13 @@ export default function DiaryLandingPage() {
 
 
   const [unlockedItems, setUnlockedItems] = useState<{ type: string; itemId: string }[]>([]);
-  const API_URL = "http://localhost:5000"
+  const API_URL = `${process.env.EXPO_PUBLIC_API_URL}/api` || "http://localhost:5000/api"
 
   useEffect(() => {
     if (!userId) return;
     const fetchRewards = async () => {
       try {
-        const res = await fetch(`${API_URL}/api/chapters/${userId}/rewards`);
+        const res = await fetch(`${API_URL}/chapters/${userId}/rewards`);
         const data = await res.json();
         setUnlockedItems(data.unlockedItems ?? []);
         console.log(unlockedItems);

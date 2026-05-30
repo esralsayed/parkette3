@@ -22,7 +22,7 @@ import NavBar from '../components/navbar';
 import SecondaryButton from '../components/style/SecondaryButton';
 
 const { width } = Dimensions.get('window');
-const API_URL = "http://localhost:5000/api"
+const API_URL = `${process.env.EXPO_PUBLIC_API_URL}/api`|| "http://localhost:5000/api"
 
 // ─── DIARY PREVIEW CARD ──────────────────────────────────
 const DiaryPreviewCard = ({ onPress }: { onPress: () => void }) => {

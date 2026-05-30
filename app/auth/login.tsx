@@ -17,7 +17,7 @@ import PrimaryButton from '../components/style/buttonHovered';
 import LinkText from '../components/style/LinksHover';
 
 const { width } = Dimensions.get('window')
-const API_URL = 'http://localhost:5000/api/auth';
+const API_URL = `${process.env.EXPO_PUBLIC_API_URL}/api/auth` || 'http://localhost:5000/api/auth';
 
 type Tab = 'child' | 'parent';
 
