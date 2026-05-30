@@ -122,7 +122,7 @@ async function startSession(friendIds: string[]) {
     try {
       await leaveSession(sessionId, userId);
       setSession(null); 
-      router.push(`/community/main`); 
+      router.push(`/community/components/friendsList`); 
     } catch (e: any) {
       setError(e.message);
       throw e; 

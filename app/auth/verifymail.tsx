@@ -27,12 +27,14 @@ export default function VerifyEmail() {
   // Load user info and trigger first OTP send on mount
   useEffect(() => {
     const init = async () => {
-      const userStr = await AsyncStorage.getItem('user');
-      if (!userStr) return router.push('/auth/signup');
-      const user = JSON.parse(userStr);
-      setUserEmail(user.email);
-      setUserId(user._id);
-      await sendOTP(user._id);
+        const userId = await AsyncStorage.getItem('pendingUserId');
+    const email = await AsyncStorage.getItem('pendingUserEmail');
+      
+    if (!userId || !email) return router.push('/auth/signup');
+
+    setUserEmail(email);
+    setUserId(userId);
+      await sendOTP(userId);
     };
     init();
   }, []);
@@ -102,6 +104,8 @@ export default function VerifyEmail() {
       const data = await response.json();
 
       if (response.ok) {
+        await AsyncStorage.removeItem('pendingUserId');
+        await AsyncStorage.removeItem('pendingUserEmail');
         router.push('/protected/register-child');
       } else {
         Alert.alert('Error', data.message || 'Invalid code');

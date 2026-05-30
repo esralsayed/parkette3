@@ -81,4 +81,27 @@ chapterroutes.delete("/:id", async (req, res) => {
 });
 
 
+chapterroutes.get('/:userId/rewards', async (req, res) => {
+  const user = await User.findById(req.params.userId).select('tokens unlockedItems tokenLedger');
+  if (!user) return res.status(404).json({ message: 'Not found' });
+
+  const CHAPTER_ID_TO_ORDER = {
+    '69d2f1ce4c52af68e2ff6468': 1,
+    '69fddebbf6b5e57336dca3b2': 2,
+    '69fde9a3f6b5e57336dca3b6': 3,
+  };
+
+  const completedChapters = user.tokenLedger
+    .filter(t => t.reason?.startsWith('chapter_') && t.chapterId)
+    .map(t => CHAPTER_ID_TO_ORDER[t.chapterId.toString()])
+    .filter(Boolean);
+
+  res.json({
+    tokens: user.tokens,
+    unlockedItems: user.unlockedItems,
+    completedChapters,
+  });
+});
+
+
 export default chapterroutes;

@@ -65,6 +65,7 @@ export interface StepResult {
   feedback?: string;
   nextStep: GameStep | null;
   starsDeducted?: number;
+  rewardUnlocked?: { label: string; type: string; itemId: string } | null;  // ← add
 }
 
 export class LevelService {
@@ -273,6 +274,8 @@ async advanceToNextStep(userAnswer?: any): Promise<StepResult> {
     // Check if we finished after this advancement
     const nextStep = this.getCurrentStep();
     if (!nextStep) {
+        console.log('🏁 [completeLevel] triggered from advanceToNextStep');
+  console.log('🏁 [completeLevel] postQuestionAnswers at this point:', this.postQuestionAnswers)
       return this.completeLevel();
     }
 
@@ -334,62 +337,53 @@ async advanceToNextStep(userAnswer?: any): Promise<StepResult> {
     return this.performanceTracker.getCurrentPerformance();
   }
   
-private async completeLevel(): Promise<StepResult> {
-  if (!this.currentSession) {
-    throw new Error('No active session');
-  }
+  private async completeLevel(): Promise<StepResult> {
+    if (!this.currentSession) throw new Error('No active session');
+    if (this.currentSession.completed) {
+      return { success: true, nextStep: null };
+    }
 
-  // ←←← ADD THIS GUARD
-  if (this.currentSession.completed) {
-    console.log("⚠️ Level already completed. Skipping duplicate save.");
+    this.currentSession.completed = true;
+
+    // ⏳ If post questions haven't been answered yet, wait for them
+    if (this.postQuestionAnswers === null) {
+      console.log('⏳ [completeLevel] Waiting for post questions...');
+      return { success: true, nextStep: null };
+    }
+
+    // ✅ Post questions done — proceed with save
+    const session = this.currentSession;
+    const hadWrongChoices = this.wrongChoiceCount > 0;
+    if (hadWrongChoices) {
+      await this.recordLevelCompletion(session.levelId, true);
+      session.attempts = await this.getAccumulatedAttempts(session.levelId);
+    }
+
+    await levelRepository.saveProgress({
+      userId: await this.getCurrentUserId(),
+      levelId: session.levelId,
+      chapterId: session.chapterId,
+      starsEarned: session.starsEarned,
+      passed: true,
+      attempts: session.attempts,
+      lastAttemptAt: new Date(),
+      completedAt: new Date(),
+      preQuestionAnswers:  this.preQuestionAnswers  ?? null,
+      postQuestionAnswers: this.postQuestionAnswers ?? null,
+    });
+
+    this.preQuestionAnswers  = null;
+    this.postQuestionAnswers = null;
+
+    const chapterResult = await this.updateChapterProgress(session.chapterId);
     return {
       success: true,
-      nextStep: null
+      feedback: `Level complete! You earned ${session.starsEarned} stars! 🎉`,
+      nextStep: null,
+      rewardUnlocked: chapterResult?.rewardUnlocked ?? null,
     };
   }
 
-  const session = this.currentSession;
-  session.completed = true;
-
-  // ✅ Only count this as a "failed attempt" if the user made wrong choices.
-  // A clean pass (wrongChoiceCount === 0) means they replayed successfully — don't penalise.
-  const hadWrongChoices = this.wrongChoiceCount > 0;
-  if (hadWrongChoices) {
-    await this.recordLevelCompletion(session.levelId, true);
-    // Refresh the attempt count so the backend receives the updated value
-    session.attempts = await this.getAccumulatedAttempts(session.levelId);
-  }
-
-  console.log("Sending attempts to backend:", session.attempts);
-  
-  // Save level progress (only once)
-  await levelRepository.saveProgress({
-    userId: await this.getCurrentUserId(),
-    levelId: session.levelId,
-    chapterId: session.chapterId,
-    starsEarned: session.starsEarned,
-    passed: true,
-    attempts: session.attempts,
-    lastAttemptAt: new Date(),
-    completedAt: new Date(),
-    preQuestionAnswers:  this.preQuestionAnswers  ?? null,  // ← ADD
-    postQuestionAnswers: this.postQuestionAnswers ?? null,  // ← ADD
-  });
-
-  this.preQuestionAnswers  = null;
-  this.postQuestionAnswers = null;
-  // ✅ Update chapter progress after every level completion.
-  // levelRepository.getChapterLevels(chapterId) should return all level docs for the chapter.
-  // levelRepository.getPassedLevelIds(userId, chapterId) should return the set of levelIds
-  // the user has passed so far (including the one we just saved above).
-  await this.updateChapterProgress(session.chapterId);
-  
-  return {
-    success: true,
-    feedback: `Level complete! You earned ${session.starsEarned} stars! 🎉`,
-    nextStep: null
-  };
-}
   
   // ─── Chapter progress ────────────────────────────────────────────────────────
   //
@@ -402,16 +396,21 @@ private async completeLevel(): Promise<StepResult> {
   //   saveChapterProgress(payload)           → void
   //   markChapterStarted({ userId, chapterId, startedAt }) → void (no-op if already set)
   //
-  private async updateChapterProgress(chapterId: string): Promise<void> {
+  private async updateChapterProgress(chapterId: string): Promise<{ rewardUnlocked: any } | null> {
     const userId = await this.getCurrentUserId();
     const session = this.currentSession!;
 
-    await levelRepository.saveChapterProgress({
+    const result = await levelRepository.saveChapterProgress({
       userId,
       chapterId,
-      completedLevelId: session.levelId,   // tell backend which level just finished
-      starsEarned: session.starsEarned,    // stars for THIS level only
+      completedLevelId: session.levelId,
+      starsEarned: session.starsEarned,
     });
+
+    if (result.allPassed && result.rewardUnlocked) {
+      return { rewardUnlocked: result.rewardUnlocked };
+    }
+    return null;
   }
 
   private async getCurrentUserId(): Promise<string> {
@@ -429,8 +428,16 @@ private async completeLevel(): Promise<StepResult> {
     this.preQuestionAnswers = answers;
   }
 
-  setPostQuestionAnswers(answers: { score: number; total: number }) {
+  async setPostQuestionAnswers(answers: { score: number; total: number }) {
     this.postQuestionAnswers = answers;
+
+    console.log(answers); 
+    console.log("inside set post",this.currentSession?.completed);
+
+    // If gameplay already finished, trigger the save now
+    if (this.currentSession?.completed) {
+      await this.completeLevel();
+    }
   }
   
   // Clean up when done

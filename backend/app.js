@@ -17,6 +17,7 @@ import diaryroutes from "./routes/diary.js";
 import levelroutes from "./routes/levels.js";
 import performanceRouter from "./routes/performance.js";
 import router from "./routes/progress.js";
+import recRouter from "./routes/recommend.js";
 // import { checkSidecarHealth } from "./utils/emotionAnalyser.js";
 
 // const __filename = fileURLToPath(import.meta.url);
@@ -57,7 +58,7 @@ connectDB();
 
 // Middleware
 app.use(cors({
-  origin: ['http://localhost:8081', 'https://parkette.vercel.app'],
+  origin: ['http://localhost:8081', 'https://parkette.vercel.app' , 'http://127.0.0.1:5500'],
   credentials: true
 }));
 app.use(express.json());
@@ -71,6 +72,7 @@ app.use("/api/performance", performanceRouter);
 app.use("/api/diary",diaryroutes);
 app.use("/api/community" , communityroutes);
 app.use("/api/avatar", avatarRoutes); 
+app.use("/api/recommend", recRouter)
 
 // Health check
 app.get("/api/health", (req, res) => {

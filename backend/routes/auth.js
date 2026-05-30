@@ -1,6 +1,7 @@
 import crypto from 'crypto';
 import express from "express";
 import jwt from "jsonwebtoken";
+import { authMiddleware, requireRole } from '../middleware/auth.js';
 import OTP from '../models/OTP.js';
 import { Parent, User } from "../models/User.js";
 import { sendVerificationEmail } from '../utils/mailer.js';
@@ -13,10 +14,30 @@ router.post("/signup", async (req, res) => {
   try {
     console.log("RAW BODY:", req.body);
     const { name, username, email, password } = req.body;
+        if (!name || !username || !email || !password) {
+      return res.status(400).json({ 
+        message: "Missing required fields: name, username, email, and password are required" 
+      });
+    }
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      return res.status(400).json({ 
+        message: "Please enter a valid email address",
+        field: "email"
+      });
+    }
     // Check if user already exists by email or username
     const existingUser = await Parent.findOne({ $or: [{ email }, { username }] });
     if (existingUser) {
       return res.status(400).json({ message: "User already exists" });
+    }
+
+    const existingParentByEmail = await Parent.findOne({ email });
+    if (existingParentByEmail) {
+      return res.status(409).json({ 
+        message: "Email already registered. Please use a different email or try logging in.",
+        field: "email"
+      });
     }
       const parent = new Parent({
         name,
@@ -25,12 +46,6 @@ router.post("/signup", async (req, res) => {
         password,
       });
       await parent.save();
-  
-      const token = jwt.sign(
-        { userId: parent._id, role: "parent" },
-        process.env.JWT_SECRET,
-        { expiresIn: "7d" }
-      );
 
     res.status(201).json({
       message: "User created successfully",
@@ -44,6 +59,22 @@ router.post("/signup", async (req, res) => {
     });
   } catch (error) {
     console.error("Signup error:", error);
+
+ if (error.code === 11000) {
+      const field = Object.keys(error.keyPattern)[0];
+      if (field === 'username') {
+        return res.status(409).json({ 
+          message: "Username already exists. Please choose a different username.",
+          field: "username"
+        });
+      }
+      if (field === 'email') {
+        return res.status(409).json({ 
+          message: "Email already registered. Please use a different email or try logging in.",
+          field: "email"
+        });
+      }
+    }
     res.status(500).json({ message: "Server error" });
   }
 });
@@ -53,31 +84,34 @@ router.post("/signup", async (req, res) => {
 router.post('/send-otp', async (req, res) => {
   try {
     const { userId } = req.body;
-    console.log(userId);
+    console.log('1. userId received:', userId);
+    
     const user = await Parent.findById(userId);
-    console.log(user)
+    console.log('2. user found:', user);
+    
     if (!user) return res.status(404).json({ message: 'User not found' });
     if (user.isVerified) return res.status(400).json({ message: 'Already verified' });
 
-    // Invalidate any existing unused OTPs for this user
+    console.log('3. deleting old OTPs');
     await OTP.deleteMany({ userId });
 
-    // Generate 6-digit code
     const code = crypto.randomInt(100000, 999999).toString();
+    console.log('4. code generated:', code);
 
-    // Save to DB with 15 min expiry
     await OTP.create({
       userId,
       code,
       expiresAt: new Date(Date.now() + 15 * 60 * 1000),
     });
+    console.log('5. OTP saved to DB');
 
     await sendVerificationEmail(user.email, code);
+    console.log('6. email sent');
 
     res.json({ message: 'OTP sent' });
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ message: 'Failed to send OTP' });
+    console.error('FAILED AT STEP:', err.message);
+    res.status(500).json({ message: 'Failed to send OTP', error: err.message });
   }
 });
 
@@ -102,9 +136,25 @@ router.post('/verify-otp', async (req, res) => {
     await otp.save();
 
     // Mark user as verified
-    await Parent.findByIdAndUpdate(userId, { isVerified: true });
+    const user = await Parent.findByIdAndUpdate(userId, { isVerified: true });
 
-    res.json({ message: 'Email verified successfully' });
+     // Generate token so parent can proceed directly
+    const token = jwt.sign(
+      { userId: user._id, role: 'parent' },
+      process.env.JWT_SECRET,
+      { expiresIn: '7d' }
+    );
+
+    res.json({ message: 'Email verified successfully' ,
+      token,
+      user: {
+        id: user._id,
+        name: user.name,
+        username: user.username,
+        email: user.email,
+        role: 'parent',
+      },
+    });
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: 'Verification failed' });
@@ -114,7 +164,7 @@ router.post('/verify-otp', async (req, res) => {
 // Login route
 router.post("/login", async (req, res) => {
   try {
-    const { username, password, role = "child" } = req.body;
+    const { username, password, role } = req.body;
 
     let user;
     if (role === "parent") {
@@ -159,22 +209,37 @@ router.post("/login", async (req, res) => {
   }
 });
 
+
+
 // Register child route (after parent signup)
 router.post("/register-child", async (req, res) => {
   try {
     console.log("Register child with data:", req.body);
-    const { name, email, password, username, parentId } = req.body;
+    const { name, password, username, parentId, permissions = {} } = req.body;
+        // Validate required fields
+    if (!name || !password || !username || !parentId) {
+      return res.status(400).json({ 
+        message: "Missing required fields: name, password, username, and parentId are required" 
+      });
+    }
 
     // Check if child already exists
-    const existingUser = await User.findOne({ email });
+    const existingUser = await User.findOne({ username });
     if (existingUser) {
-      return res.status(400).json({ message: "User already exists" });
+      return res.status(400).json({ message: "Username already exists", field: "username"});
+    }
+
+    const parent = await Parent.findById(parentId);
+    if (!parent) {
+      return res.status(404).json({ 
+        message: "Parent not found. Please ensure you're logged in correctly.",
+        field: "parentId"
+      });
     }
 
     // Create child user
     const child = new User({
       name,
-      email,
       password,
       username,
       parentId,
@@ -184,9 +249,13 @@ router.post("/register-child", async (req, res) => {
     await createDiaryForUser(child._id, child.name);
 
 ///save children to parent
-    const parent = await Parent.findById(parentId);
-    if (!parent) return res.status(404).json({ message: "Parent not found" });
     parent.children.push(child._id);
+    parent.permissions.set(child._id.toString(), {
+    communityAccess: permissions.communityAccess || false,
+    diaryEmotionalAnalysis: permissions.diaryEmotionalAnalysis || true,
+    diaryAiSuggestions: permissions.diaryAiSuggestions || true,
+    insightReports: permissions.insightReports || true,
+  });
     await parent.save();
 
     res.status(201).json({
@@ -194,12 +263,18 @@ router.post("/register-child", async (req, res) => {
       child: {
         id: child._id,
         name: child.name,
-        email: child.email,
         username: child.username,
-      }
+      },
+      permissions: parent.permissions.get(child._id.toString()),
     });
   } catch (error) {
     console.error("Register child error:", error);
+        if (error.code === 11000) {
+      return res.status(409).json({ 
+        message: "Username already exists. Please choose a different username.",
+        field: "username"
+      });
+    }
     res.status(500).json({ message: "Server error" });
   }
 });
@@ -231,5 +306,30 @@ router.delete("/delete", async (req, res) => {
     res.status(500).json({ message: "Server error" });
   }
 });
+
+router.get("/children/:id", authMiddleware, requireRole("parent"), async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    // req.user.userId comes from your JWT payload
+    if (req.user.userId !== id) {
+      return res.status(403).json({ message: "Access denied." });
+    }
+
+    const parent = await Parent.findById(id)
+      .populate("children", "-password -tokenLedger")
+      .lean();
+
+    if (!parent) {
+      return res.status(404).json({ message: "Parent not found." });
+    }
+
+    return res.status(200).json({ children: parent.children });
+  } catch (error) {
+    console.error("fetchChildren error:", error);
+    return res.status(500).json({ message: "Server error." });
+  }
+});
+
 
 export default router;

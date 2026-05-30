@@ -64,7 +64,7 @@ const HeroSection = () => {
           style={styles.btnSecondary}
           onPress={() => router.push('/auth/login')}
         >
-          <Text style={styles.btnSecondaryText}>I already play →</Text>
+          <Text style={styles.btnSecondaryText}>Login →</Text>
         </TouchableOpacity>
       </View>
 

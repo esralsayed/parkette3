@@ -3,7 +3,7 @@
 // Image-card choice game — now uses GameModal for the shell + HowToPlay.
 // Only the card grid lives here; all modal chrome is in GameModal.
 
-import { AppColors, AppFonts } from '@/constants/theme';
+import { AppColors, AppFonts, AppFontSizes } from '@/constants/theme';
 import React, { useRef, useState } from 'react';
 import {
   Animated,
@@ -151,7 +151,7 @@ export default function ImageChoiceGame({
 
 // ─── Styles (game content only) ───────────────────────────────────────────────
 
-const CARD_SIZE = 110;
+const CARD_SIZE = 220;
 
 const styles = StyleSheet.create({
   body: {
@@ -225,8 +225,8 @@ const styles = StyleSheet.create({
   },
   labelText: {
     ...AppFonts.body,
-    fontSize: 13,
-    fontWeight: '700',
+    fontSize: AppFontSizes.body,
+    //fontWeight: '700',
     color: AppColors.blue,
     textAlign: 'center',
   },

@@ -7,12 +7,12 @@
 import { AppColors, AppFonts, AppFontSizes } from '@/constants/theme';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
-    Animated,
-    SafeAreaView,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View,
+  Animated,
+  SafeAreaView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from 'react-native';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -172,12 +172,10 @@ const handleNext = useCallback(() => {
 
       {/* ── Header ── */}
       <View style={styles.header}>
-        <Text style={styles.headerEmoji}>{header.emoji}</Text>
         <Text style={styles.headerTitle}>{header.title}</Text>
         {levelTitle && (
           <Text style={styles.levelLabel}>{levelTitle}</Text>
         )}
-        <Text style={styles.headerSubtitle}>{header.subtitle}</Text>
       </View>
 
       {/* ── Question card ── */}
@@ -272,7 +270,7 @@ const styles = StyleSheet.create({
   progressTrack: {
     flex: 1,
     height: 8,
-    backgroundColor: '#E0E0E0',
+    backgroundColor: '#FFF',
     borderRadius: 99,
     overflow: 'hidden',
   },
@@ -282,8 +280,8 @@ const styles = StyleSheet.create({
     borderRadius: 99,
   },
   counterText: {
-    ...AppFonts.bodySmall,
-    fontSize: AppFontSizes.bodySmall,
+    ...AppFonts.body,
+    fontSize: AppFontSizes.body,
     color: AppColors.blue,
     minWidth: 36,
     textAlign: 'right',
@@ -296,13 +294,14 @@ const styles = StyleSheet.create({
     borderColor: AppColors.blue,
   },
   skipText: {
-    ...AppFonts.bodySmall,
-    fontSize: AppFontSizes.bodySmall,
+    ...AppFonts.body,
+    fontSize: AppFontSizes.body,
     color: AppColors.blue,
   },
 
   // ── Header
   header: {
+    marginTop: '3%',
     alignItems: 'center',
     paddingVertical: 18,
     gap: 4,
@@ -314,7 +313,7 @@ const styles = StyleSheet.create({
   headerTitle: {
     ...AppFonts.title,
     fontSize: AppFontSizes.title ?? 22,
-    color: AppColors.dark,
+    color: AppColors.blue,
     textAlign: 'center',
   },
   levelLabel: {
@@ -337,9 +336,12 @@ const styles = StyleSheet.create({
   // ── Card
   cardWrapper: {
     flex: 1,
+    marginTop:'3%',
+    width: '80%',
+    alignSelf: 'center'
   },
   card: {
-    backgroundColor: '#fff',
+    backgroundColor: AppColors.lilac,
     borderRadius: 20,
     borderWidth: 2,
     borderColor: AppColors.blue,
@@ -354,7 +356,7 @@ const styles = StyleSheet.create({
   questionText: {
     ...AppFonts.body,
     fontSize: AppFontSizes.body,
-    color: AppColors.dark,
+    color: AppColors.blue,
     lineHeight: 28,
     textAlign: 'center',
   },
@@ -366,17 +368,13 @@ const styles = StyleSheet.create({
   optionCard: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#fff',
+    backgroundColor: AppColors.lilac,
     borderRadius: 10,
     borderWidth: 2,
     borderColor: AppColors.blue,
     padding: 12,
     gap: 10,
-    shadowColor: AppColors.blue,
-    shadowOffset: { width: 3, height: 3 },
-    shadowOpacity: 1,
-    shadowRadius: 0,
-    elevation: 3,
+
   },
   optionCorrect: {
     backgroundColor: '#E8F8EE',
@@ -411,18 +409,18 @@ const styles = StyleSheet.create({
   optionBadgeText: {
     color: '#fff',
     fontSize: 12,
-    fontWeight: '700',
+    //fontWeight: '700',
   },
   optionText: {
     ...AppFonts.bodySmall,
     fontSize: AppFontSizes.bodySmall,
-    color: AppColors.dark,
+    color: AppColors.blue,
     flex: 1,
     flexWrap: 'wrap',
   },
   optionTextCorrect: {
     color: '#1A7A40',
-    fontWeight: '600',
+    //fontWeight: '600',
   },
   optionTextWrong: {
     color: '#CC3333',
@@ -432,7 +430,7 @@ const styles = StyleSheet.create({
   },
   resultIcon: {
     fontSize: 16,
-    fontWeight: '700',
+    //fontWeight: '700',
     minWidth: 18,
     textAlign: 'center',
   },
@@ -450,7 +448,7 @@ const styles = StyleSheet.create({
     ...AppFonts.bodySmall,
     fontSize: AppFontSizes.bodySmall,
     color: AppColors.blue,
-    fontWeight: '700',
+    //fontWeight: '700',
   },
   hintText: {
     ...AppFonts.bodySmall,
@@ -464,6 +462,8 @@ const styles = StyleSheet.create({
     paddingVertical: 16,
   },
   nextBtn: {
+    width: '20%',
+    alignSelf: 'center',
     backgroundColor: AppColors.blue,
     borderRadius: 12,
     paddingVertical: 16,
@@ -479,8 +479,8 @@ const styles = StyleSheet.create({
   nextBtnText: {
     ...AppFonts.body,
     fontSize: AppFontSizes.body,
-    color: '#fff',
-    fontWeight: '700',
+    color: AppColors.lilac,
+    //fontWeight: '700',
     letterSpacing: 0.5,
   },
 });

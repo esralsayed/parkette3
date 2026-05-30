@@ -14,9 +14,11 @@ import Senara from "@/assets/svgs/community/senara.svg";
 import Slide from "@/assets/svgs/community/slide.svg";
 import Swing from "@/assets/svgs/community/swing.svg";
 import Tree1 from "@/assets/svgs/community/tree.svg";
+import Locked from "@/assets/svgs/game/Lock.svg";
 import { AppColors, AppFonts, AppFontSizes, Spacing } from "@/constants/theme";
 import React from "react";
 import {
+  Alert,
   Dimensions,
   Image,
   ScrollView,
@@ -54,23 +56,31 @@ interface SceneButtonProps {
   y: number;
   style?: ViewStyle;
 }
-
 export function SceneButton({ name, onPress, x, y, style }: SceneButtonProps) {
+  let locked = false; 
+  if (name === 'Slide' || name === 'Swing' || name === 'Ride' || name === 'Boat' || name === 'Feed'){
+    locked = true; 
+  }
+  console.log("is locked?" , name, locked)
   return (
+    <View
+    style={{
+        position: 'absolute',
+        left: x,
+        top: y,
+        alignSelf: 'flex-start', // shrink-wrap to button size
+      }}>
     <TouchableOpacity
       onPress={onPress}
       style={[
         {
-          position: "absolute",
-          left: x,
-          top: y,
-          backgroundColor: AppColors.lilac,
+          backgroundColor: locked ? '#ccc' : AppColors.lilac,
           borderRadius: 10,
           borderWidth: 3,
-          borderColor: AppColors.blue,
+          borderColor: locked ? '#999' : AppColors.blue,
+          shadowColor: locked ? '#999' : AppColors.blue,
           paddingHorizontal: Spacing.xl,
           paddingVertical: Spacing.sm,
-          shadowColor: AppColors.blue,
           shadowOffset: { width: 4, height: 3 },
           shadowOpacity: 1,
           shadowRadius: 0,
@@ -83,13 +93,28 @@ export function SceneButton({ name, onPress, x, y, style }: SceneButtonProps) {
       <Text
         style={{
           ...AppFonts.body,
-          color: AppColors.blue,
+          color: locked ? '#999' : AppColors.blue,
           fontSize: AppFontSizes.body,
         }}
       >
         {name}
       </Text>
+          {locked && (
+              <View
+                style={{
+                  position: 'absolute',
+                  top: -18,        // sit above the button
+                  alignSelf: 'center', // center horizontally over the button
+                  transform: [{ translateX: 50 }], // half of lock width (28/2)
+                  zIndex: 10,
+                }}
+                pointerEvents="none"
+              >
+                <Locked width={60} height={60} />
+              </View>
+            )}
     </TouchableOpacity>
+    </View>
   );
 }
 
@@ -127,26 +152,26 @@ const Ground = ({ totalWidth }: { totalWidth: number }) => (
 const Page1 = ({ offsetX, groundY }: { offsetX: number; groundY: number }) => (
   <>
     <House
-      style={{ position: 'absolute', left: offsetX + 20, top: groundY - 650 }}
-      width={1400}
-      height={1200}
+      style={{ position: 'absolute', left: offsetX + 20, top: groundY - 550 }}
+      width={1200}
+      height={1000}
     />
-    <Character1 style={{ position: 'absolute', left: offsetX + 100, top: groundY - 150 }}
-      width={350}
-      height={350} />
+    <Character1 style={{ position: 'absolute', left: offsetX + 100, top: groundY - 100 }}
+      width={250}
+      height={250} />
     <Slide
-      style={{ position: 'absolute', left: offsetX + PAGE_WIDTH - 850, top: groundY - 640 }}
-      width={1000}
-      height={1200}
+      style={{ position: 'absolute', left: offsetX + PAGE_WIDTH - 850, top: groundY - 440 }}
+      width={800}
+      height={800}
     />
     <Char2 style={{ position: 'absolute', left: offsetX + 1200, top: groundY - 100 }}
-      width={350}
-      height={350} />
+      width={250}
+      height={250} />
 
     {/* Slide button */}
     <SceneButton
       name="Slide"
-      x={offsetX + PAGE_WIDTH - 110}
+      x={offsetX + PAGE_WIDTH - 520}
       y={groundY + 10}
       onPress={() => console.log("Slide clicked")}
     />
@@ -168,9 +193,9 @@ const Page2 = ({ offsetX, groundY }: { offsetX: number; groundY: number }) => (
       width={1400}
       height={1200} />
 
-        <Char3 style={{ position: 'absolute', left: offsetX + 150, top: groundY - 300 }}
-      width={300}
-      height={300} />
+    <Char3 style={{ position: 'absolute', left: offsetX + 180, top: groundY - 250 }}
+      width={250}
+      height={250} />
 
     {/* Seesaw (Ride) */}
     <Seesaw style={{ position: 'absolute', left: offsetX + 600, top: groundY - 150 }}
@@ -203,8 +228,11 @@ const Page2 = ({ offsetX, groundY }: { offsetX: number; groundY: number }) => (
 /**
  * Page 3: Boat, Fishes
  */
-const Page3 = ({ offsetX, groundY, onFishPress }: { offsetX: number; groundY: number, onFishPress : () => void }) => {
+const Page3 = ({ offsetX, groundY, onFishPress, onBoatPress }: { offsetX: number; groundY: number, onFishPress : () => void, 
+  onBoatPress:() => void,
+ }) => {
   const waterTop = groundY;
+
   return (
     <>
       {/* Clouds */}
@@ -214,8 +242,8 @@ const Page3 = ({ offsetX, groundY, onFishPress }: { offsetX: number; groundY: nu
     <Char4 style={{ position: 'absolute', left: offsetX + 600, top: groundY - 200 }}
       width={300}
       height={300} />
-      {/* Boat on water line */}
-      <Boat1 style={{ position: 'absolute', left: offsetX - 50, top: groundY - 450 }}
+    {/* Boat on water line */}
+    <Boat1 style={{ position: 'absolute', left: offsetX - 50, top: groundY - 450 }}
       width={800}
       height={800} />
 
@@ -238,10 +266,10 @@ const Page3 = ({ offsetX, groundY, onFishPress }: { offsetX: number; groundY: nu
 
       {/* Boat button */}
       <SceneButton
-        name="Boat"
+        name={"Boat"}
         x={offsetX + 80}
         y={waterTop - 14 - 50}
-        onPress={() => console.log("Boat clicked")}
+        onPress={onBoatPress}
       />
     </>
   );
@@ -250,7 +278,11 @@ const Page3 = ({ offsetX, groundY, onFishPress }: { offsetX: number; groundY: nu
 /**
  * Page 4: Animals, Trees, Bushes, Feed button
  */
-const Page4 = ({ offsetX, groundY, onFeedPress }: { offsetX: number; groundY: number, onFeedPress:() => void }) => (
+const Page4 = ({ offsetX, groundY, onFeedPress, unlockedItems }: { offsetX: number; groundY: number, onFeedPress:() => void,
+  unlockedItems: { type: string; itemId: string }[];
+ }) => {
+  const feedUnlocked = unlockedItems.some((u) => u.itemId === 'feed_game');
+  return (
   <>
     {/* Clouds */}
     <Cloud2 style={{ position: 'absolute', left: offsetX + 650, top: groundY - 650 }}
@@ -298,13 +330,15 @@ const Page4 = ({ offsetX, groundY, onFeedPress }: { offsetX: number; groundY: nu
 
     {/* Feed button */}
     <SceneButton
-      name="Feed"
+      name={feedUnlocked ? "Feeding" : 'Feed'}
       x={offsetX + PAGE_WIDTH / 2 - 40}
       y={groundY + 10}
-      onPress={onFeedPress} 
+      onPress={feedUnlocked ? onFeedPress : () => Alert.alert('Complete chapter 2 to unlock')} 
     />
   </>
 );
+
+};
 
 // ─────────────────────────────────────────────
 // FULL SCENE
@@ -314,12 +348,16 @@ const Scene = ({
   messages,
   groundY,
   onFeedPress,
-  onFishPress
+  onFishPress, 
+  onBoatPress,
+  unlockedItems
 }: {
   messages: { id: number; name: string; content: string; x: number; y: number }[];
   groundY: number;
   onFeedPress: () => void
   onFishPress : () => void
+  onBoatPress : () => void
+  unlockedItems: { type: string; itemId: string }[];
 }) => {
   return (
     <>
@@ -330,8 +368,8 @@ const Scene = ({
       {/* 4 Pages */}
       <Page1 offsetX={0} groundY={groundY} />
       <Page2 offsetX={PAGE_WIDTH} groundY={groundY} />
-      <Page3 offsetX={PAGE_WIDTH * 2} groundY={groundY} onFishPress={onFishPress} />
-      <Page4 offsetX={PAGE_WIDTH * 3} groundY={groundY} onFeedPress={onFeedPress} />
+      <Page3 offsetX={PAGE_WIDTH * 2} groundY={groundY} onFishPress={onFishPress} onBoatPress={onBoatPress} />
+      <Page4 offsetX={PAGE_WIDTH * 3} groundY={groundY} onFeedPress={onFeedPress} unlockedItems = {unlockedItems}  />
 
       {/* Page dividers (subtle) */}
       {[1, 2, 3].map((i) => (
@@ -371,10 +409,14 @@ export default function CommunityLanding() {
   const session = useCommunitySession((state) => state.session);
   const currentUserId = useSessionStore((state) => state.user?.id);
   const sessionId = session?._id ?? null;
+  const user = useSessionStore((state) => state.user)
+  const unlockedItems = user?.unlockedItems ?? [];
+
 
   //all games
   const [showFeedGame, setShowFeedGame] = React.useState(false);
   const [showFishGame, setShowFishGame] = React.useState(false);
+  const [showBoatGame, setShowBoatGame] = React.useState(false);
 
   const { emojis } = useSessionChat(sessionId, currentUserId ?? null);
   const { messages } = useDirectMessages(currentUserId ?? null);
@@ -495,7 +537,10 @@ console.log("[FRIENDS]", friends);
         >
           <Scene messages={sceneMessages} groundY={groundY}
           onFeedPress={() => setShowFeedGame(true)}
-          onFishPress={() => setShowFishGame(true)} />
+          onFishPress={() => setShowFishGame(true)}
+          onBoatPress={() => setShowBoatGame(true)}
+          unlockedItems={unlockedItems}
+           />
         </View>
       </ScrollView>
       <FeedGame visible={showFeedGame} onClose={() => setShowFeedGame(false)} />

@@ -60,13 +60,18 @@ function Buttons({ actions }: { actions: ActionOption[] }) {
 
     
 export default function CommunityLanding() {
-const [name, setName] = useState('');
+  const [name, setName] = useState('');
+  const [unlockedItems, setUnlockedItems] = useState<{ type: string; itemId: string }[]>([]);
 
   useEffect(() => {
     AsyncStorage.getItem('user').then((userStr) => {
       if (userStr) {
         const user = JSON.parse(userStr);
         setName(user.name);
+        fetch(`${process.env.EXPO_PUBLIC_API_URL}/api/users/${user.id}/rewards`)
+          .then(r => r.json())
+          .then(data => setUnlockedItems(data.unlockedItems ?? []))
+          .catch(e => console.error('Failed to fetch rewards:', e));
       }
     });
   }, []);
@@ -123,7 +128,8 @@ console.log("inside main1", selectedHair);
                           console.log("inside main" , id);
                           if (activeWindow === 'hair') setSelectedHair(id); 
                           if (activeWindow === 'skin') setSelectedSkin(id); 
-                        }} />
+                        }} 
+                        unlockedItems={unlockedItems}/>
                         )}
                     </View>
                     <View></View>
@@ -132,7 +138,7 @@ console.log("inside main1", selectedHair);
             <View style={[{flexDirection: 'row', justifyContent:'space-between' , marginTop: 150}]}>
                 <Text style={styles.pinText}>Name: {name}</Text>
                 <TouchableOpacity style={styles.pin} 
-                onPress={() => router.push('/community/main')}>
+                onPress={() => router.push('/protected/Community')}>
                     <Text style={styles.pinText}>Back to menu</Text>
                 </TouchableOpacity>
                 <TouchableOpacity style={styles.pin} onPress={saveAll} disabled={saving}>

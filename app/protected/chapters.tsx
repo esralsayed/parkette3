@@ -6,7 +6,7 @@ import ParkBg from "@/assets/svgs/game/park.png";
 import SchoolBg from "@/assets/svgs/game/school2.png";
 import { AppColors, AppFonts, AppFontSizes, ButtonStyles, Spacing } from "@/constants/theme";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { useRouter } from "expo-router";
+import { useFocusEffect, useRouter } from "expo-router";
 import React, { useEffect, useRef, useState } from "react";
 import {
   ActivityIndicator,
@@ -47,7 +47,7 @@ const getChapterBackground = (title: string) => {
 };
 
 const cardWidth = width * 0.30; // Set to 65% of screen width for better visibility
-const cardMarginHorizontal = 30;
+const cardMarginHorizontal = 40;
 
 const Chapters = () => {
   const router = useRouter();
@@ -77,7 +77,8 @@ const Chapters = () => {
     loadUserName();
   }, []);
 
-  useEffect(() => {
+  useFocusEffect(
+    React.useCallback(() => {
     if (!userId) return;
 
     const fetchChapters = async () => {
@@ -104,7 +105,8 @@ const Chapters = () => {
     };
 
     fetchChapters();
-  }, [userId]);
+  }, [userId])
+)
 
   const handleScroll = (event: any) => {
     const contentOffset = event.nativeEvent.contentOffset.x;
@@ -193,9 +195,6 @@ const Chapters = () => {
                         <Text style={[styles.chapterTitle, AppFonts.title]} numberOfLines={2}>
                           {chapter.title}
                         </Text>
-                        <Text style={[styles.chapterDescription, AppFonts.bodySmall]} numberOfLines={3}>
-                          {chapter.description || `${chapter.levelCount} levels available`}
-                        </Text>
                       </View>
                       
                       {/* 4. Dividing line */}
@@ -265,7 +264,7 @@ const styles = StyleSheet.create({
   },
   chapterSlideWrapper :{
     position: 'relative', 
-    height: height * 0.65
+    height: height * 0.60
   },
   headerContainer: {
     paddingTop: Spacing.xl,
@@ -327,7 +326,7 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
   imageWrapper: {
-    height: '50%', // Fixed percentage for image area
+    height: '45%', // Fixed percentage for image area
     width: '100%',
     backgroundColor: 'transparent',
     overflow: 'hidden',
@@ -366,14 +365,13 @@ lockedIconWrapper: {
   position: 'absolute',
   // top: 400,      // move this instead
   // right: 400,    // move this instead
-  top: -60,
+  top: -50,
   right: -50,
   zIndex: 30,
 },
   chapterTitle: {
     fontSize: AppFontSizes.header,
     color: AppColors.blue,
-    marginBottom: Spacing.sm,
     textAlign: 'center',
   },
   chapterDescription: {
@@ -384,7 +382,7 @@ lockedIconWrapper: {
   divider: {
     height: 2,
     backgroundColor: AppColors.blue,
-    marginVertical: Spacing.md,
+    marginVertical: Spacing.sm,
     opacity: 1,
   },
   buttonContainer: {
@@ -400,7 +398,7 @@ lockedIconWrapper: {
     paddingHorizontal: Spacing.xxl,
     paddingVertical: Spacing.xl,
     minWidth: 300,
-    minHeight: 70,
+    minHeight: 60,
     shadowColor: AppColors.blue,
     shadowOffset: { width: 4, height: 3 },
     shadowOpacity: 1,

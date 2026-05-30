@@ -19,7 +19,7 @@ export default function CommunityFriends() {
   const user = useSessionStore((s) => s.user); // from your auth store
   const hasActiveSession = session !== null;
   const isParticipant = session?.participants?.some(
-  (p: any) => p._id === user?.id
+  (p: any) => p?._id === user?.id
 );
 
 //-------------------//
@@ -179,7 +179,7 @@ export default function CommunityFriends() {
                 {activeTab === 'friends' && (
                   <>
                     {friends.length === 0 && <Text style={styles.empty}>No friends yet</Text>}
-                    {friends.map(friend => (
+                    {friends.filter(Boolean).map(friend => (
                       <View key={friend._id} style={[styles.row, isWide && styles.rowWide]}>
                         <View style={styles.avatar}>
                           <Text style={styles.avatarText}>{friend.username.slice(0, 2).toUpperCase()}</Text>
@@ -220,7 +220,7 @@ export default function CommunityFriends() {
                 {activeTab === 'requests' && (
                   <>
                     {requests.length === 0 && <Text style={styles.empty}>No pending requests</Text>}
-                    {requests.map(req => (
+                    {requests.filter(Boolean).map(req => (
                       <View key={req._id} style={[styles.row, isWide && styles.rowWide]}>
                         <View style={styles.avatar}>
                           <Text style={styles.avatarText}>{req.username.slice(0, 2).toUpperCase()}</Text>

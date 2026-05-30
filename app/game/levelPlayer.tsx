@@ -36,8 +36,18 @@ export default function LevelPlayer() {
   const [feedbackPopup, setFeedbackPopup] = useState<{ chosenText: string; correctText: string } | null>(null);
   const [pendingNextStep, setPendingNextStep] = useState<GameStep | null>(null);
   const [preQuestions, setPreQuestions]   = useState<Question[]>([]);
-const [postQuestions, setPostQuestions] = useState<Question[]>([]); 
-const [questionPhase, setQuestionPhase] = useState<'pre' | 'game' | 'post'>('pre');
+  const [postQuestions, setPostQuestions] = useState<Question[]>([]); 
+  const [questionPhase, setQuestionPhase] = useState<'pre' | 'game' | 'post'>('pre');
+  const [rewardUnlocked, setRewardUnlocked] = useState<{
+    label: string; type: string; itemId: string;
+  } | null>(null);
+  const [recommendation, setRecommendation] = useState<{
+    recommendedLevelId: string | null;
+    type: 'retry' | 'next' | 'challenge' | 'complete';
+    reason: string;
+    level?: { title: string };
+    newlyUnlocked: string[];
+  } | null>(null);
 
   //variables
   const step = currentStep;
@@ -127,10 +137,8 @@ useEffect(() => {
   const advance = useCallback(async () => {
     if (step?.type === 'task') return;
     const result = await levelService.advanceToNextStep();
-    if (result.nextStep === null) {
-      finishLevel();
-    } else {
     if (!result.nextStep) {
+      if (result.rewardUnlocked) setRewardUnlocked(result.rewardUnlocked);
       console.warn('⚠️ nextStep is undefined/null — stopping update');
       finishLevel();
       return;
@@ -141,27 +149,25 @@ useEffect(() => {
             setCurrentStepIndex(progress.currentStep - 1);
             setStars(progress.starsRemaining);
           }
-        }
-      }, [step]);
+    }, [step]);
 
     const handlePreQuestionsComplete = (score: number, total: number) => {
       setQuestionPhase('game');
       levelService.setPreQuestionAnswers({ score, total });  // ← ADD
     };
 
-    const handlePostQuestionsComplete = (score: number, total: number) => {
-      levelService.setPostQuestionAnswers({ score, total }); // ← ADD
+    const handlePostQuestionsComplete = async (score: number, total: number) => {
+      await levelService.setPostQuestionAnswers({ score, total }); // ← ADD
+      await fetchRecommendation(); 
       setQuestionPhase('game');  // ← exit the post gate first
       setPhase('end');
     };
 
+  const API_URL = 'http://localhost:5000/api'
+
   const finishLevel = async () => {
     if (phase === 'end') return; 
-    if (postQuestions.length > 0) {
-    setQuestionPhase('post');      
-    } else {
-    setPhase('end');
-    }
+
     const finalStars = levelService.getStars();
     setStars(finalStars);
     for (let i = 0; i < finalStars; i++) {
@@ -173,7 +179,31 @@ useEffect(() => {
         });
       }, i * 350 + 200);
     }
-  };
+
+  if (postQuestions.length > 0) {
+    setQuestionPhase('post');
+    // ⏳ stop here — recommendation fetch happens after post questions
+  } else {
+    await fetchRecommendation(); // extract this into its own function
+    setPhase('end');
+  }
+
+};
+
+  const fetchRecommendation = async () => {
+  try {
+    const userId = await getCurrentUserId();
+    const res = await fetch(
+      `${API_URL}/recommend/${userId}?completedLevelId=${levelId}`
+    );
+    const rec = await res.json();
+    setRecommendation(rec);
+    await AsyncStorage.setItem('lastRecommendation', JSON.stringify(rec));
+    if (rec.rewardUnlocked) setRewardUnlocked(rec.rewardUnlocked);
+  } catch (e) {
+    console.error('⚠️ recommendation fetch failed:', e);
+  }
+  }
 
   const getCurrentUserId = async (): Promise<string> => {
     try {
@@ -198,6 +228,7 @@ useEffect(() => {
         }
 
       if (!result.nextStep) {
+        if (result.rewardUnlocked) setRewardUnlocked(result.rewardUnlocked); 
         finishLevel();
         return;
       }
@@ -320,6 +351,8 @@ useEffect(() => {
           onNext={() => router.push(`/game/${chapterId}`)}
           onRetry={handleRetry}
           savingProgress={savingProgress}
+          rewardUnlocked={rewardUnlocked}
+          recommendation={recommendation}           // ← ADD
         />
       )}
     </SafeAreaView>

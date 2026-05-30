@@ -11,11 +11,11 @@ import { AppColors, AppFonts, AppFontSizes, Spacing } from "@/constants/theme";
 import React, { useState } from "react";
 
 import {
-    StyleSheet,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View, ViewStyle
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View, ViewStyle
 } from "react-native";
 //send messages button
 export function InstantMessageBar({
@@ -58,7 +58,7 @@ export function InstantMessageBar({
       {open && !selectedFriend && (
         <View
           style={{
-            backgroundColor: AppColors.blue,
+            backgroundColor: AppColors.lilac,
             borderWidth: 2,
             borderColor: AppColors.blue,
             marginTop: 10,
@@ -72,7 +72,12 @@ export function InstantMessageBar({
               onPress={() => setSelectedFriend(f)}
               style={{ padding: 8 }}
             >
-              <Text>{f.username}</Text>
+              <Text
+              style={[{
+                ...AppFonts.body, 
+                color: AppColors.blue,
+                fontSize: 24
+              }]}>{f.username}</Text>
             </TouchableOpacity>
           ))}
         </View>

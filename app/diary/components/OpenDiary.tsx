@@ -566,7 +566,7 @@ const isActive =
 
         {/* ── Left bookmarks ── */}
         <View style={styles.leftBookmarks}>
-          <TouchableOpacity onPress={() => router.push('/diary/Diary')}>
+          <TouchableOpacity onPress={() => router.push('/protected/Diary')}>
             <View style={styles.cell}>
               <Text style={styles.ExitIcon}>X</Text>
             </View>

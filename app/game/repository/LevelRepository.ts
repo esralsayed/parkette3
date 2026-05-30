@@ -28,7 +28,7 @@ export class LevelRepository {
   private cacheTimestamps: Map<string, number> = new Map();
   
   // API URL from environment variables (works in both dev and production)
-  private apiUrl = `${process.env.EXPO_PUBLIC_API_URL}/api` || 'http://localhost:5000/api';
+  private apiUrl = 'http://localhost:5000/api';
 
   private async getAuthHeaders(): Promise<HeadersInit> {
     try {
@@ -228,13 +228,14 @@ export class LevelRepository {
 
   //save chapter progress
 
-  async saveChapterProgress(payload: ChapterProgressPayload): Promise<void> {
+  async saveChapterProgress(payload: ChapterProgressPayload): Promise<{ allPassed: boolean; rewardUnlocked: any }> {
   const headers = await this.getAuthHeaders(); // add this
-  await fetch(`${this.apiUrl}/progress/chapter`, {
+  const res = await fetch(`${this.apiUrl}/progress/chapter`, {
     method: 'POST',
     headers,
     body: JSON.stringify(payload),
   });
+  return res.json(); 
 }
 
   async getCheckpoint(userId: string, levelId: string): Promise<LevelCheckpoint | null> {

@@ -33,7 +33,6 @@ const TokenEntrySchema = new Schema(
 const userSchema = new Schema({
   name: { type: String, required: true },
   username: { type: String, required: true, unique: true },
-  email: { type: String, required: true, unique: true },
   password: { type: String, required: true },
   parentId: { type: Schema.Types.ObjectId, ref: "Parent" },
   avatar: { type: avatarSchema, default: () => ({}) },
@@ -53,6 +52,11 @@ const userSchema = new Schema({
     },
     tokens:      { type: Number, default: 0 },
     tokenLedger: { type: [TokenEntrySchema], default: [] }, 
+    unlockedItems: [{
+      type:   { type: String, enum: ['sticker', 'game', 'hair'] },
+      itemId: { type: String },
+      _id: false,
+    }],
     friends: [{ type: Schema.Types.ObjectId, ref: "User" }],
     friendCode: {                                              // ← add this
     type: String,

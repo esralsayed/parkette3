@@ -107,8 +107,8 @@ const styles = StyleSheet.create({
   },
   tapHint: {
     ...AppFonts.bodySmall,
-    fontSize: 11,
-    color: AppColors.dark,
+    fontSize: 18,
+    color: AppColors.lilac,
     opacity: 0.5,
   },
 dialogText: {

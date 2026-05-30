@@ -129,20 +129,29 @@ export function AvatarLayer({
   );
 }
 
+const LOCKED_HAIRS = ['hair9']; // add future locked ones here
+
 interface WindowProps {
     onClose?: () => void; 
     activeWindow: ActiveWindow; 
     onSelect: (id: string) => void; 
+    unlockedItems?: { type: string; itemId: string }[];  // ← add
 }
 
-export function Window ({ onClose, activeWindow, onSelect}: WindowProps) {
+export function Window ({ onClose, activeWindow, onSelect, unlockedItems = []}: WindowProps) {
     let name = "";
     let setObjects: string | any[] = []; 
 
     console.log("in window", activeWindow);
 
     switch (activeWindow) {
-        case 'hair':      name = "Hair";       setObjects = HAIR_DEFS; break;
+        case 'hair':
+          name = "Hair";
+          setObjects = HAIR_DEFS.filter(
+            (h) => !LOCKED_HAIRS.includes(h.id) ||
+                  unlockedItems.some((u) => u.itemId === h.id)
+          );
+          break;
         case 'skin':      name = "Skin Tone";  setObjects = SKIN_DEFS; break;
         case 'top':       name = "Top";        break;
         case 'bottom':    name = "Bottoms";    break;

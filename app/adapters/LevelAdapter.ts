@@ -3,9 +3,6 @@
 import { ImageSourcePropType } from 'react-native';
 import { DialogStep, DifficultyVariant, LevelData, Question } from '../game/types/level.types';
 
-import Slide2 from '../../assets/svgs/game/chapters/slide1.svg';
-import Slide1 from '../../assets/svgs/game/chapters/slide2.svg';
-import Slide3 from '../../assets/svgs/game/chapters/slide3.svg';
 
 // ──────────────────────────────────────────────────────────
 // TARGET INTERFACES (What your React components expect)
@@ -291,9 +288,9 @@ private static convertBackgroundImage(url?: string): any {
 }
 
   private static IMAGE_MAP: Record<string, any> = {
-  slide1: Slide1,
-  slide2: Slide2,
-  slide3: Slide3
+  slide1: require('@/assets/svgs/game/chapters/slide2.png'),
+  slide2: require('@/assets/svgs/game/chapters/slide1.png'),
+  slide3: require('@/assets/svgs/game/chapters/slide3.png'),
 };
 
 private static resolveImage(key: string | undefined): any {

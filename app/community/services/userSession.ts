@@ -7,6 +7,7 @@ interface User {
   email?: string;
   level: number;
   tokens: number;
+  unlockedItems: [{type:string, itemId: string}]
 }
 
 interface SessionStore {

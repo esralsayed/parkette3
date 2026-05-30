@@ -60,14 +60,14 @@ const NavBar: React.FC<NavBarProps> = ({ onLogout }) => {
           <Text style={styles.navLink}>Game</Text>
         </TouchableOpacity>
         <TouchableOpacity
-  onPress={() => {
-    if (communitySession) {
-      router.push('/community/components/communityLanding');
-    } else {
-      router.push('/protected/Community');
-    }
-  }}
->
+        onPress={() => {
+          if (communitySession) {
+            router.push('/community/components/communityLanding');
+          } else {
+            router.push('/protected/Community');
+          }
+        }}
+      >
           <Text style={styles.navLink}>Community</Text>
         </TouchableOpacity>
         <TouchableOpacity onPress={() => router.push('/protected/Diary')}>
@@ -95,7 +95,7 @@ const NavBar: React.FC<NavBarProps> = ({ onLogout }) => {
           // ── Logged-out
           <>
             <TouchableOpacity onPress={() => router.push('/auth/login')}>
-              <Text style={styles.navLogin}>I already play</Text>
+              <Text style={styles.navLogin}>Login</Text>
             </TouchableOpacity>
             <TouchableOpacity
               style={styles.navSignupBtn}

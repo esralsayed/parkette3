@@ -1,9 +1,10 @@
-import { AppColors, AppFonts, Spacing } from '@/constants/theme';
+import { AppColors, AppFonts, AppFontSizes, Spacing } from '@/constants/theme';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useRouter } from 'expo-router';
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
   Alert,
+  Animated, Dimensions, Easing,
   Image,
   StyleSheet,
   Text,
@@ -13,8 +14,9 @@ import {
 } from 'react-native';
 import PrimaryButton from '../components/style/buttonHovered';
 import LinkText from '../components/style/LinksHover';
+const { width } = Dimensions.get('window')
 
-const API_URL = `${process.env.EXPO_PUBLIC_API_URL}/api/auth` || 'http://localhost:5000/api/auth';
+const API_URL = 'http://localhost:5000/api/auth';
 
 export default function Signup() {
   const router = useRouter();
@@ -24,6 +26,26 @@ export default function Signup() {
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [focusedField, setFocusedField] = useState<string | null>(null);
+  const scrollAnim = useRef(new Animated.Value(0)).current;
+  
+    useEffect(() => {
+      Animated.loop(
+        Animated.timing(scrollAnim, {
+          toValue: -width,      // negative of the image width (adjust to match your image)
+          duration: 18000,    // speed of the scroll in ms
+          easing: Easing.linear,
+          useNativeDriver: true,
+        })
+      ).start();
+    }, []);
+
+    const notify = (title: string, message: string) => {
+  if (typeof window !== 'undefined') {
+    window.alert(`${title}\n\n${message}`);
+  } else {
+    Alert.alert(title, message);
+  }
+};
 
   const handleSignup = async () => {
     if (!name || !username || !email || !password) {
@@ -39,11 +61,12 @@ export default function Signup() {
       });
       const data = await response.json();
       if (response.ok) {
-        await AsyncStorage.setItem('token', data.token);
-        await AsyncStorage.setItem('user', JSON.stringify(data.user));
+  await AsyncStorage.setItem('pendingUserId', data.user.id);
+  await AsyncStorage.setItem('pendingUserEmail', data.user.email);
         // Go to email verification screen, not directly to register-child
         router.push('/auth/verifymail');
       } else {
+        notify("Error", data.message); 
         Alert.alert('Error', data.message || 'Signup failed');
       }
     } catch (error) {
@@ -55,6 +78,29 @@ export default function Signup() {
 
   return (
     <View style={styles.container}>
+          <Animated.View
+            style={{
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              width: '200%',         // holds two image widths
+              height: '100%',
+              flexDirection: 'row',
+              opacity: 0.3,
+              transform: [{ translateX: scrollAnim }],
+            }}
+          >
+            <Image
+              source={require('@/assets/images/Untitled-1.png')}
+              style={{ width: '50%', height: '100%', resizeMode: 'cover' }}
+            />
+            <Image
+              source={require('@/assets/images/Untitled-1.png')}
+              style={{ width: '50%', height: '100%', resizeMode: 'cover' }}
+            />
+          </Animated.View>
+            <View style={styles.overlay} />  {/* semi-transparent dark/lilac layer */}
+      <View style={styles.cont}>
       {/* Header */}
       <View style={styles.headerContainer}>
         <Image
@@ -66,8 +112,6 @@ export default function Signup() {
 
       {/* Card */}
       <View style={styles.card}>
-        <View style={styles.cornerTL} />
-        <View style={styles.cornerBR} />
 
         {/* Full Name */}
         <View style={styles.field}>
@@ -151,6 +195,7 @@ export default function Signup() {
           </View>
         </View>
       </View>
+      </View>
     </View>
   );
 }
@@ -163,54 +208,58 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     padding: Spacing.lg,
   },
+    bg:{
+    position: 'absolute',  // ← key change
+    top: 0,
+    left: 0,
+    width: '100%',
+    height: '100%',
+    opacity: 0.3,
+    resizeMode: 'cover',   // or 'contain'
+  },
+  overlay: {
+  ...StyleSheet.absoluteFillObject,
+  backgroundColor: AppColors.lilac,
+  opacity: 0.5 // strong lilac wash,
+  
+},
+  cont:{
+    width: '100%',
+    alignItems: 'center',
+    zIndex: 1,             // sits above the image
+  },
   headerContainer: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    gap: Spacing.lg,
+    width: '100%',
+    maxWidth: 420,
+    marginBottom: Spacing.sm,
   },
   catImage: {
     width: 130,
     height: 130,
   },
   headerTitle: {
-    fontSize: 48,
+    fontSize: AppFontSizes.title,
     color: AppColors.blue,
-    letterSpacing: 2,
+    letterSpacing: 5,
     textAlign: 'right',
   },
   card: {
     width: '100%',
     maxWidth: 420,
-    backgroundColor: 'rgba(255,255,255,0.18)',
+    backgroundColor: AppColors.lilac,
     borderWidth: 3,
     borderColor: AppColors.blue,
     borderStyle: 'dashed',
     borderRadius: 18,
     padding: Spacing.lg,
-    shadowColor: '#b0b8e8',
-    shadowOffset: { width: 4, height: 4 },
+    shadowColor: AppColors.blue,
+    shadowOffset: { width: 5, height: 5 },
     shadowOpacity: 1,
     shadowRadius: 0,
     elevation: 4,
-  },
-  cornerTL: {
-    position: 'absolute',
-    top: -5,
-    left: -5,
-    width: 10,
-    height: 10,
-    backgroundColor: AppColors.blue,
-    borderRadius: 2,
-  },
-  cornerBR: {
-    position: 'absolute',
-    bottom: -5,
-    right: -5,
-    width: 10,
-    height: 10,
-    backgroundColor: AppColors.blue,
-    borderRadius: 2,
   },
   field: {
     marginBottom: Spacing.md,

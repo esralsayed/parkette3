@@ -59,10 +59,10 @@ export const SCENE_REGISTRY: Record<string, SceneDefinition> = {
       { kind: 'tree',      variant: 'pine', slot: 'right',     size: 'large', depth: 'mid'  },
       { kind: 'tree',      variant: 'oak',  slot: 'far-right', size: 'large', depth: 'near' },
       { kind: 'character', image: Mom,      slot: 'left',         size: 'hero'   },
-      { kind: 'character', image: Cat,      slot: 'center-left',  size: 'small'  },
+      { kind: 'character', image: Cat,      slot: 'center-left',  size: 'medium', verticalOffset: 50  },
       { kind: 'character', image: MainGirl, slot: 'center-right', size: 'large' },
-      { kind: 'prop',      image: Cloud1,     slot: 'center',       size: 'medium', depth: 'mid'  },
-      { kind: 'prop',      image: Cloud2,     slot: 'center-right', size: 'medium', depth: 'mid'  },
+      { kind: 'prop',      image: Cloud1,     slot: 'center',       size: 'hero', verticalOffset: 350   },
+      { kind: 'prop',      image: Cloud2,     slot: 'center-right', size: 'hero', verticalOffset: 350 },
     ],
   },
 
@@ -71,12 +71,12 @@ export const SCENE_REGISTRY: Record<string, SceneDefinition> = {
     elements: [
       { kind: 'tree',      variant: 'pine', slot: 'center',       size: 'large',  depth: 'near' },
       { kind: 'character', image: MainGirl, slot: 'left',         size: 'large' },
-      { kind: 'character', image: Cat,      slot: 'center-left',  size: 'small'  },
+      { kind: 'character', image: Cat,      slot: 'center-left',  size: 'medium', verticalOffset:50  },
       { kind: 'character', image: Friend1,  slot: 'center-right', size: 'large' },
       { kind: 'character', image: Friend2,  slot: 'right',        size: 'large' },
       { kind: 'character', image: Friend3,  slot: 'far-right',    size: 'large' },
-      { kind: 'prop',      image: Cloud1,     slot: 'center',       size: 'medium', depth: 'mid'  },
-      { kind: 'prop',      image: Cloud2,     slot: 'center-right', size: 'medium', depth: 'mid'  },
+      { kind: 'prop',      image: Cloud1,     slot: 'center',       size: 'hero', verticalOffset: 350 },
+      { kind: 'prop',      image: Cloud2,     slot: 'center-right', size: 'hero', verticalOffset: 350  },
     ],
   },
 
@@ -87,7 +87,7 @@ export const SCENE_REGISTRY: Record<string, SceneDefinition> = {
       { kind: 'tree',      variant: 'pine', slot: 'far-right',    size: 'large', depth: 'near' },
       { kind: 'character', image: MainGirl, slot: 'center',       size: 'large' },
       { kind: 'character', image: Friend3,  slot: 'right',        size: 'large' },
-      { kind: 'prop',      image: Ball,     slot: 'center-right', size: 'small', depth: 'mid'  },
+      { kind: 'prop',      image: Ball,     slot: 'center-right', size: 'medium', depth: 'mid'  },
     ],
   },
 
@@ -97,7 +97,7 @@ export const SCENE_REGISTRY: Record<string, SceneDefinition> = {
       { kind: 'tree',      variant: 'pine', slot: 'left',         size: 'large', depth: 'near' },
       { kind: 'character', image: MainGirl, slot: 'center',       size: 'large' },
       { kind: 'character', image: Man,      slot: 'far-right',    size: 'large'  },
-      { kind: 'prop',      image: Ball,     slot: 'center-right', size: 'small', depth: 'mid'  },
+      { kind: 'prop',      image: Ball,     slot: 'center-right', size: 'medium', depth: 'mid'  },
     ],
   },
 

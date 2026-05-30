@@ -33,6 +33,23 @@ export default function DiaryLandingPage() {
   if (!screenHeight || !screenWidth) return null; 
 
 
+  const [unlockedItems, setUnlockedItems] = useState<{ type: string; itemId: string }[]>([]);
+  const API_URL = "http://localhost:5000"
+
+  useEffect(() => {
+    if (!userId) return;
+    const fetchRewards = async () => {
+      try {
+        const res = await fetch(`${API_URL}/api/chapters/${userId}/rewards`);
+        const data = await res.json();
+        setUnlockedItems(data.unlockedItems ?? []);
+        console.log(unlockedItems);
+      } catch (e) {
+        console.error('Failed to fetch rewards:', e);
+      }
+    };
+    fetchRewards();
+  }, [userId]);
 
   useEffect(() => {
     const loadUserName = async () => {
@@ -175,6 +192,7 @@ useEffect(() => {
       onClose={() => closeWindow('stickers')}
       onStickerSelected={handleStickerSelected}
       selectedStickerId={selectedStickerId}
+      unlockedItems={unlockedItems}
     />
   </View>
 )}

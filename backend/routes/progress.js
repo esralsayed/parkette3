@@ -1,55 +1,34 @@
 import express from 'express';
-import Chapter from '../models/content agent/Chapter.js';
 import Level from '../models/content agent/Level.js';
 import Progress from '../models/content agent/Progress.js';
 import { User } from "../models/User.js";
+import { evaluateAndUnlockChapters } from '../utils/chapterUnlock.js';
+import { updateSkillScores } from '../utils/recommendationService.js';
+import { awardChapterToken } from '../utils/tokenService.js';
 
 const router = express.Router();
 
 
 //simply checks for user level and unlocks
-export const evaluateChapterUnlocks = (user, chapters) => {
-  const unlocked = [];
+// export const evaluateChapterUnlocks = (user, chapters) => {
+//   const unlocked = [];
 
-  for (const chapter of chapters) {
-    const chapterId = chapter._id.toString();
+//   for (const chapter of chapters) {
+//     const chapterId = chapter._id.toString();
 
-    const alreadyUnlocked = user.unlockedChapters?.some(
-      id => id.toString() === chapterId
-    );
+//     const alreadyUnlocked = user.unlockedChapters?.some(
+//       id => id.toString() === chapterId
+//     );
 
-    if (alreadyUnlocked) continue;
+//     if (alreadyUnlocked) continue;
 
-    if (user.level >= chapter.unlockedOn) {
-      unlocked.push(chapter._id);
-    }
-  }
+//     if (user.level >= chapter.unlockedOn) {
+//       unlocked.push(chapter._id);
+//     }
+//   }
 
-  return unlocked;
-};
-
-// ── Award tokens for chapter completion ────────────────────────────────────
-// Call this once when a chapter is fully completed, not on every level save
-const awardTokens = async (userId, chapterId, starsEarned) => {
-  // Base award + star bonus — tune these values to your economy
-  const BASE_TOKENS   = 20;
-  const BONUS_PER_STAR = 5;
-  const amount = BASE_TOKENS + starsEarned * BONUS_PER_STAR;
-
-  await User.findByIdAndUpdate(userId, {
-    $inc: { tokens: amount },
-    $push: {
-      tokenLedger: {
-        amount,
-        reason:    'chapter_complete',
-        chapterId,
-        earnedAt:  new Date(),
-      },
-    },
-  });
-
-  return { tokensAwarded: amount };
-};
+//   return unlocked;
+// };
 
 // ── POST /progress/level ───────────────────────────────────────────────────
 router.post('/level', async (req, res) => {
@@ -112,6 +91,9 @@ router.post('/level', async (req, res) => {
       servedLanguage: 'base',
     };
 
+    const wasAlreadyPassed = existingLevelIndex !== -1 &&
+    progress.levelProgress[existingLevelIndex]?.passed === true;
+
     if (existingLevelIndex !== -1) {
       progress.levelProgress[existingLevelIndex] = {
         ...progress.levelProgress[existingLevelIndex].toObject(),
@@ -126,36 +108,43 @@ router.post('/level', async (req, res) => {
       0
     );
 
+    progress.currentLevelId  = levelId;
+    progress.currentChapterId = chapterId;
+
     await progress.save();
 
-    console.log("✅ [Progress] Saved successfully for level", levelId);
+    await updateSkillScores(userId, levelId, { passed, attempts, preQuestionAnswers, postQuestionAnswers }).catch(err =>
+      console.error("⚠️ [SkillScores] Failed to update:", err.message)
+    );
+    const updatedProgress = await Progress.findOne({ userId }).select("skillScores").lean();
+const skillScores = updatedProgress?.skillScores ?? {};
 
     // Level up logic
     let levelUp = false;
     let newUnlocks = [];
 
-    if (passed) {
-      const isFirstCompletion = existingLevelIndex === -1 || 
-                               !progress.levelProgress[existingLevelIndex]?.passed;
+  if (passed && !wasAlreadyPassed) {
+    const user = await User.findByIdAndUpdate(
+      userId, 
+      { $inc: { level: 1 } }, 
+      { returnDocument: 'after' }
+    );
 
-      if (isFirstCompletion) {
-        const user = await User.findByIdAndUpdate(
-          userId, 
-          { $inc: { level: 1 } }, 
-          { returnDocument: 'after' }
-        );
+    levelUp = true;
+    const unlockResult = await evaluateAndUnlockChapters(userId);
+    newUnlocks = unlockResult.newlyUnlocked;
+    console.log(newUnlocks)
 
-        levelUp = true;
-        const chapters = await Chapter.find();
-        newUnlocks = evaluateChapterUnlocks(user, chapters);
-      }
-    }
+  }
+
+  console.log("progress", progress)
 
     res.json({ 
       success: true, 
       progress, 
       levelUp, 
-      newUnlocks 
+      newUnlocks,
+      skillScores
     });
 
   } catch (error) {
@@ -237,13 +226,17 @@ router.post('/chapter', async (req, res) => {
  
     // ── Award tokens once on first chapter completion ───────────────────────
     let tokensAwarded = 0;
+    let rewardUnlocked = null;
+
     if (allPassed && !wasAlreadyPassed) {
-      const award = await awardTokens(userId, chapterId, totalStarsEarned);
-      tokensAwarded = award.tokensAwarded;
-      console.log(`🪙 Awarded ${tokensAwarded} tokens for completing chapter ${chapterId}`);
+      const result = await awardChapterToken(userId, chapterId);
+      if (result) {
+        tokensAwarded = result.tokens;
+        rewardUnlocked = result;
+      }
     }
  
-    res.json({ success: true, progress, allPassed, tokensAwarded });
+    res.json({ success: true, progress, allPassed, tokensAwarded, rewardUnlocked });
  
   } catch (error) {
     console.error('❌ Error saving chapter progress:', error);
@@ -257,13 +250,65 @@ router.get('/:userId', async (req, res) => {
     const { userId } = req.params;
     const progress = await Progress.findOne({ userId })
       .populate('levelProgress.levelId')
-      .populate('chapterProgress.chapterId');
+      .populate('chapterProgress.chapterId')
+      .populate('currentLevelId', 'title order chapterId');
 
     if (!progress) {
-      return res.json({ levelProgress: [], chapterProgress: [], totalStars: 0, unlockedChapters: [] });
+      return res.json({
+        levelProgress: [],
+        chapterProgress: [],
+        totalStars: 0,
+        currentLevel: null,
+        chapterProgressMap: {},
+      });
+    }
+    let currentLevel;
+
+    if (!progress.currentLevelId) {
+      // new user — find first level of first chapter
+      const firstLevel = await Level.findOne({}).sort({ order: 1 });
+      currentLevel = firstLevel
+        ? { _id: firstLevel._id, title: firstLevel.title, order: firstLevel.order, chapterId: firstLevel.chapterId }
+        : { order: 1 };
+    } else {
+      const completedOrder = progress.currentLevelId.order;
+      const nextLevel = await Level.findOne({ 
+        chapterId: progress.currentLevelId.chapterId, 
+        order: completedOrder + 1
+      });
+      currentLevel = nextLevel
+        ? { _id: nextLevel._id, title: nextLevel.title, order: nextLevel.order, chapterId: nextLevel.chapterId }
+        : { order: completedOrder };
     }
 
-    res.json(progress);
+    const currentChapter = progress.currentChapterId
+      ? progress.currentChapterId
+      : { order: 1 };
+
+    // ── Per-chapter progress map ──────────────────────────
+    const allChapters = await Level.aggregate([
+      { $group: { _id: '$chapterId', totalLevels: { $sum: 1 } } }
+    ]);
+
+    const chapterProgressMap = {};
+    for (const ch of allChapters) {
+      const chId = ch._id.toString();
+      const passed = progress.levelProgress
+        .filter(lp => lp.chapterId?.toString() === chId && lp.passed)
+        .length;
+      chapterProgressMap[chId] = {
+        completed: passed,
+        total: ch.totalLevels,
+      };
+    }
+
+    res.json({
+      ...progress.toObject(),
+      currentLevel,
+      currentChapter,
+      chapterProgressMap,
+    });
+
   } catch (error) {
     console.error('Error fetching progress:', error);
     res.status(500).json({ message: 'Server error' });

@@ -10,14 +10,14 @@ import { SvgProps } from 'react-native-svg';
 
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import {
-    Animated,
-    Dimensions,
-    Modal,
-    Text,
-    TouchableOpacity,
-    TouchableWithoutFeedback,
-    Vibration,
-    View,
+  Animated,
+  Dimensions,
+  Modal,
+  Text,
+  TouchableOpacity,
+  TouchableWithoutFeedback,
+  Vibration,
+  View,
 } from "react-native";
 
 const { width: SW, height: SH } = Dimensions.get("window");
@@ -194,8 +194,11 @@ const DiffPicker: React.FC<DiffPickerProps> = ({ title, subtitle, topEmoji, onPi
   <View
     style={{
       position: "absolute",
-      inset: 0, top: 0, left: 0, right: 0, bottom: 0,
-      backgroundColor: AppColors.lilac,
+      top: 0,
+      left: 0,
+      right: 0,
+      bottom: 0,          // ← replace "inset: 0" with these 4
+      backgroundColor: AppColors.blue,   // ← was lilac, making text invisible
       alignItems: "center",
       justifyContent: "center",
       gap: 10,
@@ -206,7 +209,7 @@ const DiffPicker: React.FC<DiffPickerProps> = ({ title, subtitle, topEmoji, onPi
     <Text style={{ color: AppColors.lilac, fontSize: 42, fontWeight: "800", ...AppFonts.title }}>
       {title}
     </Text>
-    <Text style={{ color: AppColors.blue, fontSize: 28, ...AppFonts.body }}>
+    <Text style={{ color: AppColors.lilac, fontSize: 18, ...AppFonts.body, textAlign: 'center', paddingHorizontal: 20 }}>
       {subtitle}
     </Text>
     <View style={{ flexDirection: "row", gap: 12, marginTop: 10 }}>

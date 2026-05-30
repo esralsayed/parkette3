@@ -19,8 +19,10 @@ import { Calendar as RnCalendar } from 'react-native-calendars';
 import { useCommunity } from '../community/hooks/useComm';
 import Footer from '../components/Footer';
 import NavBar from '../components/navbar';
+import SecondaryButton from '../components/style/SecondaryButton';
 
 const { width } = Dimensions.get('window');
+const API_URL = "http://localhost:5000/api"
 
 // ─── DIARY PREVIEW CARD ──────────────────────────────────
 const DiaryPreviewCard = ({ onPress }: { onPress: () => void }) => {
@@ -120,6 +122,174 @@ const HeroSection = ({
   );
 };
 
+import HairReward from '@/assets/svgs/avatar/hairs/Hair 9.svg';
+import FeedReward from '@/assets/svgs/community/animals/dog.svg'; // fish game
+import StickerReward from '@/assets/svgs/diary/stickers/sticker8.svg'; // music sticker
+
+const REWARD_SVG_MAP: Record<string, React.ComponentType<any>> = {
+  sticker: StickerReward,
+  game:    FeedReward,
+  hair:    HairReward,
+};
+
+// ─── TOKEN REWARD DISPLAY ─────────────────────────────────
+const REWARD_DEFS = [
+  { chapter: 1, icon: '✏️', label: 'Music Sticker', type: 'sticker' },
+  { chapter: 2, icon: '🎣', label: 'Feed Game',     type: 'game'    },
+  { chapter: 3, icon: '💇', label: 'New Hair',      type: 'hair'    },
+];
+
+const TokenRewards = ({ completedChapters }: { completedChapters: number[] }) => (
+  <View style={styles.tokenRow}>
+    {REWARD_DEFS.map((r) => {
+      const unlocked = completedChapters.includes(r.chapter);
+      return (
+        <View key={r.chapter} style={styles.tokenItem}>
+          <View style={[styles.tokenCoin, unlocked && styles.tokenCoinUnlocked]}>
+            <Text style={styles.tokenIcon}>{unlocked ? r.icon : '🔒'}</Text>
+          </View>
+          <Text style={[styles.tokenLabel, unlocked && styles.tokenLabelUnlocked]}>
+            {r.label}
+          </Text>
+        </View>
+      );
+    })}
+  </View>
+);
+
+// ─── GAME PROGRESS CARD ──────────────────────────────────
+  const GameProgressCard = ({ userId, recommendation }: { 
+    userId: string | null;
+    recommendation: {
+      recommendedLevelId: string;
+      type: 'retry' | 'next' | 'challenge' | 'complete';
+      reason: string;
+      level?: { title: string; order: number };
+      newlyUnlocked: string[];
+    } | null;
+  }) => {
+  const router = useRouter();
+  const [data, setData] = useState<{
+    starsEarned: number;
+    totalStars: number;
+    completedChapters: number[];
+    nextReward: string;
+    currentLevel: { _id?: string; title?: string; order: number; chapterId?: string };
+    currentChapter: { _id?: string; order: number };
+    chapterProgressMap: Record<string, { completed: number; total: number }>;
+  } | null>(null);
+
+  useEffect(() => {
+    if (!userId) return;
+    const fetch_ = async () => {
+      try {
+        const [progressRes, rewardsRes] = await Promise.all([
+          fetch(`${API_URL}/progress/${userId}`),
+          fetch(`${API_URL}/chapters/${userId}/rewards`),
+        ]);
+        const progress = await progressRes.json();
+        const rewards  = await rewardsRes.json();
+        console.log(rewards);
+        console.log(progress);
+
+        const nextChapter = [1, 2, 3].find(
+          (c) => !rewards.completedChapters.includes(c)
+        );
+        const nextRewardLabel = nextChapter
+          ? REWARD_DEFS[nextChapter - 1].label
+          : 'All unlocked!';
+
+        setData({
+          starsEarned: progress.chapterStarsEarned ?? 0,  // ← was progress.totalStars
+          totalStars:  progress.chapterTotalStars  ?? 6,  // ← was hardcoded 100
+          completedChapters: rewards.completedChapters ?? [],
+          nextReward: nextRewardLabel,
+          currentLevel: progress.currentLevel ?? { order: 1 },      // ← fallback
+          currentChapter: progress.currentChapter ?? { order: 1 },
+          chapterProgressMap: progress.chapterProgressMap ?? {},  // ← add this
+        });
+        console.log(data);
+      } catch (e) {
+        console.error(e);
+      }
+    };
+    fetch_();
+  }, [userId]);
+
+  if (!data) return null;
+
+  return (
+    <View>
+    <View
+      style={styles.gameCard}
+    >
+      {/* Left: level + arrows */}
+      <View style={styles.gameCardLeft}>
+        <View style={styles.gameCardLeftOne}>
+          <Text style={styles.gameCardLabel}>Your level</Text>
+          <Text style={styles.gameCardLabel}>Press to play</Text>
+          <TouchableOpacity style={styles.levelBlockActive}
+          onPress={() => router.push('/protected/chapters')}>
+            <Text style={styles.levelBlockNumber}>{data.currentLevel.order}</Text>
+          </TouchableOpacity>
+          <Text style={styles.gameCardChapter}>Chapter {data.currentChapter.order}</Text>
+        </View>
+      </View>
+
+      {/* Center: 3 token coins */}
+      <View style={styles.gameCardTokens}>
+        <Text style={styles.tokenSectionTitle}>Play to unlock:</Text>
+        <TokenRewards completedChapters={data.completedChapters} />
+      </View>
+
+      {/* Right: progress bar */}
+      {/* Right: SVG progress fill */}
+      <View style={styles.gameCardRight}>
+        {(() => {
+          const CHAPTER_ORDER_TO_ID: Record<number, string> = {
+            1: '69d2f1ce4c52af68e2ff6468',
+            2: '69fddebbf6b5e57336dca3b2',
+            3: '69fde9a3f6b5e57336dca3b6',
+          };
+
+          const nextChapterIndex = [1, 2, 3].find(c => !data.completedChapters.includes(c));
+          const chapterId = nextChapterIndex ? CHAPTER_ORDER_TO_ID[nextChapterIndex] : null;
+          const chapterProgress = chapterId
+            ? (data.chapterProgressMap?.[chapterId] ?? { completed: 0, total: 1 })
+            : null;
+          const percent = chapterProgress
+            ? Math.min(100, Math.round((chapterProgress.completed / chapterProgress.total) * 100))
+            : 100;
+
+          const currentReward = nextChapterIndex ? REWARD_DEFS[nextChapterIndex - 1] : null;
+          const RewardSvg = currentReward ? REWARD_SVG_MAP[currentReward.type] : null;
+
+          return (
+            <View style={styles.svgFillWrapper}>
+              {RewardSvg && <RewardSvg width={84} height={84} style={styles.svgBase} opacity={0.15} />}
+              {RewardSvg && (
+                <View style={[styles.svgFillClip, { height: `${percent}%` }]}>
+                  <View style={{ position: 'absolute', bottom: 0 }}>
+                    <RewardSvg width={64} height={64} />
+                  </View>
+                </View>
+              )}
+              <Text style={styles.cityBarPercent}>{percent}%</Text>
+              {currentReward && <Text style={styles.rewardHintText}>{currentReward.label}</Text>}
+            </View>
+          );
+        })()}
+      </View>
+    </View>
+        {recommendation &&
+        recommendation.recommendedLevelId !== data?.currentLevel?._id
+        && recommendation.recommendedLevelId && recommendation.type !== 'complete' && (
+        <CoachTipCard recommendation={recommendation} userId={userId} />
+      )}
+    </View>
+  );
+};
+
 // ─── SECTION 3: GAME + FRIENDS ────────────────────────────
 const Section3 = () => {
   const router = useRouter();
@@ -134,7 +304,7 @@ const Section3 = () => {
           {/* Join Friends button — top right */}
           <TouchableOpacity
             style={styles.joinFriendsBtn}
-            onPress={() => router.push('../community/friendsList')}
+            onPress={() => router.push('/protected/Community')}
             activeOpacity={0.85}
           >
             <Text style={styles.joinFriendsBtnText}>Join Friends</Text>
@@ -146,7 +316,12 @@ const Section3 = () => {
             {loading ? (
               <ActivityIndicator size="small" color="#fff" />
             ) : friends.length === 0 ? (
+              <View style={[{alignContent: 'center' , flexDirection: 'column', marginBottom: 10}]}>
               <Text style={styles.friendsEmptyOverlay}>No friends yet — add some!</Text>
+              <SecondaryButton
+              title='Add friends'
+              onPress={() => router.push('/community/components/friendsList')} />
+              </View>
             ) : (
               friends.map((f) => (
                 <View key={f._id} style={styles.friendRowOverlay}>
@@ -169,8 +344,139 @@ const Section3 = () => {
   );
 };
 
-const API_URL = `${process.env.EXPO_PUBLIC_API_URL}/api/calender` || "http://localhost:5000/api/calendar"
+const CoachTipCard = ({ recommendation, userId }: {
+  recommendation: {
+    recommendedLevelId: string;
+    type: 'retry' | 'next' | 'challenge' | 'complete';
+    reason: string;
+    level?: { title: string; order: number };
+    newlyUnlocked: string[];
+  };
+  userId: string | null;
+}) => {
+  const router = useRouter();
 
+  const copy = {
+    retry:     { label: 'Keep practising',  subtext: 'Your coach wants you to try this again',        emoji: '💪' },
+    next:      { label: 'Next practice',    subtext: 'Your coach picked this one for you today',      emoji: '⭐' },
+    challenge: { label: 'Ready to level up?', subtext: 'Your coach thinks you\'re ready for this',   emoji: '🚀' },
+    complete:  { label: '',                 subtext: '',                                              emoji: '' },
+  }[recommendation.type];
+
+  return (
+    <TouchableOpacity
+      style={coachStyles.card}
+      onPress={() => router.push(`/game/level/${recommendation.recommendedLevelId}`)}
+      activeOpacity={0.85}
+    >
+      {/* coach identity */}
+      <View style={coachStyles.header}>
+        <View style={coachStyles.avatarWrap}>
+          <Text style={{ fontSize: 20 }}>🐱</Text>
+        </View>
+        <Text style={coachStyles.headerText}>Coach Cat says...</Text>
+      </View>
+
+      {/* recommendation body */}
+      <View style={coachStyles.body}>
+        <View style={coachStyles.textBlock}>
+          <Text style={coachStyles.subtext}>{copy.subtext}</Text>
+          <Text style={coachStyles.levelTitle}>
+            {copy.emoji}  {recommendation.level?.title ?? `Level ${recommendation.level?.order}`}
+          </Text>
+          {/* reason comes from your backend — one sentence, show it directly */}
+          <Text style={coachStyles.reason}>{recommendation.reason}</Text>
+        </View>
+
+        <View style={coachStyles.playBtn}>
+          <Text style={coachStyles.playBtnText}>Go!</Text>
+        </View>
+      </View>
+    </TouchableOpacity>
+  );
+};
+
+const coachStyles = StyleSheet.create({
+  card: {
+    marginHorizontal: Spacing.xl,
+    marginTop: Spacing.lg,
+    borderRadius: 16,
+    borderWidth: 3,
+    borderColor: AppColors.blue,
+    backgroundColor: AppColors.lilac,
+    overflow: 'hidden',
+    shadowColor: AppColors.blue,
+    shadowOffset: { width: 4, height: 3 },
+    shadowOpacity: 1,
+    shadowRadius: 0,
+    elevation: 6,
+  },
+  header: {
+    backgroundColor: AppColors.blue,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.sm,
+    paddingVertical: Spacing.sm,
+    paddingHorizontal: Spacing.md,
+  },
+  avatarWrap: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: AppColors.lilac,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  headerText: {
+    ...AppFonts.subhead,
+    color: AppColors.lilac,
+    fontSize: AppFontSizes.body,
+  },
+  body: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: Spacing.md,
+    gap: Spacing.md,
+  },
+  textBlock: {
+    flex: 1,
+    gap: 3,
+  },
+  subtext: {
+    ...AppFonts.bodySmall,
+    color: AppColors.blue,
+    fontSize: AppFontSizes.bodySmall,
+    opacity: 0.65,
+  },
+  levelTitle: {
+    ...AppFonts.subhead,
+    color: AppColors.blue,
+    fontSize: AppFontSizes.body,
+  },
+  reason: {
+    ...AppFonts.bodySmall,
+    color: AppColors.blue,
+    fontSize: AppFontSizes.bodySmall,
+    opacity: 0.55,
+    fontStyle: 'italic',
+  },
+  playBtn: {
+    backgroundColor: AppColors.blue,
+    borderRadius: 10,
+    paddingVertical: Spacing.md,
+    paddingHorizontal: Spacing.lg,
+    shadowColor: AppColors.lilac,
+    shadowOffset: { width: 3, height: 3 },
+    shadowOpacity: 1,
+    shadowRadius: 0,
+    elevation: 4,
+  },
+  playBtnText: {
+    ...AppFonts.subhead,
+    color: AppColors.lilac,
+    fontSize: AppFontSizes.body,
+  },
+});
 
 // ─── MAIN SCREEN ─────────────────────────────────────────
 export default function dashboard() {
@@ -180,6 +486,19 @@ export default function dashboard() {
   const [calendarVisible, setCalendarVisible] = useState(false);
   const [calendarDays, setCalendarDays] = useState<{ date: string; status: string }[]>([]);
   const [calendarLoading, setCalendarLoading] = useState(true);
+  const [recommendation, setRecommendation] = useState<{
+    recommendedLevelId: string;
+    type: 'retry' | 'next' | 'challenge' | 'complete';
+    reason: string;
+    level?: { title: string; order: number };
+    newlyUnlocked: string[];
+  } | null>(null)
+
+  useEffect(() => {
+  AsyncStorage.getItem('lastRecommendation').then(raw => {
+    if (raw) setRecommendation(JSON.parse(raw));
+  });
+}, []);
 
   useEffect(() => {
     const loadUserName = async () => {
@@ -203,7 +522,7 @@ export default function dashboard() {
     const fetchCalendar = async () => {
       setCalendarLoading(true);
       try {
-        const response = await fetch(`${API_URL}/${userId}`);
+        const response = await fetch(`${API_URL}/calender/${userId}`);
         const data = await response.json();
         setCalendarDays(data.days || []);
       } catch (error) {
@@ -241,6 +560,7 @@ export default function dashboard() {
           onOpenCalendar={() => setCalendarVisible(true)}
           onOpenDiary={() => router.push('/protected/Diary')}
         />
+        <GameProgressCard userId={userId} recommendation={recommendation} />   {/* ← add this */}
         <Section3 />
         <View></View>
       <Footer />
@@ -593,7 +913,7 @@ section3Wrapper: {
   friendsListOverlay: {
     position: 'absolute',
     top: '12%',
-    left: '66%',
+    left: '71.5%',
     right: 0,
     width: 200,
     backgroundColor: 'rgba(255,255,255,0.15)',
@@ -655,5 +975,203 @@ section3Wrapper: {
     color: 'rgba(255,255,255,0.65)',
     marginTop: 1,
   },
+
+  ///game card
+  // ── Game Progress Card
+gameCard: {
+  width: '70%', 
+  height: 300,
+  flexDirection: 'row',
+  marginHorizontal: Spacing.xl,
+  marginTop: Spacing.lg,
+  borderRadius: 16,
+  borderWidth: 3,
+  borderColor: AppColors.blue,
+  backgroundColor: AppColors.lilac,
+  overflow: 'hidden',
+  shadowColor: AppColors.blue,
+  shadowOffset: { width: 4, height: 4 },
+  shadowOpacity: 1,
+  shadowRadius: 0,
+  elevation: 6,
+  padding: Spacing.md,
+  alignItems: 'center',
+  gap: Spacing.md,
+  alignSelf: 'center'
+},
+gameCardLeft: {
+  flex: 1, 
+  flexDirection: 'row',
+  marginLeft: 20 
+},
+gameCardLeftOne: {
+  justifyContent: 'center',
+  alignItems: 'center', 
+  alignContent: 'center'
+},
+gameCardLeftTwo: {
+  justifyContent: 'center',
+  alignItems: 'center', 
+  marginLeft: 40
+},
+gameCardLabel: {
+  ...AppFonts.body,
+  color: AppColors.blue,
+  fontSize: AppFontSizes.header,
+},
+gameCardChapter: {
+  ...AppFonts.body,
+  color: AppColors.blue,
+  marginTop: 50,
+  fontSize: AppFontSizes.bodySmall,
+},
+gameCardCenter: {
+  alignItems: 'center',
+  justifyContent: 'center',
+  gap: 4,
+},
+levelBlockRow: {
+  alignItems: 'center',
+},
+levelArrow: {
+  padding: 4,
+},
+levelArrowText: {
+  color: AppColors.blue,
+  fontSize: 12,
+},
+levelBlockActive: {
+  width: 68,
+  height: 68,
+  backgroundColor: AppColors.lilac,
+  borderRadius: 10,
+  alignItems: 'center',
+  justifyContent: 'center',
+  borderWidth: 2,
+  marginTop: 10,
+  borderColor: AppColors.blue,
+    shadowColor: AppColors.blue,
+  shadowOffset: { width: 4, height: 4 },
+  shadowOpacity: 1,
+  shadowRadius: 0,
+  elevation: 6,
+},
+levelBlockNumber: {
+  ...AppFonts.body,
+  fontSize: AppFontSizes.title,
+  color: AppColors.blue,
+},
+gameCardRight: {
+  flex: 1,
+  alignItems: 'center',
+  justifyContent: 'center',
+},
+cityBarWrapper: {
+  alignItems: 'center',
+  marginBottom: Spacing.sm,
+},
+cityBarBg: {
+  width: 48,
+  height: 60,
+  backgroundColor: AppColors.lilac,
+  borderRadius: 6,
+  borderWidth: 3,
+  borderColor: AppColors.blue,
+  overflow: 'hidden',
+  justifyContent: 'flex-end',
+},
+cityBarFill: {
+  width: '100%',
+  backgroundColor: AppColors.lilac,
+  borderRadius: 4,
+},
+cityBarPercent: {
+  ...AppFonts.bodySmall,
+  color: AppColors.blue,
+  fontSize: AppFontSizes.bodySmall,
+  marginTop: 0,
+},
+gameCardPlayLabel: {
+  ...AppFonts.bodySmall,
+  color: AppColors.blue,
+  fontSize: AppFontSizes.bodySmall,
+},
+gameCardReward: {
+  ...AppFonts.body,
+  color: AppColors.blue,
+  fontSize: AppFontSizes.bodySmall,
+  fontWeight: '700',
+},
+tokenRow: {
+  flexDirection: 'row',
+  gap: Spacing.sm,
+  marginTop: Spacing.sm,
+},
+tokenItem: {
+  alignItems: 'center',
+  gap: 4,
+},
+tokenCoin: {
+  width: 64,
+  height: 64,
+  borderRadius: 22,
+  backgroundColor: AppColors.lilac,
+  borderWidth: 2,
+  borderColor: AppColors.blue,
+  borderStyle: 'dashed',
+  alignItems: 'center',
+  justifyContent: 'center',
+},
+tokenCoinUnlocked: {
+  backgroundColor: AppColors.lilac,
+  borderStyle: 'solid',
+  borderColor: '#fff',
+},
+tokenIcon: {
+  fontSize: 20,
+},
+tokenLabel: {
+  ...AppFonts.bodySmall,
+  color: AppColors.blue,
+  fontSize: 9,
+  textAlign: 'center',
+  maxWidth: 50,
+},
+tokenLabelUnlocked: {
+  color: AppColors.blue,
+},
+tokenSectionTitle: {
+  ...AppFonts.body,
+  color: AppColors.blue,
+  fontSize: AppFontSizes.title,
+},
+gameCardTokens: {
+  flex: 2,
+  alignItems: 'center',
+  justifyContent: 'center',
+},
+svgFillWrapper: {
+  alignItems: 'center',
+  justifyContent: 'flex-end',
+  gap: 4,
+},
+svgBase: {
+  position: 'absolute',
+  bottom: 24,  // leave room for percent text
+},
+svgFillClip: {
+  position: 'absolute',
+  bottom: 24,
+  width: 84,
+  overflow: 'hidden',   // ← this is what clips the SVG
+  justifyContent: 'flex-end',
+},
+rewardHintText: {
+  ...AppFonts.bodySmall,
+  color: AppColors.blue,
+  fontSize: 16,
+  textAlign: 'center',
+  maxWidth: 100,
+},
 
 });

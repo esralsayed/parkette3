@@ -2,7 +2,7 @@ import Circle1 from '@/assets/svgs/diary/circle1.svg';
 import Circle2 from '@/assets/svgs/diary/circle2.svg';
 import { AppColors, AppFonts } from "@/constants/theme";
 import React, { useState } from "react";
-import { StyleSheet, Text, TouchableOpacity, useWindowDimensions, View } from 'react-native';
+import { ScrollView, StyleSheet, Text, TouchableOpacity, useWindowDimensions, View } from 'react-native';
 
 
 interface WindowProps {
@@ -388,22 +388,32 @@ interface StickersWindowProps {
   onClose?: () => void;
   onStickerSelected?: (stickerId: string) => void;
   selectedStickerId?: string | null;
+  unlockedItems: { type: string; itemId: string }[];
 }
 
 export function StickersWindow({
   onClose,
   onStickerSelected,
   selectedStickerId,
+  unlockedItems
 }: StickersWindowProps) {
+  const LOCKED_STICKERS = ['sticker10']; // add future locked ones here
+
+  const visibleStickers = STICKER_DEFS.filter(
+    (s) => !LOCKED_STICKERS.includes(s.id) || 
+          unlockedItems.some((u) => u.itemId === s.id)
+  );
   const rows = [];
-  for (let i = 0; i < STICKER_DEFS.length; i += 3) {
-    rows.push(STICKER_DEFS.slice(i, i + 3));
+  for (let i = 0; i < visibleStickers.length; i += 3) {
+    rows.push(visibleStickers.slice(i, i + 3));
   }
   const { width: screenWidth, height:screenHeight } = useWindowDimensions();
   if (!screenHeight || !screenWidth) return null; 
 
+  const cellSize = screenWidth * 0.07; // fits 3 per row inside 0.27 width
+
   return (
-    <View style={[styles3.window , {    width: screenWidth * 0.26,}]}>
+    <View style={[styles3.window , {    width: screenWidth * 0.27,}]}>
       <View style={styles3.upperWindow}>
         <Text style={[styles3.windowText , {    fontSize: screenWidth * 0.025,}]}>Stickers</Text>
         <TouchableOpacity onPress={onClose} style={[styles3.close , {    width: screenWidth * 0.035,
@@ -412,25 +422,39 @@ export function StickersWindow({
         </TouchableOpacity>
       </View>
 
-      <View style={[{ padding: screenWidth * 0.012, gap: screenWidth * 0.008,}]}>
+      <ScrollView style={[{ padding: screenWidth * 0.012,}]}>
         {rows.map((row, rowIndex) => (
           <View key={rowIndex} style={[{flexDirection: 'row',gap: screenWidth * 0.008,marginBottom: screenWidth * 0.008,}]}>
             {row.map((sticker) => {
               const StickerComponent = sticker.component;
               const isSelected = selectedStickerId === sticker.id;
+              const isUnlocked = unlockedItems.some((u) => u.itemId === sticker.id);
               return (
                 <TouchableOpacity
                   key={sticker.id}
                   onPress={() => onStickerSelected?.(sticker.id)}
-                  style={[styles3.cell, isSelected && styles3.cellSelected]}
+                  style={[styles3.cell,
+                  { width: cellSize, height: cellSize }, // ← dynamic override
+                  isSelected && styles3.cellSelected]}
                 >
-                  <StickerComponent width={screenWidth * 0.04} height={screenWidth * 0.04} />
+                {isUnlocked && (
+                <View style={[styles3.badge, {
+                  width: screenWidth * 0.035,
+                  height: screenWidth * 0.016,
+                  borderRadius: screenWidth * 0.009,
+                  top: screenWidth * 0.005,
+                  right: screenWidth * 0.005,
+                }]}>
+                  <Text style={styles3.badgeText}>New</Text>
+                </View>
+              )}
+                <StickerComponent width={cellSize * 0.6} height={cellSize * 0.6} />
                 </TouchableOpacity>
               );
             })}
           </View>
         ))}
-      </View>
+      </ScrollView>
 
       {selectedStickerId && (
         <View style={[styles3.hint, {padding: screenWidth * 0.01,}]}>
@@ -476,8 +500,6 @@ const styles3 = StyleSheet.create({
     justifyContent: 'center',
   },
   cell: {
-    width: 150, 
-    height: 150,
     padding: 5,
     //flex: 1,
     aspectRatio: 1,
@@ -488,6 +510,17 @@ const styles3 = StyleSheet.create({
     justifyContent: 'center',
     backgroundColor: AppColors.lilac,
   },
+  badge: {
+  position: 'absolute',
+  backgroundColor: AppColors.blue,
+  alignItems: 'center',
+  marginBottom: 20
+},
+badgeText: {
+...AppFonts.body,
+color: AppColors.lilac,
+fontSize: 28
+},
   cellSelected: {
     backgroundColor: AppColors.blue,
   },
