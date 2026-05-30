@@ -28,7 +28,7 @@ export class LevelRepository {
   private cacheTimestamps: Map<string, number> = new Map();
   
   // API URL from environment variables (works in both dev and production)
-  private apiUrl = `${process.env.EXPO_PUBLIC_API_URL}/api` || 'http://localhost:5000/api';
+  private apiUrl = 'http://localhost:5000/api';
 
   private async getAuthHeaders(): Promise<HeadersInit> {
     try {

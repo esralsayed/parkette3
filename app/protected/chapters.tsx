@@ -93,7 +93,7 @@ const Chapters = () => {
             title: chapter.title || chapter.name || "Untitled Chapter",
             description: chapter.description,
             levelCount: chapter.levels?.length ?? chapter.levelCount ?? 0,
-            unlocked: chapter.unlockedOn <= userLevel,
+            unlocked: chapter.unlockedOn,
           }))
         );
         console.log("Chapters fetched:", chaptersData);

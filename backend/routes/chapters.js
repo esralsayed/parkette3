@@ -27,7 +27,8 @@ chapterroutes.get("/", async (req, res) => {
     const chaptersWithStatus = chapters.map((chapter) => {
       const cp = chapterProgressMap.get(chapter._id.toString());
 
-        const unlockedByLevel = chapter.unlockedOn != null && chapter.unlockedOn <= user.level;
+    const unlockedByLevel = chapter.unlockedOn <= user.level;
+    console.log("what is level?", user.level, "unlock by level?", unlockedByLevel);
   const unlockedByRecommendation = unlockedChapterIds.has(chapter._id.toString());
       return {
         id: chapter._id,

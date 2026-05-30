@@ -110,12 +110,15 @@ router.post('/level', async (req, res) => {
 
     progress.currentLevelId  = levelId;
     progress.currentChapterId = chapterId;
+console.log("🔧 About to call updateSkillScores", { userId, levelId });
 
-    await progress.save();
-
-    await updateSkillScores(userId, levelId, { passed, attempts, preQuestionAnswers, postQuestionAnswers }).catch(err =>
-      console.error("⚠️ [SkillScores] Failed to update:", err.message)
-    );
+  try {
+    await updateSkillScores(userId, levelId, { 
+      passed, attempts, preQuestionAnswers, postQuestionAnswers 
+    }, progress); // ← pass it
+  } catch (err) {
+    console.error("⚠️ [SkillScores] Failed to update:", err.message);
+  }
     const updatedProgress = await Progress.findOne({ userId }).select("skillScores").lean();
 const skillScores = updatedProgress?.skillScores ?? {};
 
