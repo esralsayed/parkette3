@@ -1,4 +1,5 @@
 import Chapter from "../models/content agent/Chapter.js";
+import Progress from "../models/content agent/Progress.js";
 import { User } from "../models/User.js";
 
 // ─────────────────────────────────────────────────────────────────
@@ -22,16 +23,18 @@ import { User } from "../models/User.js";
 //                   (empty array if nothing changed)
 // ─────────────────────────────────────────────────────────────────
 export async function evaluateAndUnlockChapters(userId, { recommendedChapterId = null } = {}) {
-  const [user, chapters] = await Promise.all([
-    User.findById(userId).select("level unlockedChapters"),
+
+  const [progress, chapters, user] = await Promise.all([
+    Progress.findOne({ userId }).select("unlockedChapters"),
     Chapter.find({ isActive: true }).select("_id unlockedOn"),
+    User.findById(userId).select("level"),
   ]);
 
   if (!user) throw new Error(`User ${userId} not found`);
 
   // Build a Set of already-unlocked chapter IDs for O(1) lookup
   const alreadyUnlocked = new Set(
-    (user.unlockedChapters ?? []).map((id) => id.toString())
+    (progress?.unlockedChapters ?? []).map((id) => id.toString())
   );
 
   const toUnlock = [];
@@ -40,7 +43,7 @@ export async function evaluateAndUnlockChapters(userId, { recommendedChapterId =
   for (const chapter of chapters) {
     const chapterId = chapter._id.toString();
     if (alreadyUnlocked.has(chapterId)) continue;
-    if (chapter.unlockedOn != null && user.level >= chapter.unlockedOn) {
+    if (chapter.unlockedOn != null && user.level != null && user.level >= chapter.unlockedOn) {
       toUnlock.push(chapter._id);
       alreadyUnlocked.add(chapterId); // prevent duplicate in same call
     }
@@ -63,12 +66,9 @@ export async function evaluateAndUnlockChapters(userId, { recommendedChapterId =
 
   // ── Persist if anything changed ───────────────────────────────
   if (toUnlock.length > 0) {
-    await User.findByIdAndUpdate(userId, {
-      $addToSet: { unlockedChapters: { $each: toUnlock } },
-    });
-    console.log(
-      `🔓 [Unlock] Unlocked ${toUnlock.length} chapter(s) for user ${userId}:`,
-      toUnlock.map((id) => id.toString())
+    await Progress.findOneAndUpdate(        // ← Progress, not User
+      { userId },
+      { $addToSet: { unlockedChapters: { $each: toUnlock } } }
     );
   }
 

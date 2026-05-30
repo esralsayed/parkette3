@@ -63,6 +63,8 @@ const ProgressSchema = new Schema(
       unique: true,  // one progress doc per user
     },
 
+    unlockedChapters: [{ type: Schema.Types.ObjectId, ref: "Chapter", default: [] }],
+
     chapterProgress: { type: [ChapterProgressSchema], default: [] },
     levelProgress: { type: [LevelProgressSchema], default: [] },
 

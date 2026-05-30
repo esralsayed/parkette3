@@ -163,10 +163,10 @@ useEffect(() => {
       setPhase('end');
     };
 
-  const API_URL = `${process.env.EXPO_PUBLIC_API_URL}/api` || 'http://localhost:5000/api'
+  const API_URL = 'http://localhost:5000/api'
 
   const finishLevel = async () => {
-    if (phase === 'end') return; 
+    if (phase === 'end' || questionPhase === 'post') return;
 
     const finalStars = levelService.getStars();
     setStars(finalStars);
@@ -190,7 +190,12 @@ useEffect(() => {
 
 };
 
-  const fetchRecommendation = async () => {
+const isFetchingRecommendation = React.useRef(false);
+
+const fetchRecommendation = async () => {
+  if (isFetchingRecommendation.current) return;  // ← guard
+  isFetchingRecommendation.current = true;
+  
   try {
     const userId = await getCurrentUserId();
     const res = await fetch(
@@ -202,8 +207,10 @@ useEffect(() => {
     if (rec.rewardUnlocked) setRewardUnlocked(rec.rewardUnlocked);
   } catch (e) {
     console.error('⚠️ recommendation fetch failed:', e);
+  } finally {
+    isFetchingRecommendation.current = false;  // ← reset
   }
-  }
+};
 
   const getCurrentUserId = async (): Promise<string> => {
     try {
@@ -239,11 +246,15 @@ useEffect(() => {
     }
   };
 
-  const handleFeedbackDismiss = () => {
-  isAdvancingRef.current = false; // ← unlock here
+const handleFeedbackDismiss = () => {
+  isAdvancingRef.current = false;
   setFeedbackPopup(null);
-  if (!pendingNextStep) finishLevel();
-  else { setCurrentStep(pendingNextStep); setPendingNextStep(null); }
+  if (pendingNextStep) {
+    setCurrentStep(pendingNextStep);
+    setPendingNextStep(null);
+  } else if (phase !== 'end') {  // ← guard against double finish
+    finishLevel();
+  }
 };
 
   const handleTaskAnswered = useCallback(async (answer:TaskAnswer) => {

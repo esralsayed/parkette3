@@ -20,15 +20,22 @@ chapterroutes.get("/", async (req, res) => {
       progress?.chapterProgress.map((cp) => [cp.chapterId.toString(), cp]) ?? []
     );
 
+    const unlockedChapterIds = new Set(
+  (progress?.unlockedChapters ?? []).map((id) => id.toString())
+);
+
     const chaptersWithStatus = chapters.map((chapter) => {
       const cp = chapterProgressMap.get(chapter._id.toString());
+
+        const unlockedByLevel = chapter.unlockedOn != null && chapter.unlockedOn <= user.level;
+  const unlockedByRecommendation = unlockedChapterIds.has(chapter._id.toString());
       return {
         id: chapter._id,
         title: chapter.title,
         description: chapter.description,
         unlockedOn: chapter.unlockedOn,
         levelCount: chapter.levels?.length ?? 0,
-        unlocked: chapter.unlockedOn <= user.level,
+        unlocked: unlockedByLevel || unlockedByRecommendation,
         // progress info (null if never started)
         status: cp?.status ?? "locked",
         starsEarned: cp?.starsEarned ?? 0,

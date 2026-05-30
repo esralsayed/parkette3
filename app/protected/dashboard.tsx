@@ -361,7 +361,7 @@ const CoachTipCard = ({ recommendation, userId }: {
     next:      { label: 'Next practice',    subtext: 'Your coach picked this one for you today',      emoji: '⭐' },
     challenge: { label: 'Ready to level up?', subtext: 'Your coach thinks you\'re ready for this',   emoji: '🚀' },
     complete:  { label: '',                 subtext: '',                                              emoji: '' },
-  }[recommendation.type];
+  }[recommendation.type.toLowerCase()];
 
   return (
     <TouchableOpacity

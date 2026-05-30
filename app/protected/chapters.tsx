@@ -20,7 +20,7 @@ import {
 } from "react-native";
 const { width, height } = Dimensions.get("window");
 
-const APIURL = `${process.env.EXPO_PUBLIC_API_URL}/api/chapters` || "http://localhost:5000/api/chapters";
+const APIURL = "http://localhost:5000/api/chapters";
 
 type Chapter = {
   id: string;

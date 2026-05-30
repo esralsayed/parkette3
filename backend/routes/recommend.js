@@ -29,9 +29,24 @@ recRouter.get("/:userId", async (req, res) => {
       return res.status(400).json({ message: "completedLevelId query param is required" });
     }
 
-    // Also return current skill scores so the end screen can show progress
-    // this searches for progress before progress saves prolly so it doesnt find 
-    const progress = await Progress.findOne({ userId }).select("skillScores").lean();
+    // ── Wait for progress to be saved (up to 3s) ──────────────────────────
+    let progress = null;
+    const maxAttempts = 6;
+    const delayMs = 500;
+
+    for (let i = 0; i < maxAttempts; i++) {
+      progress = await Progress.findOne({
+        userId,
+        "levelProgress.levelId": completedLevelId,  // adjust to your schema field name
+      })
+        .select("skillScores levelProgress")
+        .lean();
+
+      if (progress) break;
+
+      console.log(`[Recommend] Progress not found yet, retrying (${i + 1}/${maxAttempts})...`);
+      await new Promise(resolve => setTimeout(resolve, delayMs));
+    }
 
     const skillScores = progress?.skillScores
     ? (progress.skillScores instanceof Map

@@ -15,50 +15,42 @@ import Progress from "../models/content agent/Progress.js";
 // Each level's tags.skills array drives which skills get updated.
 // ─────────────────────────────────────────────────────────────────
 export async function updateSkillScores(userId, levelId, { passed, attempts, preQuestionAnswers, postQuestionAnswers }) {
-console.log("here?")
   const level = await Level.findById(levelId).select("tags").lean();
   if (!level?.tags?.skills?.length) return;
 
   const skills = level.tags.skills;
 
-  let delta;
   const hasPre  = preQuestionAnswers  != null && preQuestionAnswers.total  > 0;
   const hasPost = postQuestionAnswers != null && postQuestionAnswers.total > 0;
 
+  let performanceScore;
+
   if (hasPre && hasPost) {
-    // ── Pre/post comparison path ───────────────────────────────────────────
-    const preRate  = preQuestionAnswers.score  / preQuestionAnswers.total;   // 0.0–1.0
-    const postRate = postQuestionAnswers.score / postQuestionAnswers.total;  // 0.0–1.0
-    const gain     = postRate - preRate;                                     // -1.0–+1.0
+    const preRate  = preQuestionAnswers.score / preQuestionAnswers.total;
+    const postRate = postQuestionAnswers.score / postQuestionAnswers.total;
+    const gain     = postRate - preRate;
 
-    // Learning gain component: scaled to ±0.3 range
-    let learningDelta = (postRate * 0.3) + (gain * 0.1);
+    performanceScore = Math.min(1.0, Math.max(0.0, postRate + (gain * 0.2)));
 
-    // Failure/struggle penalty layered on top
-    if (!passed) {
-      learningDelta -= 0.15;
-    } else if (attempts > 1) {
-      learningDelta -= 0.05;  // passed but needed retries — slight penalty
-    }
-
-    delta = learningDelta;
-
+    if (!passed)            performanceScore *= 0.6;
+    else if (attempts > 1)  performanceScore *= 0.85;
   } else {
-    // ── Fallback: old passed+attempts logic ───────────────────────────────
-    if      (passed && attempts <= 1) delta =  0.20;
-    else if (passed && attempts >  1) delta =  0.05;
-    else                              delta = -0.15;
+    if      (passed && attempts <= 1) performanceScore = 0.85;
+    else if (passed && attempts >  1) performanceScore = 0.65;
+    else                              performanceScore = 0.25;
   }
 
   const progress = await Progress.findOne({ userId });
   if (!progress) return;
 
   const scores = progress.skillScores ?? new Map();
+  const alpha = 0.3;
 
   for (const skill of skills) {
     const current = scores.get(skill) ?? 0.5;
-    const updated = Math.min(1.0, Math.max(0.0, current + delta));
-    scores.set(skill, parseFloat(updated.toFixed(2)));
+    const raw     = (alpha * performanceScore) + ((1 - alpha) * current);
+    const updated = Math.min(1.0, Math.max(0.0, parseFloat(raw.toFixed(2))));
+    scores.set(skill, updated);
   }
 
   progress.skillScores = scores;
@@ -134,14 +126,10 @@ ${JSON.stringify({
 ALL AVAILABLE LEVELS:
 ${JSON.stringify(levelCatalog, null, 2)}
 
-RECOMMENDATION RULES (apply in order):
-1. If the child scored below 0.4 on any skill from the completed level:
-   - Find a level covering the SAME skill in a DIFFERENT environment (type: "retry")
-   - This reinforces the weak skill through a fresh context
-2. If all skills from the completed level are above 0.4:
-   - Find the next logical level (same chapter, next order, not yet passed) (type: "next")
-3. If all skills are above 0.75 and the child has passed most levels:
-   - Recommend a harder level they haven't passed yet (type: "challenge")
+RECOMMENDATION RULES (mutually exclusive, check in order):
+1. RETRY: If ANY skill score < 0.4 → find same skill, different environment
+2. CHALLENGE: If ALL skill scores >= 0.75 → find a harder level not yet passed  ← move this before "next"
+3. NEXT: Otherwise → find next level in same chapter by order
 4. Never recommend a level where onCooldown is true. 
  You MAY recommend a previously passed level if the child's skill score 
  for that level's skills is below 0.5 and it is not on cooldown.
@@ -163,7 +151,7 @@ Respond with ONLY this JSON, no markdown, no explanation:
       Authorization: `Bearer ${process.env.GROQ_API_KEY}`,
     },
     body: JSON.stringify({
-      model: "llama-3.1-8b-instant",
+      model: "llama-3.3-70b-versatile",
       messages: [
         {
           role: "system",
