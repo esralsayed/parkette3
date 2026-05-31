@@ -2,6 +2,7 @@
 
 import { ImageSourcePropType } from 'react-native';
 import { DialogStep, DifficultyVariant, LevelData, Question } from '../game/types/level.types';
+import { resolveAvatarImage } from '../resolveAvatar';
 
 
 // ──────────────────────────────────────────────────────────
@@ -70,7 +71,8 @@ export class LevelAdapter {
   // Main public method - entry point for all transformations
   static async toGameLevel(
     dbLevel: LevelData, 
-    difficulty: 'easy' | 'medium' | 'hard' = 'medium'
+    difficulty: 'easy' | 'medium' | 'hard' = 'medium',
+    miniAvatar?: string | null,
   ): Promise<GameLevel> {
     
   const variant = dbLevel.difficultyVariants?.[difficulty];
@@ -104,7 +106,7 @@ export class LevelAdapter {
       scenes: [{
         id: `${dbLevel._id}_scene_main`,
         background: this.convertBackgroundImage(dbLevel.scene.backgroundImage),
-        characters: this.extractCharacters(dbLevel.scene.characters),
+        characters: this.extractCharacters(dbLevel.scene.characters, miniAvatar),
         steps: adaptedSteps
       }],
       reward: dbLevel.reward || { stars: 3 },
@@ -199,7 +201,8 @@ private static adaptDialogSteps(
   // 3. Character Extraction & Mapping
   // ──────────────────────────────────────────────────────────
   
-  private static extractCharacters(characterNames: string[]): GameCharacter[] {
+  private static extractCharacters(characterNames: string[], miniAvatar?: string | null,
+  ): GameCharacter[] {
     // Central mapping of character names to their visual assets
     const CHARACTER_DATABASE: Record<string, {
       displayName: string;
@@ -259,6 +262,16 @@ private static adaptDialogSteps(
         position: 'center',
         color: '#CCCCCC'
       };
+          // ── Override child sprite with the user's own avatar ──
+      let sprite: ImageSourcePropType | undefined;
+ 
+      if (lowerName === 'child' && miniAvatar) {
+        const avatarImage = resolveAvatarImage(miniAvatar);
+        sprite = avatarImage ?? this.loadSprite(config.spritePath ?? '');
+        console.log(`🧒 Using miniAvatar "${miniAvatar}" for child character`);
+      } else {
+        sprite = config.spritePath ? this.loadSprite(config.spritePath) : undefined;
+      }
       
       return {
         id: lowerName,

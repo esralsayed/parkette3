@@ -202,7 +202,8 @@ router.post("/login", async (req, res) => {
         friendCode: user.friendCode,
         level: user.level,
         tokenLedger: user.tokenLedger,
-        unlockedItems: user.unlockedItems
+        unlockedItems: user.unlockedItems,
+        avatar: user.avatar
       }
     });
   } catch (error) {

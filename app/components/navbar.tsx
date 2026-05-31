@@ -13,6 +13,7 @@ import {
 } from 'react-native';
 import { useSessionStore as useCommunityStore } from '../community/hooks/sessionStore';
 import { useSessionStore } from '../community/services/userSession';
+import { resolveAvatarImage } from '../resolveAvatar';
 
 interface NavBarProps {
   onLogout?: () => void;
@@ -22,6 +23,8 @@ const NavBar: React.FC<NavBarProps> = ({ onLogout }) => {
   const session = useSessionStore((s) => s.user);
   const userName = useSessionStore((s) => s.user?.name);
   const level = useSessionStore((s) => s.user?.level);
+  const miniAvatar = useSessionStore((s) => s.user?.avatar?.miniAvatar ?? null);
+  const avatarSource = resolveAvatarImage(miniAvatar) ?? require('../../assets/images/profilepic.png');
   const router = useRouter();
   const [showDropdown, setShowDropdown] = useState(false);
   const [avatarLayout, setAvatarLayout] = useState({ x: 0, y: 0, width: 0, height: 0 });
@@ -85,11 +88,20 @@ const NavBar: React.FC<NavBarProps> = ({ onLogout }) => {
             activeOpacity={0.85}
           >
             <Text style={styles.hiText}>Hi! {userName.split(' ')[0]}</Text>
-            <Image
-              source={require('../../assets/images/profilepic.png')}
-              style={styles.avatarImage}
-              resizeMode="cover"
-            />
+            <View style={styles.avatarImage}>
+              <Image
+                source={avatarSource}
+                style={{
+                  position: 'absolute', 
+                  top: 11,
+                  left: -2,
+                  width: '100%',
+                  height: '100%',
+                  transform: [{ scale: 2 }],        // ← zoom level, adjust to taste
+                }}
+                resizeMode="contain"
+              />
+            </View>
           </TouchableOpacity>
         ) : (
           // ── Logged-out
@@ -126,11 +138,19 @@ const NavBar: React.FC<NavBarProps> = ({ onLogout }) => {
           >
             {/* Header with avatar + name */}
             <View style={styles.dropdownHeader}>
+            <View style={styles.dropdownAvatar}>
               <Image
-                source={require('../../assets/images/profilepic.png')}
-                style={styles.dropdownAvatar}
-                resizeMode="cover"
+                source={avatarSource}
+                style={{
+                  width: '100%',
+                  height: '100%',
+                  top: 5, 
+                  left: -2,
+                  transform: [{ scale: 2 }],
+                }}
+                resizeMode="contain"
               />
+            </View>
               <View>
                 <Text style={styles.dropdownHi}>Hi! {userName}</Text>
                 <Text style={styles.dropdownSubtext}>Level: {level}</Text>
@@ -219,11 +239,12 @@ const styles = StyleSheet.create({
     fontFamily: AppFonts.title.fontFamily, // matches heroTitle font
   },
   avatarImage: {
-    width: 38,
-    height: 38,
-    borderRadius: 19,
+    width: 50,
+    height: 50,
+    borderRadius: 24,
     borderWidth: 2,
     borderColor: AppColors.lilac,
+    overflow: 'hidden',   // ← required for scale + borderRadius to work together
   },
 
   // ── Dropdown
@@ -257,6 +278,7 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     borderWidth: 2,
     borderColor: AppColors.blue,
+    overflow: 'hidden'
   },
   dropdownHi: {
     color: AppColors.blue,

@@ -48,6 +48,7 @@ export default function LevelPlayer() {
     level?: { title: string };
     newlyUnlocked: string[];
   } | null>(null);
+  const [miniAvatar, setMiniAvatar] = useState<string | null>(null);
 
   //variables
   const step = currentStep;
@@ -63,6 +64,11 @@ export default function LevelPlayer() {
         if (userJson) {
           const user = JSON.parse(userJson);
           setUserName(user.name || 'User');
+
+          // Pull miniAvatar — stored at user.avatar.miniAvatar
+          const avatar = user.avatar?.miniAvatar ?? null;
+          setMiniAvatar(avatar);
+          console.log('🧒 Loaded miniAvatar:', avatar);
         }
       } catch (e) { console.error(e); }
     };
@@ -100,9 +106,9 @@ useEffect(() => {
         setLoading(true);
         const userId = await getCurrentUserId();
 
-            await levelService.clearLevelCache(levelId as string); // ← ADD TEMPORARILY
+        await levelService.clearLevelCache(levelId as string); // ← ADD TEMPORARILY
 
-        const gameLevel = await levelService.initializeLevel(levelId as string, chapterId as string, userId);
+        const gameLevel = await levelService.initializeLevel(levelId as string, chapterId as string, userId, undefined, miniAvatar);
         
         const scene = gameLevel.scenes[0];
         setCurrentScene(scene);
@@ -284,7 +290,7 @@ const handleFeedbackDismiss = () => {
     setLoading(true);
 
     const userId = await getCurrentUserId();
-    await levelService.initializeLevel(levelId as string, chapterId as string, userId);
+    await levelService.initializeLevel(levelId as string, chapterId as string, userId, undefined, miniAvatar);
 
     setCurrentStep(levelService.getCurrentStep());
     setLoading(false);

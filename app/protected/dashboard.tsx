@@ -1,7 +1,7 @@
 import Section3Card from '@/assets/svgs/main/game screen.svg';
 import { AppColors, AppFonts, AppFontSizes, ButtonStyles, CardStyles, Spacing } from '@/constants/theme';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { useRouter } from 'expo-router';
+import { router, useRouter } from 'expo-router';
 import React, { useEffect, useMemo, useState } from 'react';
 import {
   ActivityIndicator,
@@ -48,6 +48,8 @@ const DiaryPreviewCard = ({ onPress }: { onPress: () => void }) => {
   );
 };
 
+import { useSessionStore } from '../community/services/userSession';
+import { resolveAvatarImage } from '../resolveAvatar';
 // ─── SECTION 1: HERO ─────────────────────────────────────
 const HeroSection = ({
   userName,
@@ -61,6 +63,8 @@ const HeroSection = ({
   const today = new Date();
   const monthNames = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
   const dayNames = ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
+  const miniAvatar = useSessionStore((s) => s.user?.avatar?.miniAvatar ?? null);
+  const avatarSource = resolveAvatarImage(miniAvatar) ?? require('../../assets/images/profilepic.png');
 
   const days = [-2, -1, 0, 1, 2].map((offset) => {
     const d = new Date(today);
@@ -76,10 +80,48 @@ const HeroSection = ({
     <View style={styles.heroSection}>
 
       {/* left col */}
-      <View style={styles.heroCol}>
-        <Image source={require('../../assets/images/profilepic.png')} resizeMode="contain" />
-        <Text style={styles.heroTitle}>Hi! {userName}</Text>
-      </View>
+<View style={[styles.heroCol, { marginTop: 20 }]}>
+  <View style={{ position: 'relative', alignSelf: 'center' }}>
+    <View style={styles.avatarImage}>
+      <Image
+        source={avatarSource}
+        style={{
+          position: 'absolute',
+          top: 90,
+          left: -8,
+          width: '100%',
+          height: '100%',
+          transform: [{ scale: 1.5 }],
+        }}
+        resizeMode="contain"
+      />
+    </View>
+
+    {/* Pen icon — top right corner of the avatar */}
+    <TouchableOpacity
+      onPress={() => router.push('/community/components/avatar')} // ← your avatar edit route
+      style={{
+        position: 'absolute',
+        top: 20,
+        right: 30,
+        width: 100,
+        height: 40,
+        borderRadius: 28,
+        backgroundColor: AppColors.blue,
+        borderWidth: 2,
+        borderColor: AppColors.lilac,
+        alignItems: 'center',
+        justifyContent: 'center',
+        padding: 10,
+        zIndex: 10,
+      }}
+    >
+      <Text style={{ fontSize: 18, ...AppFonts.bodySmall, color: AppColors.lilac }}>edit ✏️</Text>
+    </TouchableOpacity>
+  </View>
+
+  <Text style={styles.heroTitle}>Hi! {userName}</Text>
+</View>
 
       {/* center col */}
       <View style={[styles.heroCol, { flex: 2 }]}>
@@ -398,6 +440,9 @@ const CoachTipCard = ({ recommendation, userId }: {
 
 const coachStyles = StyleSheet.create({
   card: {
+    width: '80%',
+    height: 300,
+    alignSelf: 'center',
     marginHorizontal: Spacing.xl,
     marginTop: Spacing.lg,
     borderRadius: 16,
@@ -436,11 +481,10 @@ const coachStyles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     padding: Spacing.md,
-    gap: Spacing.md,
   },
   textBlock: {
     flex: 1,
-    gap: 3,
+    gap: 20,
   },
   subtext: {
     ...AppFonts.bodySmall,
@@ -617,7 +661,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.xl,
     flexDirection: 'row',
     alignItems: 'center',   // all three cols share the same vertical centre
-    gap: Spacing.xl,        // uniform spacing between every column
+    gap: 70,        // uniform spacing between every column
     minHeight: 320,
     overflow: 'hidden',
   },
@@ -729,6 +773,7 @@ const styles = StyleSheet.create({
   diaryPreviewCard: {
     ...CardStyles.default,
     flexDirection: 'row',
+    marginTop: -50,
     width: '100%',
     minHeight: 180,         // matches calendarCard so tops align
     overflow: 'hidden',
@@ -979,7 +1024,7 @@ section3Wrapper: {
   ///game card
   // ── Game Progress Card
 gameCard: {
-  width: '70%', 
+  width: '80%', 
   height: 300,
   flexDirection: 'row',
   marginHorizontal: Spacing.xl,
@@ -1173,5 +1218,13 @@ rewardHintText: {
   textAlign: 'center',
   maxWidth: 100,
 },
+  avatarImage: {
+    width: 300,
+    height: 210,
+
+    borderRadius: 20,
+    overflow: 'hidden',   // ← required for scale + borderRadius to work together
+
+  },
 
 });

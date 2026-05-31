@@ -12,7 +12,7 @@ communityroutes.get("/friends/:userId", async (req, res) => {
     const user = await User.findById(userId)
       .populate({
         path: 'friends',
-        select: 'name username level avatar.skin avatar.hair' // only what you need
+        select: 'name username level avatar.miniAvatar' // only what you need
       });
 
     if (!user) return res.status(404).json({ message: "User not found" });
@@ -289,7 +289,7 @@ communityroutes.post("/session/create", async (req, res) => {
     });
 
     await session.save();
-    await session.populate('host participants', 'name username level avatar');
+    await session.populate('host participants', 'name username level avatar.miniAvatar');
 
     const sessionId = session._id.toString();
 

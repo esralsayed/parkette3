@@ -87,7 +87,7 @@ export class LevelService {
   // creates a current session object
   // returns the gameLevel it got from leveladaptor
   
-  async initializeLevel(levelId: string, chapterId: string, userId: string, difficulty?: 'easy' | 'medium' | 'hard'): Promise<GameLevel> {
+  async initializeLevel(levelId: string, chapterId: string, userId: string, difficulty?: 'easy' | 'medium' | 'hard', miniAvatar?: string | null): Promise<GameLevel> {
     console.log(`🎮 Initializing level ${levelId} for user ${userId}`);
     
     // Use medium difficulty for now (you can change this later)
@@ -125,7 +125,7 @@ export class LevelService {
     // Fetch and adapt level
     const rawLevel = await levelRepository.getLevelById(levelId);
     console.log('Raw level data:', rawLevel);
-    const gameLevel = await LevelAdapter.toGameLevel(rawLevel, this.currentDifficulty);
+    const gameLevel = await LevelAdapter.toGameLevel(rawLevel, this.currentDifficulty, miniAvatar);
     console.log('Adapted game level:', gameLevel);
 
     // ✅ Cache the simplified version using LevelRepository's AsyncStorage

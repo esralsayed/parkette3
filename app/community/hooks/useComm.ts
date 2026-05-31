@@ -22,6 +22,8 @@ interface Friend {
   avatar: {
     skin: string | null;
     hair: string | null;
+    miniAvatar: string | null;   // ← ADD
+    gender?: 'boy' | 'girl';    // ← ADD
   };
 }
 

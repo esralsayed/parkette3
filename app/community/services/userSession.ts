@@ -1,13 +1,26 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { create } from "zustand";
 
+interface Avatar {
+  hair: string | null;
+  skin: string | null;
+  gender: 'boy' | 'girl';
+  miniAvatar: string | null;  // e.g. "girl_hair1_skin2"
+  pet?: {
+    color?: string;
+    accessory?: string;
+    name?: string;
+  };
+}
+
 interface User {
   id: string;
   name: string;
   email?: string;
   level: number;
   tokens: number;
-  unlockedItems: [{ type: string; itemId: string }];
+  unlockedItems: { type: string; itemId: string }[];
+  avatar: Avatar;
 }
 
 interface SessionStore {

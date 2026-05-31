@@ -47,63 +47,6 @@ export const BALD_MAP: Record<'girl' | 'boy', Record<string, any>> = {
   },
 };
 
-export type SkinId = 'skin1' | 'skin2' | 'skin3' | 'skin4';
-export type GirlHairId = 'hair1' | 'hair2' | 'hair3' | 'hair4';
-export type BoyHairId = 'hair1' | 'hair2' | 'hair3';
-export type GenderId = 'girl' | 'boy';
-
-export const HAIR_SKIN_MAP: {
-  girl: Record<GirlHairId, Record<SkinId, any>>;
-  boy: Record<BoyHairId, Record<SkinId, any>>;
-} = {
-  girl: {
-    hair1: {
-      skin1: require('@/assets/svgs/avatar/girl/girl_hair1_skin1.png'),
-      skin2: require('@/assets/svgs/avatar/girl/girl_hair1_skin2.png'),
-      skin3: require('@/assets/svgs/avatar/girl/girl_hair1_skin3.png'),
-      skin4: require('@/assets/svgs/avatar/girl/girl_hair1_skin4.png'),
-    },
-    hair2: {
-      skin1: require('@/assets/svgs/avatar/girl/girl_hair2_skin1.png'),
-      skin2: require('@/assets/svgs/avatar/girl/girl_hair2_skin2.png'),
-      skin3: require('@/assets/svgs/avatar/girl/girl_hair2_skin3.png'),
-      skin4: require('@/assets/svgs/avatar/girl/girl_hair2_skin4.png'),
-    },
-    hair3: {
-      skin1: require('@/assets/svgs/avatar/girl/girl_hair3_skin1.png'),
-      skin2: require('@/assets/svgs/avatar/girl/girl_hair3_skin2.png'),
-      skin3: require('@/assets/svgs/avatar/girl/girl_hair3_skin3.png'),
-      skin4: require('@/assets/svgs/avatar/girl/girl_hair3_skin4.png'),
-    },
-    hair4: {
-      skin1: require('@/assets/svgs/avatar/girl/girl_hair9_skin1.png'),
-      skin2: require('@/assets/svgs/avatar/girl/girl_hair9_skin2.png'),
-      skin3: require('@/assets/svgs/avatar/girl/girl_hair9_skin3.png'),
-      skin4: require('@/assets/svgs/avatar/girl/girl_hair9_skin4.png'),
-    },
-  },
-  boy: {
-    hair1: {
-      skin1: require('@/assets/svgs/avatar/boy/boy_hair1_skin1.png'),
-      skin2: require('@/assets/svgs/avatar/boy/boy_hair1_skin2.png'),
-      skin3: require('@/assets/svgs/avatar/boy/boy_hair1_skin3.png'),
-      skin4: require('@/assets/svgs/avatar/boy/boy_hair1_skin4.png'),
-    },
-    hair2: {
-      skin1: require('@/assets/svgs/avatar/boy/boy_hair2_skin1.png'),
-      skin2: require('@/assets/svgs/avatar/boy/boy_hair2_skin2.png'),
-      skin3: require('@/assets/svgs/avatar/boy/boy_hair2_skin3.png'),
-      skin4: require('@/assets/svgs/avatar/boy/boy_hair2_skin4.png'),
-    },
-    hair3: {
-      skin1: require('@/assets/svgs/avatar/boy/boy_hair3_skin1.png'),
-      skin2: require('@/assets/svgs/avatar/boy/boy_hair3_skin2.png'),
-      skin3: require('@/assets/svgs/avatar/boy/boy_hair3_skin3.png'),
-      skin4: require('@/assets/svgs/avatar/boy/boy_hair3_skin4.png'),
-    },
-  },
-}
-
 // How big to render the base on screen
 const BASE_W = 317;
 const BASE_H = 440;

@@ -1,3 +1,4 @@
+import { HAIR_SKIN_MAP } from "@/app/resolveAvatar";
 import Hair from "@/assets/svgs/avatar/hair.svg";
 import Skin from "@/assets/svgs/avatar/Skin tone.svg";
 import { AppColors, AppFonts, AppFontSizes, Spacing } from "@/constants/theme";
@@ -9,7 +10,7 @@ import ViewShot from 'react-native-view-shot';
 import Footer from "../../components/Footer";
 import NavBar from "../../components/navbar";
 import { useAvatar } from "../hooks/useAvatar";
-import { BALD_MAP, HAIR_SKIN_MAP, RENDERED_H, RENDERED_W, Window } from "./AvatarWindows";
+import { BALD_MAP, RENDERED_H, RENDERED_W, Window } from "./AvatarWindows";
 
 
 interface ActionOption {

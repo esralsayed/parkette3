@@ -21,6 +21,7 @@ import {
   Alert,
   Dimensions,
   Image,
+  ImageSourcePropType,
   ScrollView,
   Text,
   TouchableOpacity,
@@ -149,25 +150,69 @@ const Ground = ({ totalWidth }: { totalWidth: number }) => (
 /**
  * Page 1: Character avatar placeholder, House, Tree, Slide
  */
-const Page1 = ({ offsetX, groundY }: { offsetX: number; groundY: number }) => (
+const Page1 = ({ offsetX, groundY, avatarSource }: { offsetX: number; groundY: number,   avatarSource: ImageSourcePropType | null;
+ }) => {
+  // Read session participants directly from Zustand
+  const session = useCommunitySession((state) => state.session);
+  const participants = session?.participants ?? [];
+  
+  // Get the second participant (the "other" player shown in Page1)
+  // Index 0 is the host (already shown as avatarSource), so take index 1
+  const otherPlayer = participants[1] ?? null;
+  const otherAvatarSource = resolveAvatarImage(otherPlayer?.avatar?.miniAvatar ?? null);
+  return (
   <>
     <House
       style={{ position: 'absolute', left: offsetX + 20, top: groundY - 550 }}
       width={1200}
       height={1000}
     />
-    <Character1 style={{ position: 'absolute', left: offsetX + 100, top: groundY - 100 }}
-      width={250}
-      height={250} />
+    {/* ── USER AVATAR (replaces Character1) ── */}
+    {avatarSource ? (
+      <Image
+        source={avatarSource}
+        style={{
+          position: 'absolute',
+          left: offsetX + 100,
+          top: groundY - 100,
+          width: 250,
+          height: 250,
+          resizeMode: 'contain',
+        }}
+      />
+    ) : (
+      // Fallback to original SVG if no avatar set
+      <Character1
+        style={{ position: 'absolute', left: offsetX + 100, top: groundY - 100 }}
+        width={250}
+        height={250}
+      />
+    )}
     <Slide
       style={{ position: 'absolute', left: offsetX + PAGE_WIDTH - 850, top: groundY - 440 }}
       width={800}
       height={800}
     />
-    <Char2 style={{ position: 'absolute', left: offsetX + 1200, top: groundY - 100 }}
-      width={250}
-      height={250} />
-
+      {/* Other participant's avatar (replaces Char2) */}
+      {otherAvatarSource ? (
+        <Image
+          source={otherAvatarSource}
+          style={{
+            position: 'absolute',
+            left: offsetX + 1200,
+            top: groundY - 100,
+            width: 250,
+            height: 250,
+            resizeMode: 'contain',
+          }}
+        />
+      ) : (
+        <Char2
+          style={{ position: 'absolute', left: offsetX + 1200, top: groundY - 100 }}
+          width={250}
+          height={250}
+        />
+      )}
     {/* Slide button */}
     <SceneButton
       name="Slide"
@@ -177,11 +222,17 @@ const Page1 = ({ offsetX, groundY }: { offsetX: number; groundY: number }) => (
     />
   </>
 );
+};
 
 /**
  * Page 2: Swing, Seesaw (Ride), extra Tree
  */
-const Page2 = ({ offsetX, groundY }: { offsetX: number; groundY: number }) => (
+const Page2 = ({ offsetX, groundY }: { offsetX: number; groundY: number }) => {
+  const session = useCommunitySession((state) => state.session);
+  const participants = session?.participants ?? [];
+  const player = participants[2] ?? null; // 3rd participant
+  const playerAvatar = resolveAvatarImage(player?.avatar?.miniAvatar ?? null);
+  return (
   <>
     {/* Clouds */}
     <Cloud2 style={{ position: 'absolute', left: offsetX + 300, top: groundY - 700 }}
@@ -193,9 +244,11 @@ const Page2 = ({ offsetX, groundY }: { offsetX: number; groundY: number }) => (
       width={1400}
       height={1200} />
 
-    <Char3 style={{ position: 'absolute', left: offsetX + 180, top: groundY - 250 }}
-      width={250}
-      height={250} />
+    {playerAvatar ? (
+        <Image source={playerAvatar} style={{ position: 'absolute', left: offsetX + 180, top: groundY - 250, width: 250, height: 250, resizeMode: 'contain' }} />
+    ) : (
+        <Char3 style={{ position: 'absolute', left: offsetX + 180, top: groundY - 250 }} width={250} height={250} />
+    )}
 
     {/* Seesaw (Ride) */}
     <Seesaw style={{ position: 'absolute', left: offsetX + 600, top: groundY - 150 }}
@@ -224,6 +277,7 @@ const Page2 = ({ offsetX, groundY }: { offsetX: number; groundY: number }) => (
     />
   </>
 );
+}
 
 /**
  * Page 3: Boat, Fishes
@@ -232,6 +286,10 @@ const Page3 = ({ offsetX, groundY, onFishPress, onBoatPress }: { offsetX: number
   onBoatPress:() => void,
  }) => {
   const waterTop = groundY;
+  const session = useCommunitySession((state) => state.session);
+  const participants = session?.participants ?? [];
+  const player = participants[3] ?? null; // 3rd participant
+  const playerAvatar = resolveAvatarImage(player?.avatar?.miniAvatar ?? null);
 
   return (
     <>
@@ -239,9 +297,12 @@ const Page3 = ({ offsetX, groundY, onFishPress, onBoatPress }: { offsetX: number
       <Cloud3 style={{ position: 'absolute', left: offsetX + 650, top: groundY - 650 }}
       width={500}
       height={500} />
-    <Char4 style={{ position: 'absolute', left: offsetX + 600, top: groundY - 200 }}
-      width={300}
-      height={300} />
+
+    {playerAvatar ? (
+        <Image source={playerAvatar} style={{ position: 'absolute', left: offsetX + 600, top: groundY - 250, width: 250, height: 250, resizeMode: 'contain' }} />
+      ) : (
+        <Char4 style={{ position: 'absolute', left: offsetX + 600, top: groundY - 250 }} width={250} height={250} />
+    )}
     {/* Boat on water line */}
     <Boat1 style={{ position: 'absolute', left: offsetX - 50, top: groundY - 450 }}
       width={800}
@@ -284,6 +345,10 @@ const Page4 = ({ offsetX, groundY, onFeedPress, unlockedItems }: { offsetX: numb
   console.log(unlockedItems)
   const feedUnlocked = unlockedItems.some((u) => u.itemId === 'feed_game');
   console.log(feedUnlocked , "is feed unlocked");
+  const session = useCommunitySession((state) => state.session);
+  const participants = session?.participants ?? [];
+  const player = participants[4] ?? null; // 3rd participant
+  const playerAvatar = resolveAvatarImage(player?.avatar?.miniAvatar ?? null);
   return (
   <>
     {/* Clouds */}
@@ -304,9 +369,11 @@ const Page4 = ({ offsetX, groundY, onFeedPress, unlockedItems }: { offsetX: numb
       width={300}
       height={300}/>
 
-    <Char5 style={{ position: 'absolute', left: offsetX + 950, top: groundY - 250 }}
-      width={300}
-      height={300} />
+    {playerAvatar ? (
+        <Image source={playerAvatar} style={{ position: 'absolute', left: offsetX + 950, top: groundY - 250, width: 250, height: 250, resizeMode: 'contain' }} />
+      ) : (
+        <Char5 style={{ position: 'absolute', left: offsetX + 950, top: groundY - 250 }} width={250} height={250} />
+    )}
 
     {/* Octopus / main pet */}
     <Image style={{ position: 'absolute', left: offsetX + 350, top: groundY - 150 }} 
@@ -352,7 +419,8 @@ const Scene = ({
   onFeedPress,
   onFishPress, 
   onBoatPress,
-  unlockedItems
+  unlockedItems, 
+  avatarSource
 }: {
   messages: { id: number; name: string; content: React.ReactNode; x: number; y: number }[];
   groundY: number;
@@ -360,6 +428,7 @@ const Scene = ({
   onFishPress : () => void
   onBoatPress : () => void
   unlockedItems: { type: string; itemId: string }[];
+  avatarSource: ImageSourcePropType | null;   // ← NEW
 }) => {
   console.log(" in scene," , unlockedItems)
   return (
@@ -369,7 +438,7 @@ const Scene = ({
       <Ground totalWidth={SCENE_WIDTH} />
 
       {/* 4 Pages */}
-      <Page1 offsetX={0} groundY={groundY} />
+      <Page1 offsetX={0} groundY={groundY} avatarSource={avatarSource} />
       <Page2 offsetX={PAGE_WIDTH} groundY={groundY} />
       <Page3 offsetX={PAGE_WIDTH * 2} groundY={groundY} onFishPress={onFishPress} onBoatPress={onBoatPress} />
       <Page4 offsetX={PAGE_WIDTH * 3} groundY={groundY} onFeedPress={onFeedPress} unlockedItems = {unlockedItems}  />
@@ -405,6 +474,7 @@ const Scene = ({
 // ─────────────────────────────────────────────
 // PAGE
 // ─────────────────────────────────────────────
+import { resolveAvatarImage } from "@/app/resolveAvatar";
 import { EMOJIS } from "./Messages&Posts";
 export default function CommunityLanding() {
   const { friends: allFriends, send, leave, broadcast } = useCommunity();
@@ -414,6 +484,11 @@ export default function CommunityLanding() {
   const sessionId = session?._id ?? null;
   const user = useSessionStore((state) => state.user)
   const unlockedItems = user?.unlockedItems ?? [];
+    // ── Resolve the user's miniAvatar to an image asset ──────────────────────
+  const miniAvatarString = user?.avatar?.miniAvatar ?? null;
+  const avatarSource     = resolveAvatarImage(miniAvatarString);   // ← NEW
+ 
+  console.log('🧒 Community miniAvatar:', miniAvatarString, '→', avatarSource ? 'resolved' : 'no image');
 
   console.log(" in main", user)
 
@@ -433,13 +508,13 @@ export default function CommunityLanding() {
   // Ground sits at 62% of scene height
   const groundY = SCENE_HEIGHT * 0.62;
 
-const friends = (session?.participants ?? [])
-  .filter((id: any) => id !== currentUserId)
-  .map((id: any) => allFriends.find((f) => f._id === id))
-  .filter(Boolean);
+  const friends = (session?.participants ?? [])
+    .filter((p: any) => p._id !== currentUserId)
+    .map((p: any) => allFriends.find((f) => f._id === p._id))
+    .filter(Boolean);
 
   console.log("[SESSION]", session);
-console.log("[FRIENDS]", friends);
+  console.log("[FRIENDS]", friends);
 
   // DM messages → scene
   React.useEffect(() => {
@@ -563,6 +638,7 @@ const addEmojiMessage = async (emoji: string) => {
           onFishPress={() => setShowFishGame(true)}
           onBoatPress={() => setShowBoatGame(true)}
           unlockedItems={unlockedItems}
+          avatarSource={avatarSource}
            />
         </View>
       </ScrollView>
