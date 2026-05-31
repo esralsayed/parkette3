@@ -10,12 +10,10 @@ const petSchema = new Schema({
 }, { _id: false });
 
 const avatarSchema = new Schema({
-  hair: String,
-  skin: String,
-  top: String,
-  bottom: String,
-  shoes: String,
-  accessory: String,
+  hair: {type: String, default: null}, 
+  skin: {type: String, default: null}, 
+  gender:        { type: String, default: 'girl' },
+  miniAvatar: {type: String, default: null}, 
   pet:       { type: petSchema, default: () => ({}) }, // ← nested here
 
 }, { _id: false });

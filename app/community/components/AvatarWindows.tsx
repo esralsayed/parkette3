@@ -6,128 +6,165 @@ const { width: screenWidth } = Dimensions.get('window');
 //hair imports
 import Hair1 from "@/assets/svgs/avatar/hairs/Hair 1.svg";
 import Hair2 from "@/assets/svgs/avatar/hairs/Hair 2.svg";
-import Hair3 from "@/assets/svgs/avatar/hairs/Hair 3.svg";
-import Hair4 from "@/assets/svgs/avatar/hairs/Hair 4.svg";
-import Hair5 from "@/assets/svgs/avatar/hairs/Hair 5.svg";
-import Hair6 from "@/assets/svgs/avatar/hairs/Hair 6.svg";
-import Hair7 from "@/assets/svgs/avatar/hairs/Hair 7.svg";
 import Hair8 from "@/assets/svgs/avatar/hairs/Hair 8.svg";
 import Hair9 from "@/assets/svgs/avatar/hairs/Hair 9.svg";
 
+import Boyhair1 from "@/assets/svgs/avatar/hairs/boyhair1.svg";
+import Boyhair2 from "@/assets/svgs/avatar/hairs/boyhair2.svg";
+import Boyhair3 from "@/assets/svgs/avatar/hairs/boyhair3.svg";
+import Boyhair4 from "@/assets/svgs/avatar/hairs/boyhair4.svg";
+
 //skin imports
 import Skin1 from "@/assets/svgs/avatar/skintones/Skin tone.svg";
-import Skin2 from "@/assets/svgs/avatar/skintones/Skin tone2.svg";
-import Skin3 from "@/assets/svgs/avatar/skintones/Skin tone3.svg";
-import Skin4 from "@/assets/svgs/avatar/skintones/Skin tone4.svg";
 import Skin5 from "@/assets/svgs/avatar/skintones/Skin tone5.svg";
 import Skin6 from "@/assets/svgs/avatar/skintones/Skin tone6.svg";
 import Skin7 from "@/assets/svgs/avatar/skintones/Skin tone7.svg";
-import Skin8 from "@/assets/svgs/avatar/skintones/Skin tone8.svg";
-import Skin9 from "@/assets/svgs/avatar/skintones/Skin tone9.svg";
 
-// export const HAIR_DEFS = [
-//     { id: 'hair1', component: Hair1}, 
-//     { id: 'hair2', component: Hair2}, 
-//     { id: 'hair3', component: Hair3}, 
-//     { id: 'hair4', component: Hair4}, 
-//     { id: 'hair5', component: Hair5}, 
-//     { id: 'hair6', component: Hair6}, 
-//     { id: 'hair7', component: Hair7}, 
-//     { id: 'hair8', component: Hair8}, 
-//     { id: 'hair9', component: Hair9}, 
-// ]
+// Girl bald imports
+import Bald_girl_skin2 from '@/assets/svgs/avatar/skintones/2.png';
+import Bald_girl_skin3 from '@/assets/svgs/avatar/skintones/3.png';
+import Bald_girl_skin4 from '@/assets/svgs/avatar/skintones/4.png';
+import Bald_girl_skin1 from '@/assets/svgs/diary/bald2.png';
 
-// export const SKIN_DEFS = [
-//     { id: 'skin1', component: Skin1}, 
-//     { id: 'skin2', component: Skin2}, 
-//     { id: 'skin3', component: Skin3}, 
-//     { id: 'skin4', component: Skin4}, 
-//     { id: 'skin5', component: Skin5}, 
-//     { id: 'skin6', component: Skin6}, 
-//     { id: 'skin7', component: Skin7}, 
-//     { id: 'skin8', component: Skin8}, 
-//     { id: 'skin9', component: Skin9}, 
+// Boy bald imports
+import Bald_boy_skin4 from '@/assets/svgs/avatar/skintones/22.png';
+import Bald_boy_skin3 from '@/assets/svgs/avatar/skintones/23.png';
+import Bald_boy_skin2 from '@/assets/svgs/avatar/skintones/24.png';
+import Bald_boy_skin1 from '@/assets/svgs/diary/bald3.png';
 
-// ]
+export const BALD_MAP: Record<'girl' | 'boy', Record<string, any>> = {
+  girl: {
+    skin1: Bald_girl_skin1,
+    skin2: Bald_girl_skin2,
+    skin3: Bald_girl_skin3,
+    skin4: Bald_girl_skin4,
+  },
+  boy: {
+    skin1: Bald_boy_skin1,
+    skin2: Bald_boy_skin2,
+    skin3: Bald_boy_skin3,
+    skin4: Bald_boy_skin4,
+  },
+};
 
-// Natural size of the Bald base
+export type SkinId = 'skin1' | 'skin2' | 'skin3' | 'skin4';
+export type GirlHairId = 'hair1' | 'hair2' | 'hair3' | 'hair4';
+export type BoyHairId = 'hair1' | 'hair2' | 'hair3';
+export type GenderId = 'girl' | 'boy';
+
+export const HAIR_SKIN_MAP: {
+  girl: Record<GirlHairId, Record<SkinId, any>>;
+  boy: Record<BoyHairId, Record<SkinId, any>>;
+} = {
+  girl: {
+    hair1: {
+      skin1: require('@/assets/svgs/avatar/girl/girl_hair1_skin1.png'),
+      skin2: require('@/assets/svgs/avatar/girl/girl_hair1_skin2.png'),
+      skin3: require('@/assets/svgs/avatar/girl/girl_hair1_skin3.png'),
+      skin4: require('@/assets/svgs/avatar/girl/girl_hair1_skin4.png'),
+    },
+    hair2: {
+      skin1: require('@/assets/svgs/avatar/girl/girl_hair2_skin1.png'),
+      skin2: require('@/assets/svgs/avatar/girl/girl_hair2_skin2.png'),
+      skin3: require('@/assets/svgs/avatar/girl/girl_hair2_skin3.png'),
+      skin4: require('@/assets/svgs/avatar/girl/girl_hair2_skin4.png'),
+    },
+    hair3: {
+      skin1: require('@/assets/svgs/avatar/girl/girl_hair3_skin1.png'),
+      skin2: require('@/assets/svgs/avatar/girl/girl_hair3_skin2.png'),
+      skin3: require('@/assets/svgs/avatar/girl/girl_hair3_skin3.png'),
+      skin4: require('@/assets/svgs/avatar/girl/girl_hair3_skin4.png'),
+    },
+    hair4: {
+      skin1: require('@/assets/svgs/avatar/girl/girl_hair9_skin1.png'),
+      skin2: require('@/assets/svgs/avatar/girl/girl_hair9_skin2.png'),
+      skin3: require('@/assets/svgs/avatar/girl/girl_hair9_skin3.png'),
+      skin4: require('@/assets/svgs/avatar/girl/girl_hair9_skin4.png'),
+    },
+  },
+  boy: {
+    hair1: {
+      skin1: require('@/assets/svgs/avatar/boy/boy_hair1_skin1.png'),
+      skin2: require('@/assets/svgs/avatar/boy/boy_hair1_skin2.png'),
+      skin3: require('@/assets/svgs/avatar/boy/boy_hair1_skin3.png'),
+      skin4: require('@/assets/svgs/avatar/boy/boy_hair1_skin4.png'),
+    },
+    hair2: {
+      skin1: require('@/assets/svgs/avatar/boy/boy_hair2_skin1.png'),
+      skin2: require('@/assets/svgs/avatar/boy/boy_hair2_skin2.png'),
+      skin3: require('@/assets/svgs/avatar/boy/boy_hair2_skin3.png'),
+      skin4: require('@/assets/svgs/avatar/boy/boy_hair2_skin4.png'),
+    },
+    hair3: {
+      skin1: require('@/assets/svgs/avatar/boy/boy_hair3_skin1.png'),
+      skin2: require('@/assets/svgs/avatar/boy/boy_hair3_skin2.png'),
+      skin3: require('@/assets/svgs/avatar/boy/boy_hair3_skin3.png'),
+      skin4: require('@/assets/svgs/avatar/boy/boy_hair3_skin4.png'),
+    },
+  },
+}
+
+// How big to render the base on screen
 const BASE_W = 317;
 const BASE_H = 440;
 
 // How big to render the base on screen
-const AVATAR_SCALE = 1.2; // tweak this one number to resize everything
-const RENDERED_W = BASE_W * AVATAR_SCALE;
-const RENDERED_H = BASE_H * AVATAR_SCALE;
-
-// Where each layer sits on the Bald canvas (in Bald's coordinate space)
-// and its natural SVG size — derive scale from ratio
-const LAYER_CONFIG = {
-  skin: {
-    top:  (87  / BASE_H) * RENDERED_H,
-    left: (89  / BASE_W) * RENDERED_W,
-    width:  (158 / BASE_W) * RENDERED_W,
-    height: (141 / BASE_H) * RENDERED_H,
-  },
-  hair: {
-    top:  (20  / BASE_H) * RENDERED_H,
-    left: (30  / BASE_W) * RENDERED_W,
-    width:  (158 / BASE_W) * RENDERED_W,
-    height: (148 / BASE_H) * RENDERED_H,
-    svgW: 320,   // ← override SVG render size independently
-    svgH: 320,   // ← without touching position
-  },
-} as const;
-
-type LayerKey = keyof typeof LAYER_CONFIG;
-
-export { RENDERED_H, RENDERED_W };
-
-// AvatarWindows.tsx
+const AVATAR_SCALE = 1; // tweak this one number to resize everything
+export const RENDERED_W = BASE_W * AVATAR_SCALE;
+export const RENDERED_H = BASE_H * AVATAR_SCALE;
 
 // Keep imports as-is, but create a lookup map instead of storing components in arrays
 const HAIR_MAP: Record<string, React.ComponentType<any>> = {
-  hair1: Hair1, hair2: Hair2, hair3: Hair3,
-  hair4: Hair4, hair5: Hair5, hair6: Hair6,
-  hair7: Hair7, hair8: Hair8, hair9: Hair9,
+  hair1: Hair1, hair2: Hair2, hair3: Hair8,
+  hair9: Hair9,
+};
+
+const BOY_HAIR_MAP: Record<string, React.ComponentType<any>> = {
+  hair1: Boyhair1, hair2: Boyhair2, hair3: Boyhair3,
+  hair4: Boyhair4,
 };
 
 const SKIN_MAP: Record<string, React.ComponentType<any>> = {
-  skin1: Skin1, skin2: Skin2, skin3: Skin3,
-  skin4: Skin4, skin5: Skin5, skin6: Skin6,
-  skin7: Skin7, skin8: Skin8, skin9: Skin9,
+  skin1: Skin1, skin2: Skin5, skin3: Skin6,
+  skin4: Skin7,
 };
 
 // Keep HAIR_DEFS and SKIN_DEFS for the Window grid but just as id lists
 export const HAIR_DEFS = Object.keys(HAIR_MAP).map(id => ({ id, component: HAIR_MAP[id] }));
+export const HAIR_DEFS2 = Object.keys(BOY_HAIR_MAP).map(id => ({ id, component: BOY_HAIR_MAP[id] }));
 export const SKIN_DEFS = Object.keys(SKIN_MAP).map(id => ({ id, component: SKIN_MAP[id] }));
 
-export function AvatarLayer({
-  selectedId,
-  layerKey,
-}: {
-  selectedId: string | null;
-  layerKey: LayerKey;
-}) {
-  // Look up component fresh at render time
-  const map = layerKey === 'hair' ? HAIR_MAP : SKIN_MAP;
-  const Component = selectedId ? map[selectedId] : null;
-  const config = LAYER_CONFIG[layerKey];
+// export function AvatarLayer({
+//   selectedId,
+//   layerKey,
+//   gender
+// }: {
+//   selectedId: string | null;
+//   layerKey: LayerKey;
+//   gender? : 'girl' | 'boy'
+// }) {
+//   // Look up component fresh at render time
+//   const map = layerKey === 'hair'
+//     ? gender === 'girl' ? HAIR_MAP : BOY_HAIR_MAP  // pick the right map
+//     : SKIN_MAP;
+//   const Component = selectedId ? map[selectedId] : null;
+//   const config = LAYER_CONFIG[layerKey];
 
-  if (!Component) return null;
+//   if (!Component) return null;
 
-  const { top, left, width, height } = config;
-  const svgW = 'svgW' in config ? config.svgW : width;
-  const svgH = 'svgH' in config ? config.svgH : height;
+//   const { top, left, width, height } = config;
+//   const svgW = 'svgW' in config ? config.svgW : width;
+//   const svgH = 'svgH' in config ? config.svgH : height;
 
-  return (
-    <Component
-      key={selectedId}
-      width={svgW}
-      height={svgH}
-      style={{ position: 'absolute', top, left }}
-    />
-  );
-}
+//   return (
+//     <Component
+//       key={selectedId}
+//       width={svgW}
+//       height={svgH}
+//       style={{ position: 'absolute', top, left }}
+//     />
+//   );
+// }
 
 const LOCKED_HAIRS = ['hair9']; // add future locked ones here
 
@@ -136,33 +173,31 @@ interface WindowProps {
     activeWindow: ActiveWindow; 
     onSelect: (id: string) => void; 
     unlockedItems?: { type: string; itemId: string }[];  // ← add
+    gender? : 'girl' | 'boy'
 }
 
-export function Window ({ onClose, activeWindow, onSelect, unlockedItems = []}: WindowProps) {
+export function Window ({ onClose, activeWindow, onSelect, gender, unlockedItems = []}: WindowProps) {
     let name = "";
     let setObjects: string | any[] = []; 
 
     console.log("in window", activeWindow);
 
     switch (activeWindow) {
-        case 'hair':
-          name = "Hair";
-          setObjects = HAIR_DEFS.filter(
-            (h) => !LOCKED_HAIRS.includes(h.id) ||
-                  unlockedItems.some((u) => u.itemId === h.id)
-          );
-          break;
+      case 'hair':
+        name = "Hair";
+        const defs = gender === 'boy' ? HAIR_DEFS2 : HAIR_DEFS;
+        setObjects = defs.filter(
+          (h) => !LOCKED_HAIRS.includes(h.id) ||
+          unlockedItems.some((u) => u.itemId === h.id)
+        );
+        break;
         case 'skin':      name = "Skin Tone";  setObjects = SKIN_DEFS; break;
-        case 'top':       name = "Top";        break;
-        case 'bottom':    name = "Bottoms";    break;
-        case 'feet':      name = "Shoes";      break;
-        case 'accessory': name = "Accessory";  break;
         default:          break;
     }
 
     const rows = []; 
-    for (let i = 0; i < setObjects.length; i += 3) {
-        rows.push(setObjects.slice(i, i + 3));
+    for (let i = 0; i < setObjects.length; i += 4) {
+        rows.push(setObjects.slice(i, i + 4));
     }
 
     return (

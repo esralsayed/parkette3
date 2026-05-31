@@ -8,6 +8,7 @@ import Sleepy from "@/assets/svgs/emojis/sleepy.svg";
 import Happy from "@/assets/svgs/emojis/smiley.svg";
 import Wow from "@/assets/svgs/emojis/wow.svg";
 import { AppColors, AppFonts, AppFontSizes, Spacing } from "@/constants/theme";
+import { router } from "expo-router";
 import React, { useState } from "react";
 
 import {
@@ -54,34 +55,74 @@ export function InstantMessageBar({
         <Message width={80} height={80} />
         </TouchableOpacity>
 
-      {/* FRIEND LIST */}
-      {open && !selectedFriend && (
-        <View
+{/* FRIEND LIST */}
+{open && !selectedFriend && (
+  <View
+    style={{
+      backgroundColor: AppColors.lilac,
+      borderWidth: 2,
+      borderColor: AppColors.blue,
+      marginTop: 10,
+      padding: 10,
+      borderRadius: 10,
+      minWidth: 220,
+    }}
+  >
+    {friends.length === 0 ? (
+      <TouchableOpacity
+        onPress={() => {
+          // navigate to add friends page
+          router.push("/community/components/friendsList");
+          // or navigation.navigate("Friends");
+        }}
+        style={{
+          padding: 12,
+          alignItems: "center",
+        }}
+      >
+        <Text
           style={{
-            backgroundColor: AppColors.lilac,
-            borderWidth: 2,
-            borderColor: AppColors.blue,
-            marginTop: 10,
-            padding: 10,
-            borderRadius: 10,
+            ...AppFonts.body,
+            color: AppColors.blue,
+            fontSize: 22,
+            textAlign: "center",
           }}
         >
-          {friends.map((f) => (
-            <TouchableOpacity
-              key={f._id}
-              onPress={() => setSelectedFriend(f)}
-              style={{ padding: 8 }}
-            >
-              <Text
-              style={[{
-                ...AppFonts.body, 
-                color: AppColors.blue,
-                fontSize: 24
-              }]}>{f.username}</Text>
-            </TouchableOpacity>
-          ))}
-        </View>
-      )}
+          No friends yet 👋
+        </Text>
+
+        <Text
+          style={{
+            ...AppFonts.bodySmall,
+            color: AppColors.blue,
+            marginTop: 4,
+            textDecorationLine: "underline",
+          }}
+        >
+          Click to add friends
+        </Text>
+      </TouchableOpacity>
+    ) : (
+      friends.map((f) => (
+        <TouchableOpacity
+          key={f._id}
+          onPress={() => setSelectedFriend(f)}
+          style={{ padding: 8 }}
+        >
+          <Text
+            style={{
+              ...AppFonts.body,
+              color: AppColors.blue,
+              fontSize: 24,
+            }}
+          >
+            {f.username}
+          </Text>
+        </TouchableOpacity>
+      ))
+    )}
+  </View>
+)}
 
       {/* MESSAGE INPUT */}
       {selectedFriend && (
@@ -209,12 +250,7 @@ const stylesMsg = StyleSheet.create({
 
 //emojis component
 
-const EMOJIS = [<Happy />, <Angry/>, <Sleepy />, <Heart />, <Wow/>, <Kiss />];
-
-export function EmojiBar({ onSelect }: { onSelect: (emoji: string) => void }) {
-  const [open, setOpen] = useState(false);
-
-  const EMOJIS = [
+  export const EMOJIS = [
   { id: "happy", Icon: Happy },
   { id: "angry", Icon: Angry },
   { id: "sleepy", Icon: Sleepy },
@@ -222,6 +258,10 @@ export function EmojiBar({ onSelect }: { onSelect: (emoji: string) => void }) {
   { id: "wow", Icon: Wow },
   { id: "kiss", Icon: Kiss },
 ];
+
+
+export function EmojiBar({ onSelect }: { onSelect: (emoji: string) => void }) {
+  const [open, setOpen] = useState(false);
 
   return (
     <View style={stylesEmoji.wrapper}>

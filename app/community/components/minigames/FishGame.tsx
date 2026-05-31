@@ -432,14 +432,13 @@ export default function CatchFishGame({ visible, onClose }: CatchFishGameProps) 
   };
 
   return (
-    <Modal visible={visible} animationType="slide" transparent presentationStyle="overFullScreen">
+    <Modal visible={visible} animationType="slide" transparent>
       <View style={{ flex: 1, backgroundColor: "rgba(0,0,0,0.45)", justifyContent: "flex-end" }}>
         <View
           style={{
             height: SH * 0.9,
             backgroundColor: AppColors.blue,
-            borderTopLeftRadius: 28,
-            borderTopRightRadius: 28,
+            borderRadius: 28,
             overflow: "hidden",
           }}
         >

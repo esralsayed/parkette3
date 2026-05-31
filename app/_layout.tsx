@@ -31,6 +31,9 @@ export default function RootLayout() {
   // =========================
   // RESTORE USER
   // =========================
+
+  const setHydrated = useSessionStore((s) => s.setHydrated); // ← add selector
+
   useEffect(() => {
     const bootstrap = async () => {
       try {
@@ -43,6 +46,8 @@ export default function RootLayout() {
         console.log('User load error:', err);
       } finally {
         setIsReady(true);
+        setHydrated(true); // ← add this
+
       }
     };
 

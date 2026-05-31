@@ -178,7 +178,7 @@ React.useEffect(() => { usedRef.current = used; }, [used]);
         elevation: 4,
       }}
     >
-        {Svg ? <Svg /> : <Text style={{ fontSize: 42 }}>{food.emoji}</Text>  }
+        {Svg ? <Svg width={40} height={40} /> : <Text style={{ fontSize: 42 }}>{food.emoji}</Text>  }
       <Text
         style={{
           ...AppFonts.bodySmall,
@@ -250,8 +250,8 @@ const AnimalTarget: React.FC<AnimalTargetProps> = ({
       <Animated.View
         style={{
           transform: [{ translateX: shake }],
-          width: 200,
-          height: 200,
+          width: 150,
+          height: 150,
           borderRadius: 18,
           backgroundColor: bg,
           borderWidth: 4,
@@ -270,8 +270,8 @@ const AnimalTarget: React.FC<AnimalTargetProps> = ({
         <Image
         source={animal.ImageComponent}
         style={{
-            width: 150,
-            height: 150,
+            width: 100,
+            height: 100,
             resizeMode: "contain",
         }}
         />        
@@ -403,7 +403,7 @@ const WinScreen: React.FC<WinScreenProps> = ({ onReplay, onClose }) => (
       left: 0,
       right: 0,
       bottom: 0,
-      backgroundColor: "rgba(232,213,245,0.97)",
+      backgroundColor: AppColors.lilac,
       alignItems: "center",
       justifyContent: "center",
       gap: 14,
@@ -411,18 +411,17 @@ const WinScreen: React.FC<WinScreenProps> = ({ onReplay, onClose }) => (
       borderRadius: 20,
     }}
   >
-    <Text style={{ fontSize: 70 }}>🎉</Text>
     <Text
       style={{
         ...AppFonts.body,
-        fontSize: 28,
-        fontWeight: "800",
+        fontSize: AppFontSizes.body,
+        //fontWeight: "800",
         color: AppColors.blue,
       }}
     >
       You fed everyone!
     </Text>
-    <Text style={{ color: "#7c3aed", fontSize: 15, fontWeight: "600" }}>
+    <Text style={{ color: "#7c3aed", fontSize: AppFontSizes.bodySmall, ...AppFonts.bodySmall}}>
       All animals are happy 🐾
     </Text>
     <View style={{ flexDirection: "row", gap: 12, marginTop: 8 }}>
@@ -441,7 +440,7 @@ const WinScreen: React.FC<WinScreenProps> = ({ onReplay, onClose }) => (
         }}
         activeOpacity={0.85}
       >
-        <Text style={{ color: AppColors.lilac, fontWeight: "800", fontSize: 15 }}>
+        <Text style={{ color: AppColors.lilac, fontSize: 28, ...AppFonts.body }}>
           Play Again
         </Text>
       </TouchableOpacity>
@@ -462,7 +461,7 @@ const WinScreen: React.FC<WinScreenProps> = ({ onReplay, onClose }) => (
         }}
         activeOpacity={0.85}
       >
-        <Text style={{ color: AppColors.blue, fontWeight: "800", fontSize: 15 }}>
+        <Text style={{ color: AppColors.blue, fontSize: 28, ...AppFonts.body }}>
           Go Back
         </Text>
       </TouchableOpacity>
@@ -564,6 +563,9 @@ function handleDragMove(px: number, py: number) {
   setHighlighted(getAnimalAtPoint(px , py));
 }
 
+const correctRef = useRef(0);
+
+
   function handleDragEnd(px: number, py: number) {
   console.log("Drop at:", px, py);
   console.log("Layouts:", JSON.stringify(animalLayouts.current));
@@ -577,11 +579,11 @@ const currentDrag = draggingRef.current;  // ← read from ref, not state
         newUsed.add(currentDrag.id);
         setUsedFoods(newUsed);
         setFedCounts((prev) => ({ ...prev, [target]: prev[target] + 1 }));
-        const newCorrect = correct + 1;
-        setCorrect(newCorrect);
+        correctRef.current += 1;
+        setCorrect(correctRef.current); // still update UI
         const animal = ANIMALS.find((a) => a.id === target)!;
         setFeedback({ msg: `✓ ${currentDrag.label} for ${animal.name}! ${animal.fact}`, ok: true, tick: Date.now() });
-        if (newCorrect === ALL_FOODS.length) {
+        if (correctRef.current === ALL_FOODS.length) {
           setTimeout(() => setWon(true), 700);
         }
       } else {
@@ -601,6 +603,7 @@ const currentDrag = draggingRef.current;  // ← read from ref, not state
     setFoods(shuffle(ALL_FOODS));
     setUsedFoods(new Set());
     setFedCounts({ dog: 0, rabbit: 0, hamster: 0 });
+    correctRef.current = 0;
     setCorrect(0);
     setDragging(null);
     setHighlighted(null);
@@ -609,12 +612,12 @@ const currentDrag = draggingRef.current;  // ← read from ref, not state
   }
 
   return (
-    <Modal visible={visible} animationType="slide" transparent presentationStyle="overFullScreen">
+    <Modal visible={visible} animationType="slide" transparent>
       <View
         style={{
           flex: 1,
           backgroundColor: "rgba(0,0,0,0.45)",
-          justifyContent: "center",
+          justifyContent: "flex-end",
           alignContent: 'center',
           alignItems: 'center'
         }}
@@ -627,8 +630,8 @@ const currentDrag = draggingRef.current;  // ← read from ref, not state
             });
         }}
           style={{
-            width: width * 0.88,
-            height: height * 0.58,
+            width: '100%',
+            height: '80%',
             backgroundColor: AppColors.lilac,
             borderTopLeftRadius: 28,
             borderTopRightRadius: 28,

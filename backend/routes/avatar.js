@@ -6,11 +6,11 @@ const avatarRoutes = express.Router();
 avatarRoutes.patch('/users/:id/avatar', async (req, res) => {
   try {
     console.log('are we inside backend? saving avatar?'); 
-    const { hair, skin, top, bottom, shoes, accessory } = req.body;
+    const { hair, skin, gender, miniAvatar } = req.body;
     
     const user = await User.findByIdAndUpdate(
       req.params.id,
-      { $set: { avatar: { hair, skin, top, bottom, shoes, accessory } } },
+      { $set: { avatar: { hair, skin, gender, miniAvatar } } },
       { new: true, runValidators: true }
     ).select('avatar');
     console.log(user);

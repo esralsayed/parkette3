@@ -7,26 +7,33 @@ interface User {
   email?: string;
   level: number;
   tokens: number;
-  unlockedItems: [{type:string, itemId: string}]
+  unlockedItems: [{ type: string; itemId: string }];
 }
 
 interface SessionStore {
   user: User | null;
+  hydrated: boolean;
   setUser: (user: User) => void;
+  setHydrated: (val: boolean) => void; // ← add this
   clearUser: () => void;
-updateUser: (fields: Partial<User>) => Promise<void>;
-
+  updateUser: (fields: Partial<User>) => Promise<void>;
 }
 
 export const useSessionStore = create<SessionStore>((set, get) => ({
   user: null,
-
-  setUser: (user) => set({ user }),
-
-  clearUser: () => set({ user: null }),
-    updateUser: async (fields) => {
+  hydrated: false,
+  setUser: (user) => {
+    set({ user });
+    AsyncStorage.setItem('user', JSON.stringify(user));
+  },
+  setHydrated: (val) => set({ hydrated: val }), // ← add this
+  clearUser: () => {
+    set({ user: null });
+    AsyncStorage.removeItem('user');
+  },
+  updateUser: async (fields) => {
     const updated = { ...get().user!, ...fields };
     set({ user: updated });
-    await AsyncStorage.setItem('user', JSON.stringify(updated)); // 👈 keep in sync
+    await AsyncStorage.setItem('user', JSON.stringify(updated));
   },
 }));

@@ -281,7 +281,9 @@ const Page3 = ({ offsetX, groundY, onFishPress, onBoatPress }: { offsetX: number
 const Page4 = ({ offsetX, groundY, onFeedPress, unlockedItems }: { offsetX: number; groundY: number, onFeedPress:() => void,
   unlockedItems: { type: string; itemId: string }[];
  }) => {
+  console.log(unlockedItems)
   const feedUnlocked = unlockedItems.some((u) => u.itemId === 'feed_game');
+  console.log(feedUnlocked , "is feed unlocked");
   return (
   <>
     {/* Clouds */}
@@ -352,13 +354,14 @@ const Scene = ({
   onBoatPress,
   unlockedItems
 }: {
-  messages: { id: number; name: string; content: string; x: number; y: number }[];
+  messages: { id: number; name: string; content: React.ReactNode; x: number; y: number }[];
   groundY: number;
   onFeedPress: () => void
   onFishPress : () => void
   onBoatPress : () => void
   unlockedItems: { type: string; itemId: string }[];
 }) => {
+  console.log(" in scene," , unlockedItems)
   return (
     <>
       <Background />
@@ -402,7 +405,7 @@ const Scene = ({
 // ─────────────────────────────────────────────
 // PAGE
 // ─────────────────────────────────────────────
-
+import { EMOJIS } from "./Messages&Posts";
 export default function CommunityLanding() {
   const { friends: allFriends, send, leave, broadcast } = useCommunity();
 
@@ -411,6 +414,8 @@ export default function CommunityLanding() {
   const sessionId = session?._id ?? null;
   const user = useSessionStore((state) => state.user)
   const unlockedItems = user?.unlockedItems ?? [];
+
+  console.log(" in main", user)
 
 
   //all games
@@ -422,7 +427,7 @@ export default function CommunityLanding() {
   const { messages } = useDirectMessages(currentUserId ?? null);
 
   const [sceneMessages, setSceneMessages] = React.useState<
-    { id: number; name: string; content: string; x: number; y: number }[]
+    { id: number; name: string; content: React.ReactNode; x: number; y: number }[]
   >([]);
 
   // Ground sits at 62% of scene height
@@ -453,39 +458,57 @@ console.log("[FRIENDS]", friends);
     ]);
   }, [messages]);
 
+  const getEmojiComponent = (id: string) => {
+  return EMOJIS.find((e) => e.id === id)?.Icon;
+};
+
   // Session emojis → scene
-  React.useEffect(() => {
-    if (!emojis.length) return;
-    const latest = emojis[emojis.length - 1];
-    const sender = session?.participants?.find((f: any) => f._id === latest.senderId);
-    setSceneMessages((prev) => [
-      ...prev,
-      {
-        id: Date.now(),
-        name: sender?.username ?? "Friend",
-        content: latest.content,
-        x: 400 + Math.random() * 600,
-        y: 300 + Math.random() * 400,
-      },
-    ]);
-  }, [emojis]);
+React.useEffect(() => {
+  if (!emojis.length) return;
+
+  const latest = emojis[emojis.length - 1];
+
+  const EmojiIcon = getEmojiComponent(latest.content);
+
+  const sender = session?.participants?.find(
+    (f: any) => f._id === latest.senderId
+  );
+
+  setSceneMessages((prev) => [
+    ...prev,
+    {
+      id: Date.now(),
+      name: sender?.username ?? "Friend",
+      content: EmojiIcon ? (
+        <EmojiIcon width={60} height={60} />
+      ) : (
+        latest.content
+      ),
+      x: 400 + Math.random() * 600,
+      y: 300 + Math.random() * 400,
+    },
+  ]);
+}, [emojis]);
 
   // Emoji send
-  const addEmojiMessage = async (emoji: string) => {
-    setSceneMessages((prev) => [
-      ...prev,
-      {
-        id: Date.now(),
-        name: "You",
-        content: emoji,
-        x: 400 + Math.random() * 600,
-        y: 300 + Math.random() * 400,
-      },
-    ]);
-    if (sessionId && currentUserId) {
-      await broadcast(sessionId, currentUserId, emoji, "emoji");
-    }
-  };
+const addEmojiMessage = async (emoji: string) => {
+  const EmojiIcon = getEmojiComponent(emoji);
+
+  setSceneMessages((prev) => [
+    ...prev,
+    {
+      id: Date.now(),
+      name: "You",
+      content: EmojiIcon ? <EmojiIcon width={60} height={60} /> : emoji,
+      x: 400 + Math.random() * 600,
+      y: 300 + Math.random() * 400,
+    },
+  ]);
+
+  if (sessionId && currentUserId) {
+    await broadcast(sessionId, currentUserId, emoji, "emoji");
+  }
+};
 
   // Leave session
   const handleLeave = async () => {

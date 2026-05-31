@@ -1,6 +1,6 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-const BASE_URL = `${process.env.EXPO_PUBLIC_API_URL}/api/avatar` || 'http://localhost:5000/api/avatar';
+const BASE_URL = 'http://localhost:5000/api/avatar';
 
 export async function saveAvatar(updates: Record<string, string | null>) {
   const userStr = await AsyncStorage.getItem('user');  // ← matches what login stores
