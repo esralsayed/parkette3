@@ -28,6 +28,7 @@ interface SceneStageProps {
   sceneKey?: string;
   gameMode?: boolean;
   inSceneGame?: React.ReactNode;
+  avatarImage?: any;
 }
 
 export default function SceneStage({ 
@@ -38,6 +39,7 @@ export default function SceneStage({
   sceneKey,
   gameMode = false,
   inSceneGame,
+  avatarImage,
 }: SceneStageProps) {
 
   const isTask = currentStep?.type === 'task';
@@ -58,7 +60,7 @@ useEffect(() => {
 
   const sceneContent = (
     <>
-      <LevelDecorations sceneKey={sceneKey} devOffsets={devOffsets} />
+      <LevelDecorations sceneKey={sceneKey} devOffsets={devOffsets} avatarImage={avatarImage} />
       <View style={styles.ground} />
 
       {/* ── When an in-scene game is active, show it in the bottom panel ── */}

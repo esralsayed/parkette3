@@ -590,6 +590,8 @@ export default function dashboard() {
         const userJson = await AsyncStorage.getItem('user');
         if (userJson) {
           const user = JSON.parse(userJson);
+          console.log('Full avatar object:', user.avatar);
+console.log('miniAvatar value:', user.avatar?.miniAvatar);
           setUserName(user.name || 'User');
           const id = user._id || user.id || null;
           setUserId(id);

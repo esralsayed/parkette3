@@ -56,6 +56,8 @@ export default function LevelPlayer() {
 
   // explanation of the component -> 
   // 1- this useeffect loads the user info from AsyncStorage
+  const [avatarReady, setAvatarReady] = useState(false);
+
 
   useEffect(() => {
     const loadUserName = async () => {
@@ -71,6 +73,7 @@ export default function LevelPlayer() {
           console.log('🧒 Loaded miniAvatar:', avatar);
         }
       } catch (e) { console.error(e); }
+      finally { setAvatarReady(true); }
     };
     loadUserName();
   }, []);
@@ -95,6 +98,7 @@ export default function LevelPlayer() {
   // 6. get the progress and set the currentstepIndex with the progress current step ? 
 
 useEffect(() => {
+    if (!avatarReady) return; // ← wait for avatar to load before initializing level
     if (!levelId || !chapterId) {
       setError("Invalid level access: Missing chapter or level ID");
       setLoading(false);
@@ -138,7 +142,7 @@ useEffect(() => {
     loadLevel();
 
     return () => { levelService.destroy(); };
-  }, [levelId, chapterId]);
+  }, [levelId, chapterId, avatarReady]); // ← added avatarReady dependency
 
   const advance = useCallback(async () => {
     if (step?.type === 'task') return;
@@ -339,6 +343,7 @@ const handleFeedbackDismiss = () => {
               backgroundImage={currentScene?.background}
               sceneKey={currentStep?.sceneKey}
               gameMode={false}
+              avatarImage={currentScene?.avatarImage} // Pass avatar image to SceneStage
             />
           </View>
           <WrongAnswerFeedback

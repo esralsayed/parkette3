@@ -21,6 +21,9 @@ export async function saveAvatar(updates: Record<string, string | null>) {
   });
 
   if (!response.ok) throw new Error('Failed to save avatar');
+
+  const updatedUser = { ...user, avatar: { ...user.avatar, ...updates } };
+  await AsyncStorage.setItem('user', JSON.stringify(updatedUser));
   return response.json();
 }
 

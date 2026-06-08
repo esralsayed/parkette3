@@ -2,6 +2,7 @@
 
 import React from 'react';
 import { Dimensions, StyleSheet, View } from 'react-native';
+import MainGirl from '../../../assets/images/maingirl.png';
 import { SCENE_REGISTRY } from '../services/sceneConfig';
 import { ATMOSPHERE_PRESETS, CHARACTER_SIZE_MAP, CharacterElement, DEPTH_OPACITY, DEPTH_SCALE, SLOT_MAP } from '../services/sceneSystem';
 import Tree from './decorations/Tree';
@@ -15,13 +16,14 @@ interface LevelDecorationsProps {
   sceneKey?: string; // NEW — single key to look up scene config, e.g. "park_scene_0"
   onGameComplete?: (success: boolean, foundCount: number) => void; // Callback for game completion
     devOffsets?: Record<number, number>;
+    avatarImage?: any; // Pass avatar image to decorations for potential use in minigames
 
 }
 
 const { width: W, height: H } = Dimensions.get('window');
 const MINIGAME_MAP: Record<string, any> = { FindFriendsGame };
 
-export default function LevelDecorations({ sceneKey, onGameComplete, devOffsets = {} }: LevelDecorationsProps) {
+export default function LevelDecorations({ sceneKey, onGameComplete, devOffsets = {}, avatarImage }: LevelDecorationsProps) {
   if (!sceneKey) return null;
   console.log('🔑 Scene registry lookup:', sceneKey);
   console.log('🗂️ Available keys:', Object.keys(SCENE_REGISTRY));
@@ -59,6 +61,7 @@ console.log('are we in narrative mode?');
           const treeHeight = size * 2;
           const treeY = H - GROUND_HEIGHT - treeHeight + size * 0.3;
 
+
           return (
             <View key={i} style={{ opacity: opac, zIndex: 1 + i }}>
               <Tree
@@ -87,7 +90,12 @@ if (el.kind === 'character' || el.kind === 'prop') {
                 : [],
               zIndex: 20 + i + ((el as CharacterElement).zOffset ?? 0),
             }]}>
-              <SceneImage source={el.image} style={styles.fill} width={size} height={size} />
+            <SceneImage 
+              source={el.image === MainGirl && avatarImage ? avatarImage : el.image} 
+              style={styles.fill} 
+              width={size} 
+              height={size} 
+            />            
             </View>
           );
         }

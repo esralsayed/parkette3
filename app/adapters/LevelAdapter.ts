@@ -27,6 +27,7 @@ export interface GameScene {
   background: React.FC<any> | ImageSourcePropType | null; // Allow SVG components
   characters: GameCharacter[];
   steps: GameStep[];
+  avatarImage?: ImageSourcePropType | null; // Optional avatar image for this scene
 }
 
 export interface GameCharacter {
@@ -74,7 +75,7 @@ export class LevelAdapter {
     difficulty: 'easy' | 'medium' | 'hard' = 'medium',
     miniAvatar?: string | null,
   ): Promise<GameLevel> {
-    
+  const resolvedAvatar = miniAvatar ? resolveAvatarImage(miniAvatar) : null;
   const variant = dbLevel.difficultyVariants?.[difficulty];
   
   // Check if variant exists AND has dialog
@@ -107,7 +108,8 @@ export class LevelAdapter {
         id: `${dbLevel._id}_scene_main`,
         background: this.convertBackgroundImage(dbLevel.scene.backgroundImage),
         characters: this.extractCharacters(dbLevel.scene.characters, miniAvatar),
-        steps: adaptedSteps
+        steps: adaptedSteps,
+        avatarImage: resolvedAvatar ?? null,
       }],
       reward: dbLevel.reward || { stars: 3 },
       maxRetries: dbLevel.maxRetries ?? 3,

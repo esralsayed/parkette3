@@ -101,10 +101,12 @@ const HeroSection = ({
 
         {/* Bottom action bar */}
         <View style={styles.actionBar}>
-          <TouchableOpacity style={styles.actionBtn}>
+          <TouchableOpacity style={styles.actionBtn}
+          onPress={() => router.push("/community/components/avatar")}>
               <Text style={styles.actionBtnText}>Customize</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={styles.actionBtn}>
+          <TouchableOpacity style={styles.actionBtn}
+          onPress={() => router.push("/protected/chapters")}>
             <Text style={styles.actionBtnText}>Start</Text>
           </TouchableOpacity>
           <TouchableOpacity
