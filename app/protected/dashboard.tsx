@@ -1,5 +1,4 @@
 import MissedSvg from '@/assets/svgs/main/Decorative Stars.svg';
-import Section3Card from '@/assets/svgs/main/game screen.svg';
 import HeartSvg from '@/assets/svgs/main/heart.svg';
 import { AppColors, AppFonts, AppFontSizes, ButtonStyles, CardStyles, Spacing } from '@/constants/theme';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -69,8 +68,8 @@ const HeroSection = ({
   const monthNames = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
   const dayNames = ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
   // const miniAvatar = useSessionStore((s) => s.user?.avatar?.miniAvatar ?? null);
-  const avatarSource = resolveAvatarImage(miniAvatar) ?? require('../../assets/images/profilepic.png');
-
+  const fallback = resolveAvatarImage("girl_hair1_skin1")!;
+  const avatarSource = resolveAvatarImage(miniAvatar) ?? fallback;
 
   const days = [-2, -1, 0, 1, 2].map((offset) => {
     const d = new Date(today);
@@ -89,11 +88,11 @@ const HeroSection = ({
 <View style={[styles.heroCol, { marginTop: 20 }]}>
   <View style={{ position: 'relative', alignSelf: 'center' }}>
     <View style={styles.avatarImage}>
-      <Image
-        source={avatarSource}
-        style={{
-          position: 'absolute',
-          top: 90,
+        <Image
+          source={avatarSource}
+          style={{
+            position: 'absolute',
+            top: 90,
           left: -8,
           width: '100%',
           height: '100%',
@@ -351,47 +350,74 @@ const Section3 = () => {
 
   return (
     <View style={styles.section3Wrapper}>
-      <View style={styles.section3SvgContainer}>
-        {/* SVG background */}
-        <Section3Card width="100%" />
+      <View style={{ 
+        position: 'relative', 
+        width: '83%', 
+        height: 600,        // ← controls everything
+        alignSelf: 'center',
+        overflow: 'hidden', // ← clips the image to this height
+      }}>
 
-          {/* Join Friends button — top right */}
-          <TouchableOpacity
-            style={styles.joinFriendsBtn}
-            onPress={() => router.push('/protected/Community')}
-            activeOpacity={0.85}
-          >
-            <Text style={styles.joinFriendsBtnText}>Join Friends</Text>
-          </TouchableOpacity>
+        <Image
+          source={require('@/assets/images/game_screen.png')}
+          style={{ 
+            width: '100%', 
+            height: '100%', // ← fills the parent exactly
+          }}
+          resizeMode="stretch"
+        />
 
-          {/* Friends list — bottom area */}
-          <View style={styles.friendsListOverlay}>
-            <Text style={styles.friendsListTitleOverlay}>My Friends</Text>
-            {loading ? (
-              <ActivityIndicator size="small" color="#fff" />
-            ) : friends.length === 0 ? (
-              <View style={[{alignContent: 'center' , flexDirection: 'column', marginBottom: 10}]}>
+        {/* Friends list overlay */}
+        <View style={[styles.friendsListOverlay, {
+          position: 'absolute',
+          top: '10%',
+          left: '78%',
+          right: '6%',
+        }]}>
+          <Text style={styles.friendsListTitleOverlay}>My Friends</Text>
+          {loading ? (
+            <ActivityIndicator size="small" color="#fff" />
+          ) : friends.length === 0 ? (
+            <View style={{ alignContent: 'center', flexDirection: 'column', marginBottom: 10 }}>
               <Text style={styles.friendsEmptyOverlay}>No friends yet — add some!</Text>
               <SecondaryButton
-              title='Add friends'
-              onPress={() => router.push('/community/components/friendsList')} />
-              </View>
-            ) : (
-              friends.map((f) => (
-                <View key={f._id} style={styles.friendRowOverlay}>
-                  <View style={styles.friendAvatarOverlay}>
-                    <Text style={styles.friendAvatarTextOverlay}>
-                      {f.username.slice(0, 2).toUpperCase()}
-                    </Text>
-                  </View>
-                  <View style={{ flex: 1 }}>
-                    <Text style={styles.friendNameOverlay}>{f.username}</Text>
-                    <Text style={styles.friendLevelOverlay}>Level {f.level}</Text>
-                  </View>
+                title="Add friends"
+                onPress={() => router.push('/community/components/friendsList')}
+              />
+            </View>
+          ) : (
+            friends.map((f) => (
+              <View key={f._id} style={styles.friendRowOverlay}>
+                <View style={styles.friendAvatarOverlay}>
+                  <Text style={styles.friendAvatarTextOverlay}>
+                    {f.username.slice(0, 2).toUpperCase()}
+                  </Text>
                 </View>
-              ))
-            )}
-          </View>
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.friendNameOverlay}>{f.username}</Text>
+                  <Text style={styles.friendLevelOverlay}>Level {f.level}</Text>
+                </View>
+              </View>
+            ))
+          )}
+        </View>
+
+        {/* Join Friends button */}
+        <TouchableOpacity
+          style={[styles.joinFriendsBtn, {
+            position: 'absolute',
+            bottom: '5%',
+            left: '38%',
+            right: '38%',
+            top: undefined,
+            width: undefined,
+            alignSelf: undefined,
+          }]}
+          onPress={() => router.push('/protected/Community')}
+          activeOpacity={0.85}
+        >
+          <Text style={styles.joinFriendsBtnText}>Join Friends</Text>
+        </TouchableOpacity>
 
       </View>
     </View>
@@ -1048,10 +1074,11 @@ const styles = StyleSheet.create({
   },
 
 section3Wrapper: {
-    paddingHorizontal: Spacing.xl,
-    paddingBottom: Spacing.xl,
-    marginTop: Spacing.lg,
-  },
+  paddingHorizontal: Spacing.xl,
+  paddingBottom: Spacing.xl,
+  marginTop: Spacing.lg,
+  // NO height, NO position:absolute, NO overflow
+},
   section3SvgContainer: {
     position: 'relative',
     width: '100%',
@@ -1070,16 +1097,10 @@ section3Wrapper: {
 
   // ── Button (top-right)
   joinFriendsBtn: {
-    position: 'absolute',
-    bottom: 35, 
-    left: '45%', 
-    right: 0,
-    top: 0,
-    width: 200,
     alignSelf: 'flex-end',
     alignItems: 'center',
     backgroundColor: AppColors.lilac,
-        borderWidth: 3,
+    borderWidth: 3,
     borderColor: AppColors.blue,
     paddingVertical: Spacing.sm,
     paddingHorizontal: Spacing.lg,
@@ -1101,9 +1122,8 @@ section3Wrapper: {
   friendsListOverlay: {
     position: 'absolute',
     top: '12%',
-    left: '71.5%',
-    right: 0,
-    width: 200,
+    left: '67%',
+    right: '23%',
     backgroundColor: 'rgba(255,255,255,0.15)',
     borderRadius: 16,
     borderWidth: 1,
