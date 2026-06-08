@@ -28,10 +28,12 @@ import Tree2 from "@/assets/svgs/game/chapters/tree2.svg";
 import Cloud1 from "@/assets/svgs/community/cloud2.svg";
 import Cloud2 from "@/assets/svgs/community/cloud3.svg";
 import Board from "@/assets/svgs/game/chapters/board.svg";
+import Bus from "@/assets/svgs/game/chapters/bus.svg";
 import Clock from "@/assets/svgs/game/chapters/clock.svg";
 import Crosswalk from "@/assets/svgs/game/chapters/crosswalk.svg";
 import Desk from "@/assets/svgs/game/chapters/desk.svg";
 import Exit from "@/assets/svgs/game/chapters/exit.svg";
+import Fire from "@/assets/svgs/game/chapters/fire.svg";
 import Locker from "@/assets/svgs/game/chapters/locker.svg";
 import School from "@/assets/svgs/game/chapters/school.svg";
 import Teacher from "@/assets/svgs/game/chapters/teacher.svg";
@@ -239,5 +241,73 @@ export const SCENE_REGISTRY: Record<string, SceneDefinition> = {
     ],
   },
 
+  'classroom_fire_alarm': {
+    atmosphere: 'day',
+    elements: [
+      { kind: 'character', image: MainGirl, slot: 'center-slightly-right', size: 'large' },
+      { kind: 'character', image: Teacher,      slot: 'far-left', size: 'hero' , depth: 'near',verticalOffset: 20},
+      { kind: 'prop',      image: Board,     slot: 'left',      size: 'semixxlarge', verticalOffset: -130 },
+      { kind: 'prop',      image: Desk,    slot: 'before-before-far-right',  size: 'herox',  verticalOffset: -90 },
+      { kind: 'prop',      image: Desk,    slot: 'center-right',  size: 'herox',  verticalOffset: -90 },
+      { kind: 'prop',      image: SmokeAlarm,    slot: 'center-right', size: 'large', verticalOffset: 355 },
+      { kind: 'prop',      image: Exit,     slot: 'far-right',      size: 'medium', verticalOffset: 430 },
+
+    ],
+  },
+
+  'classroom_teacher': {
+    atmosphere: 'day',
+    elements: [
+      { kind: 'character', image: MainGirl, slot: 'center-slightly-right', size: 'large' },
+      { kind: 'character', image: Teacher,      slot: 'far-left', size: 'hero' , depth: 'near',verticalOffset: 20},
+      { kind: 'prop',      image: Board,     slot: 'left',      size: 'semixxlarge', verticalOffset: -130 },
+      { kind: 'prop',      image: Desk,    slot: 'before-before-far-right',  size: 'herox',  verticalOffset: -90 },
+      { kind: 'prop',      image: Desk,    slot: 'center-right',  size: 'herox',  verticalOffset: -90 },
+      { kind: 'prop',      image: SmokeAlarm,    slot: 'center-right', size: 'large', verticalOffset: 355 },
+      { kind: 'prop',      image: Exit,     slot: 'far-right',      size: 'medium', verticalOffset: 430 },
+
+    ],
+  },
+
+  'outside_school': {
+    atmosphere: 'day',
+    elements: [
+      { kind: 'character', image: MainGirl, slot: '15% left', size: 'large', verticalOffset: 55 },
+      { kind: 'character' , image: Friend1, slot: 'center-left', size: 'large', verticalOffset: 55 },
+      { kind: 'character', image: Teacher,      slot: 'far-left', size: 'hero' , depth: 'near',verticalOffset: 55},
+      { kind: 'prop',      image: Exit,     slot: 'far-right',      size: 'medium', verticalOffset: 430 },
+      { kind: 'prop',      image: Clock,    slot: 'center-right', size: 'large', verticalOffset: 430 },
+      { kind: 'prop',      image: Locker,    slot: 'right',  size: 'xlarge',  verticalOffset: -5 },
+      { kind: 'prop',      image: Locker,    slot: 'center-right',  size: 'xlarge',  verticalOffset: -5 },
+      { kind: 'prop',      image: Locker,    slot: '55% right',  size: 'xlarge',  verticalOffset: -5 },
+      { kind: 'prop',      image: Locker,    slot: 'center-left',  size: 'xlarge',  verticalOffset: -5 },
+    ],
+  },
+
+  'meeting_point': {
+    atmosphere: 'day',
+    elements: [
+      { kind: 'character', image: MainGirl, slot: 'center-left', size: 'large', verticalOffset: 55 },
+      { kind: 'character' , image: Friend1, slot: 'center-slightly-right', size: 'large', verticalOffset: 55 },
+      { kind: 'character' , image: Friend2, slot: 'center', size: 'large', verticalOffset: 55 },
+      { kind: 'character', image: Teacher,      slot: 'far-left', size: 'hero' , depth: 'near',verticalOffset: 20},
+      { kind: 'prop',      image: Crosswalk,     slot: '15% left',      size: 'semixlarge', verticalOffset: -330 },
+      { kind: 'prop',      image: School,     slot: 'fifty-percent',      size: 'threexhalf', verticalOffset: -410 },
+      { kind: 'prop',      image: Traffic,    slot: '0% left',  size: 'herox',  verticalOffset: 100 },
+      { kind: 'prop',      image: Cloud1,    slot: 'center-left',  size: 'herox',  verticalOffset: 400 },
+    ],
+  },
+
+  'firefighter_help': {
+    atmosphere: 'day',
+    elements: [
+      { kind: 'character', image: MainGirl, slot: 'center-slightly-right', size: 'large', verticalOffset: 55 },
+      { kind: 'character', image: Fire,      slot: 'center', size: 'hero', verticalOffset: 55 },
+      { kind: 'prop' ,     image: Bus,        slot: 'far-left', size: 'semixxlarge', verticalOffset: -145 },
+      { kind: 'prop',      image: Crosswalk,     slot: '15% left',      size: 'semixlarge', verticalOffset: -330 },
+      { kind: 'prop',      image: School,     slot: 'fifty-percent',      size: 'threexhalf', verticalOffset: -410 },
+      { kind: 'prop',      image: Cloud1,    slot: 'center-left',  size: 'herox',  verticalOffset: 400 },
+    ],
+  },
 
 };

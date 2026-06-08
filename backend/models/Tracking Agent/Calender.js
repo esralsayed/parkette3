@@ -28,3 +28,4 @@ const calendarSummarySchema = new Schema({
 });
 
 export default model("CalendarSummary", calendarSummarySchema);
+export const CalendarDay = model("CalendarDay", calendarDaySchema);

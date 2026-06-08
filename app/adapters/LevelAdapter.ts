@@ -278,7 +278,7 @@ private static adaptDialogSteps(
         name: config.displayName,
         displayName: config.displayName,
         sprite: config.spritePath ? this.loadSprite(config.spritePath) : undefined,
-       position: config.position,
+        position: config.position,
         voiceId: config.voiceId,
         scale: config.scale, 
         side: config.side

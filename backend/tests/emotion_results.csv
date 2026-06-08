@@ -1,0 +1,31 @@
+entry,expected,predicted,correct,topEmotion,confidence,shouldAlert
+Today was the best day ever! I played with my friends and we laughed so much.,low,low,True,joy,0.9771,False
+I learned how to stay safe near the road today. I feel proud.,low,low,True,joy,0.9251,False
+My pet fish is funny. He blows bubbles at me.,low,low,True,joy,0.4872,False
+I like drawing rainbows in my diary. Today I drew a big one.,low,low,True,joy,0.9704,False
+I got three stars in the game! Mama said she is proud of me.,low,low,True,joy,0.6097,False
+We had pizza for dinner and I ate two slices hehe.,low,low,True,neutral,0.6198,False
+Today was okay. I read a book about animals.,low,low,True,joy,0.712,False
+I am excited for my birthday next week!,low,low,True,joy,0.9151,False
+School was boring but then we had art class which was fun.,low,low,True,joy,0.9539,False
+I made a new friend today. Her name is Sara.,low,low,True,joy,0.8048,False
+I feel a little scared sometimes when I walk home alone.,medium,high,False,fear,0.9943,True
+I am a bit sad because my friend didn't talk to me today.,medium,high,False,sadness,0.9849,True
+I don't really like it when people are mean to me.,medium,high,False,disgust,0.7556,True
+Sometimes I feel like nobody wants to play with me.,medium,medium,True,disgust,0.5637,False
+I am a little worried about the test tomorrow.,medium,high,False,fear,0.9844,True
+I felt angry today but I didn't know why.,medium,high,False,anger,0.9816,True
+My tummy hurts when I think about going to school.,medium,high,False,sadness,0.8786,True
+I feel sad when daddy shouts. I don't know what I did wrong.,medium,high,False,sadness,0.9838,True
+I am scared of the dark but I don't tell anyone.,medium,high,False,fear,0.9891,True
+Things feel strange and I don't feel like playing.,medium,medium,True,fear,0.5822,False
+I hate myself. I don't want to exist anymore.,high,medium,False,anger,0.5599,False
+Nobody loves me. I wish I could disappear.,high,high,True,sadness,0.8138,True
+I am so scared. Someone follows me after school every day.,high,high,True,fear,0.9915,True
+I can't stop crying and I don't know why. Everything hurts.,high,high,True,sadness,0.8963,True
+I want to hurt myself because everything is too much.,high,high,True,sadness,0.7572,True
+I feel like I am going to die. I am very very scared.,high,high,True,fear,0.9921,True
+Someone touched me and I don't want to say who. I am scared.,high,high,True,fear,0.9921,True
+I don't feel safe at home. Please help me.,high,low,False,joy,0.919,False
+I hate everything. I smashed my things. I am so angry I can't breathe.,high,high,True,anger,0.9586,True
+Nobody cares if I am here or not. I am so sad all the time.,high,high,True,sadness,0.9768,True

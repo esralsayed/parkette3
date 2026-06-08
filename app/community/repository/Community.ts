@@ -1,6 +1,6 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-const API_URL = 'http://localhost:5000/api/community';
+const API_URL = `${process.env.EXPO_PUBLIC_API_URL}/api/community` || 'http://localhost:5000/api/community';
 
 async function getHeaders() {
   const token = await AsyncStorage.getItem('token');

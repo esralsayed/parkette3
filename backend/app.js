@@ -11,10 +11,12 @@ import { Server } from 'socket.io';
 import { connectDB } from "./db.js";
 import authRoutes from "./routes/auth.js";
 import avatarRoutes from "./routes/avatar.js";
+import calendarRouter from "./routes/calender.js";
 import chapterroutes from "./routes/chapters.js";
 import communityroutes from "./routes/community.js";
 import diaryroutes from "./routes/diary.js";
 import levelroutes from "./routes/levels.js";
+import ParentRouter from "./routes/parentAlert.js";
 import performanceRouter from "./routes/performance.js";
 import router from "./routes/progress.js";
 import recRouter from "./routes/recommend.js";
@@ -36,17 +38,27 @@ const userSocketMap = new Map();
 
 // in your socket setup (app.js or wherever io is configured)
 io.on("connection", (socket) => {
-  console.log("socket connected:", socket.id);
+  console.log("[socket connected]", socket.id);
 
   socket.on("register", (userId) => {
-    userSocketMap.set(userId, socket.id);
-    console.log("registered:", userId, "→", socket.id);
-    console.log("userSocketMap now:", Object.fromEntries(userSocketMap)); // see all registered users
+    userSocketMap.set(userId.toString()); // ← .toString() is the key fix
+    userSocketMap.set(userId.toString(), socket.id);
+    console.log("[register] userId:", userId, "→ socket:", socket.id);
+    console.log("[userSocketMap now]:", Object.fromEntries(userSocketMap));
   });
-  socket.on('join_session', id => socket.join(id))
+
+  socket.on("join_session", (id) => socket.join(id));
 
   socket.on("disconnect", () => {
-    console.log("socket disconnected:", socket.id);
+    console.log("[disconnect] socket:", socket.id);
+    for (const [uid, sid] of userSocketMap.entries()) {
+      if (sid === socket.id) {
+        userSocketMap.delete(uid);
+        console.log("[unregistered] userId:", uid);
+        break;
+      }
+    }
+    console.log("[userSocketMap after disconnect]:", Object.fromEntries(userSocketMap));
   });
 });
 
@@ -73,7 +85,8 @@ app.use("/api/diary",diaryroutes);
 app.use("/api/community" , communityroutes);
 app.use("/api/avatar", avatarRoutes); 
 app.use("/api/recommend", recRouter)
-
+app.use("/api/calender", calendarRouter);
+app.use("/api/parent", ParentRouter);
 // Health check
 app.get("/api/health", (req, res) => {
   res.json({ message: "Server is running" });

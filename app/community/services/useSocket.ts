@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { io, Socket } from "socket.io-client";
 
 const SOCKET_URL = process.env.EXPO_PUBLIC_API_URL || "http://localhost:5000"; // 🔁 replace with your server URL
@@ -15,32 +15,35 @@ export function getSocket(): Socket {
   return socketInstance;
 }
 
+// useSocket.ts — return connected state
 export function useSocket(userId: string | null) {
   const socketRef = useRef<Socket>(getSocket());
+  const [isRegistered, setIsRegistered] = useState(false);
 
   useEffect(() => {
     if (!userId) return;
 
     const socket = socketRef.current;
 
-    if (!socket.connected) {
+    const handleConnect = () => {
+      console.log("[useSocket] connected, registering:", userId);
+      socket.emit("register", userId);
+      setIsRegistered(true);
+    };
+
+    socket.on("connect", handleConnect);
+
+    if (socket.connected) {
+      socket.emit("register", userId);
+      setIsRegistered(true);
+    } else {
       socket.connect();
     }
 
-    // Register this user with the server so userSocketMap works
-    socket.emit("register", userId);
-
-socket.on('connect', () => {
-  socket.emit('register', userId);
-});
-
-    console.log("imported useSocket =", useSocket);
-
     return () => {
-      // Don't disconnect on unmount — keep alive for the session
-      // socket.disconnect();
+      socket.off("connect", handleConnect);
     };
   }, [userId]);
 
-  return socketRef.current;
+  return { socket: socketRef.current, isRegistered };
 }

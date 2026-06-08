@@ -3,7 +3,6 @@ import mongoose from "mongoose";
 import Diary, { DiaryEntry } from "../models/Diary.js";
 import { Parent, User } from "../models/User.js";
 import { assessSeverity, classifyEmotion, extractText } from "../utils/emotionAnalyser.js";
-import { sendAlert } from "../utils/sendAlerts.js";
 const diaryroutes = express.Router(); 
 
 // GET /api/diary/ => to get the diary
@@ -82,6 +81,7 @@ diaryroutes.delete("/admin", async (req,res) => {
     }
 })
 
+import { createEmotionAlert } from "./parentAlert.js";
 
 //for editing but u should edit it to have diaryId instead
 diaryroutes.put("/save/:diaryId/cover", async (req, res) => {
@@ -141,7 +141,7 @@ diaryroutes.post("/entry/:diaryId/save", async (req, res) => {
     console.log(diary);
     if (!diary) return res.status(404).json({ message: "Diary not found" });
 
-        // Match by day range, not exact timestamp
+    // Match by day range, not exact timestamp
     const startOfDay = new Date(date);
     startOfDay.setHours(0, 0, 0, 0);
     const endOfDay = new Date(date);
@@ -179,13 +179,12 @@ diaryroutes.post("/entry/:diaryId/save", async (req, res) => {
         console.log(`Emotion result for entry ${entry._id}:`, assessment);
 
         if (assessment.shouldAlert) {
-          await sendAlert({
-            diaryId,
-            entryId: entry._id,
+          await createEmotionAlert({
+            childId:   user._id,
+            diaryEntryId: entry._id,
             severity:   assessment.severity,
             topEmotion: assessment.topEmotion,
             confidence: assessment.confidence,
-            parentEmail: parentEmail ?? null, // adjust to your Diary schema
           });
         }
       }

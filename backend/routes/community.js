@@ -164,6 +164,7 @@ communityroutes.post("/friends/deny", async (req, res) => {
 
 // messages
 import { classifyMessage, moderateChildMessage } from "./moderation.js";
+import { createMessageAlert } from "./parentAlert.js";
 
 communityroutes.post("/messages/send", async (req, res) => {
   try {
@@ -231,32 +232,60 @@ communityroutes.post("/messages/send", async (req, res) => {
       receiverId,
 
       // Use sanitized text if provided
-      content:
-        classification.sanitized?.trim()?.length > 0
-          ? classification.sanitized
-          : content,
-
-       moderation: {
+      content,
+      moderation: {
         status: mappedStatus,
         flagReasons: mappedReasons,
         reviewedAt: new Date(),
         autoModerated: true,
         blocked: isBlocked,
         needsReview: needsReview,
+        sanitizedContent: classification.sanitized?.trim()?.length > 0  // ✅ store sanitized separately
+      ? classification.sanitized
+      : null,
       },
     });
 
-    // Only deliver to receiver if safe
-    if (!isBlocked && !needsReview) {
-      const socketId = userSocketMap.get(receiverId);
+    // Deliver if safe OR needs_caution (but send sanitized version to receiver)
+    if (!isBlocked) {
+      const socketId = userSocketMap.get(receiverId.toString());
+      console.log("[send] receiverId:", receiverId.toString());
+console.log("[send] socketId:", socketId);
+console.log("[send] full map:", Object.fromEntries(userSocketMap));
       if (socketId) {
-        io.to(socketId).emit("new_message", msg);
+        // For needs_caution, emit sanitized content to receiver, not the original
+        const deliveredContent =
+          needsReview && classification.sanitized?.trim()?.length > 0
+            ? classification.sanitized
+            : content;
+
+        io.to(socketId).emit("new_message", {
+          ...msg.toObject(),
+          content: deliveredContent, // ✅ receiver sees sanitized version
+        });
       }
+    }
+
+    //send alert
+    try {
+
+      if (isBlocked || needsReview) {
+        await createMessageAlert({
+          childId: senderId,
+          messageId: msg._id,
+          content,
+          tier: classification.tier,
+          flagReasons: mappedReasons,
+        })
+      }
+
+    } catch (err) {
+      console.error("Error creating parent alert:", err);
     }
 
     return res.status(201).json({
       ...msg.toObject(),
-      delivered: !isBlocked && !needsReview,
+      delivered: !isBlocked,
       moderationTier: classification.tier,
     });
 

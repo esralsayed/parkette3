@@ -1,4 +1,6 @@
+import MissedSvg from '@/assets/svgs/main/Decorative Stars.svg';
 import Section3Card from '@/assets/svgs/main/game screen.svg';
+import HeartSvg from '@/assets/svgs/main/heart.svg';
 import { AppColors, AppFonts, AppFontSizes, ButtonStyles, CardStyles, Spacing } from '@/constants/theme';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { router, useRouter } from 'expo-router';
@@ -22,7 +24,7 @@ import NavBar from '../components/navbar';
 import SecondaryButton from '../components/style/SecondaryButton';
 
 const { width } = Dimensions.get('window');
-const API_URL = `${process.env.EXPO_PUBLIC_API_URL}/api`|| "http://localhost:5000/api"
+const API_URL = `${process.env.EXPO_PUBLIC_API_URL}/api` || "http://localhost:5000/api"
 
 // ─── DIARY PREVIEW CARD ──────────────────────────────────
 const DiaryPreviewCard = ({ onPress }: { onPress: () => void }) => {
@@ -48,23 +50,27 @@ const DiaryPreviewCard = ({ onPress }: { onPress: () => void }) => {
   );
 };
 
-import { useSessionStore } from '../community/services/userSession';
 import { resolveAvatarImage } from '../resolveAvatar';
 // ─── SECTION 1: HERO ─────────────────────────────────────
 const HeroSection = ({
   userName,
   onOpenCalendar,
   onOpenDiary,
+  stats,
+  miniAvatar,
 }: {
   userName: string;
   onOpenCalendar: () => void;
   onOpenDiary: () => void;
+  stats: { totalDaysSinceJoin: number | null; missedDays: number; favoriteDays: number } | null;
+  miniAvatar: string | null;
 }) => {
   const today = new Date();
   const monthNames = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
   const dayNames = ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
-  const miniAvatar = useSessionStore((s) => s.user?.avatar?.miniAvatar ?? null);
+  // const miniAvatar = useSessionStore((s) => s.user?.avatar?.miniAvatar ?? null);
   const avatarSource = resolveAvatarImage(miniAvatar) ?? require('../../assets/images/profilepic.png');
+
 
   const days = [-2, -1, 0, 1, 2].map((offset) => {
     const d = new Date(today);
@@ -148,11 +154,17 @@ const HeroSection = ({
           </View>
         </TouchableOpacity>
 
-        <View style={styles.btnRow}>
-          <TouchableOpacity style={styles.btnAction}><Text style={styles.btnActionText}>Total</Text></TouchableOpacity>
-          <TouchableOpacity style={styles.btnAction}><Text style={styles.btnActionText}>Missed</Text></TouchableOpacity>
-          <TouchableOpacity style={styles.btnAction}><Text style={styles.btnActionText}>Favorite</Text></TouchableOpacity>
-        </View>
+      <View style={[{ flexDirection: 'row', justifyContent: 'center', flexWrap: 'wrap', gap: Spacing.sm, marginTop: Spacing.lg }]}>
+      <View style={styles.btnAction}>
+        <Text style={styles.btnActionText}>Total: {stats ? String(stats.totalDaysSinceJoin ?? '–') : '–'}</Text>
+      </View>
+      <View style={styles.btnAction}>
+        <Text style={styles.btnActionText}>Missed: {stats ? String(stats.missedDays) : '–'}</Text>
+      </View>
+      <View style={styles.btnAction}>
+        <Text style={styles.btnActionText}>Favorite: {stats ? String(stats.favoriteDays) : '–'}</Text>
+      </View>
+      </View>
       </View>
 
       {/* right col */}
@@ -530,6 +542,8 @@ export default function dashboard() {
   const [calendarVisible, setCalendarVisible] = useState(false);
   const [calendarDays, setCalendarDays] = useState<{ date: string; status: string }[]>([]);
   const [calendarLoading, setCalendarLoading] = useState(true);
+  const [stats, setStats] = useState<{ totalDaysSinceJoin: number | null; missedDays: number; favoriteDays: number } | null>(null);
+  const [miniAvatar, setMiniAvatar] = useState<string | null>(null);
   const [recommendation, setRecommendation] = useState<{
     recommendedLevelId: string;
     type: 'retry' | 'next' | 'challenge' | 'complete';
@@ -551,7 +565,19 @@ export default function dashboard() {
         if (userJson) {
           const user = JSON.parse(userJson);
           setUserName(user.name || 'User');
-          setUserId(user.id || null);
+          const id = user._id || user.id || null;
+          setUserId(id);
+          setMiniAvatar(user.avatar?.miniAvatar ?? null);
+          console.log('Loaded user:', { id, name: user.name, miniAvatar: user.avatar?.miniAvatar });
+          // Mark today as completed
+          if (id) {
+            const today = new Date().toISOString().split('T')[0];
+            await fetch(`${API_URL}/calender/${id}`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ date: today, status: 'completed' }),
+            }).catch(e => console.error('Failed to mark today:', e));
+          }
         }
       } catch (error) {
         console.error('Error loading user name:', error);
@@ -562,13 +588,17 @@ export default function dashboard() {
 
 
   useEffect(() => {
-    if (!calendarVisible || !userId) return;
+      console.log('userId changed:', userId);
+    if (!userId) return;
     const fetchCalendar = async () => {
+      console.log('Fetching calendar for userId:', userId);
       setCalendarLoading(true);
       try {
         const response = await fetch(`${API_URL}/calender/${userId}`);
+        console.log('Calendar API response status:', response.status);
         const data = await response.json();
         setCalendarDays(data.days || []);
+        setStats(data.stats || null);
       } catch (error) {
         console.error('Error fetching calendar:', error);
       } finally {
@@ -576,23 +606,82 @@ export default function dashboard() {
       }
     };
     fetchCalendar();
-  }, [calendarVisible, userId]);
+  }, [userId]);
 
   const formatDate = (date: Date) => date.toISOString().split('T')[0];
 
-  const markedDates = useMemo(() => {
-    return calendarDays.reduce<Record<string, { marked: boolean; dotColor: string; selected?: boolean; selectedColor?: string }>>((acc, day) => {
-      const dateKey = day.date.split('T')[0];
-      const color = day.status === 'missed' ? '#FF6B6B' : day.status === 'favorite' ? '#FFD700' : '#7B61FF';
-      acc[dateKey] = {
-        marked: true,
-        dotColor: color,
-        selected: dateKey === formatDate(new Date()),
-        selectedColor: AppColors.blue,
-      };
-      return acc;
-    }, {});
-  }, [calendarDays]);
+const markedDates = useMemo(() => {
+  const result: Record<string, any> = {};
+
+  // Default all past days to missed
+  if (stats?.totalDaysSinceJoin) {
+    const today = new Date();
+    for (let i = stats.totalDaysSinceJoin - 1; i >= 0; i--) {
+      const d = new Date();
+      d.setDate(today.getDate() - i);
+      const key = d.toISOString().split('T')[0];
+      result[key] = { isMissed: true };
+    }
+  }
+
+  calendarDays.forEach(day => {
+    const key = day.date.split('T')[0];
+    if (day.status === 'completed') {
+      result[key] = { isMissed: false, isFavorite: false, isCompleted: true };
+    } else if (day.status === 'favorite') {
+      result[key] = { isFavorite: true, isMissed: false, isCompleted: false };
+    } else if (day.status === 'missed') {
+      result[key] = { isMissed: true, isFavorite: false, isCompleted: false };
+    }
+  });
+
+  // Today border only
+  const todayKey = new Date().toISOString().split('T')[0];
+  if (result[todayKey]) {
+    result[todayKey] = { ...result[todayKey], isToday: true };
+  }
+
+  return result;
+}, [calendarDays, stats]);
+
+const toggleFavorite = async (dateString: string) => {
+  console.log('Toggling favorite for date:', dateString);
+  console.log('user id', userId);
+  if (!userId) return;
+  const existing = calendarDays.find(d => d.date.split('T')[0] === dateString);
+  console.log('Existing day entry:', existing);
+  if (!existing || existing.status === 'missed') return; // can't favorite missed days
+
+  // Optimistic update
+  setCalendarDays(prev =>
+    prev.map(d =>
+      d.date.split('T')[0] === dateString
+        ? { ...d, status: d.status === 'favorite' ? 'completed' : 'favorite' }
+        : d
+    )
+  );
+  setStats(prev => {
+    if (!prev) return prev;
+    const wasFavorite = existing.status === 'favorite';
+    return { ...prev, favoriteDays: wasFavorite ? prev.favoriteDays - 1 : prev.favoriteDays + 1 };
+  });
+
+  try {
+    await fetch(`${API_URL}/calender/${userId}/${dateString}/favorite`, {
+      method: 'PATCH',
+    });
+    console.log('Favorite toggled successfully');
+  } catch (e) {
+    console.error('Failed to toggle favorite:', e);
+    console.log(e);
+    // Revert on failure
+    setCalendarDays(prev =>
+      prev.map(d =>
+        d.date.split('T')[0] === dateString ? existing : d
+      )
+    );
+  }
+};
 
   return (
     <View style={styles.root}>
@@ -603,6 +692,8 @@ export default function dashboard() {
           userName={userName}
           onOpenCalendar={() => setCalendarVisible(true)}
           onOpenDiary={() => router.push('/protected/Diary')}
+          stats={stats}
+          miniAvatar={miniAvatar}
         />
         <GameProgressCard userId={userId} recommendation={recommendation} />   {/* ← add this */}
         <Section3 />
@@ -615,28 +706,90 @@ export default function dashboard() {
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
             <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>Full Calendar</Text>
+              
+            {/* Stats pills — same as collapsed */}
+            {stats && (
+              <View style={{ flexDirection: 'row', gap: Spacing.sm, marginTop: Spacing.md, justifyContent: 'center' }}>
+                <View style={styles.btnAction}><Text style={styles.btnActionText}>Total: {String(stats.totalDaysSinceJoin ?? '–')}</Text></View>
+                <View style={styles.btnAction}><Text style={styles.btnActionText}>Missed: {String(stats.missedDays)}</Text></View>
+                <View style={styles.btnAction}><Text style={styles.btnActionText}>Favorite: {String(stats.favoriteDays)}</Text></View>
+              </View>
+            )}
               <TouchableOpacity onPress={() => setCalendarVisible(false)}>
                 <Text style={styles.modalClose}>X</Text>
               </TouchableOpacity>
             </View>
+
             {calendarLoading ? (
               <ActivityIndicator size="large" color={AppColors.blue} />
             ) : (
-              <RnCalendar
-                markedDates={markedDates}
-                theme={{
-                  todayTextColor: AppColors.blue,
-                  arrowColor: AppColors.blue,
-                  monthTextColor: AppColors.blue,
-                  textDayFontFamily: AppFonts.body.fontFamily,
-                  textMonthFontFamily: AppFonts.subhead.fontFamily,
-                  textDayHeaderFontFamily: AppFonts.bodySmall.fontFamily,
-                }}
-                style={styles.fullCalendar}
-              />
+              <View style={styles.calendarCard}>
+                <View style={styles.calendarHeader}>
+                  <Text style={styles.calendarChevron}>‹</Text>
+                  <Text style={styles.calendarMonth}>
+                    {new Date().toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
+                  </Text>
+                  <Text style={styles.calendarChevron}>›</Text>
+                </View>
+                <RnCalendar
+                  markingType="custom"
+                  markedDates={markedDates}
+                  onDayPress={(day) => toggleFavorite(day.dateString)}
+dayComponent={({ date, state, marking }: any) => {
+  const isFavorite = marking?.isFavorite === true;
+  const isMissed = marking?.isMissed === true;
+  const isCompleted = marking?.isCompleted === true;
+  const isToday = marking?.isToday === true;
+  const isDisabled = state === 'disabled';
+
+  return (
+    <TouchableOpacity
+      onPress={() => toggleFavorite(date.dateString)}
+      style={{
+        alignItems: 'center',
+        justifyContent: 'center',
+        width: 40,
+        height: 52,
+        borderRadius: 8,
+        borderWidth: isToday ? 2 : 0,
+        borderColor: isToday ? AppColors.blue : 'transparent',
+      }}
+    >
+      <Text style={{
+        fontSize: 16,
+        fontFamily: AppFonts.body.fontFamily,
+        color: isDisabled ? AppColors.blue + '30' : AppColors.blue,
+        fontWeight: isToday ? '900' : '500',
+      }}>
+        {date.day}
+      </Text>
+
+      <View style={{ height: 16, width: 16, marginTop: 2 }}>
+        {isFavorite && <HeartSvg width={16} height={16} />}
+        {isMissed && <MissedSvg width={16} height={16} />}
+      </View>
+    </TouchableOpacity>
+  );
+}}
+                  theme={{
+                    backgroundColor: AppColors.lilac,
+                    calendarBackground: AppColors.lilac,
+                    todayTextColor: AppColors.blue,
+                    arrowColor: AppColors.blue,
+                    monthTextColor: AppColors.blue,
+                    dayTextColor: AppColors.blue,
+                    textDisabledColor: AppColors.blue + '40',
+                    textSectionTitleColor: AppColors.blue,
+                    textDayFontFamily: AppFonts.body.fontFamily,
+                    textMonthFontFamily: AppFonts.subhead.fontFamily,
+                    textDayHeaderFontFamily: AppFonts.bodySmall.fontFamily,
+                  }}
+                  style={{ borderRadius: 16, overflow: 'hidden' }}
+                />
+              </View>
             )}
           </View>
+
         </View>
       </Modal>
     </View>
@@ -851,7 +1004,8 @@ const styles = StyleSheet.create({
 
   // ── Modal
   fullCalendar: {
-    width: '100%',
+    width: 700,
+    maxHeight: 400,
     borderRadius: 24,
     overflow: 'hidden',
     marginTop: Spacing.md,
@@ -864,34 +1018,23 @@ const styles = StyleSheet.create({
     padding: Spacing.md,
   },
   modalContent: {
-    width: '100%',
-    maxHeight: '90%',
-    backgroundColor: AppColors.lilac,
-    borderRadius: 28,
-    padding: Spacing.lg,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.12,
-    shadowRadius: 18,
-    elevation: 10,
+    width: 700,
+    maxHeight: 400,
+    marginTop: -50
+
   },
   modalHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
+    padding: Spacing.md,
     alignItems: 'center',
-    marginBottom: Spacing.lg,
-  },
-  modalTitle: {
-    fontSize: 22,
-    fontWeight: '800',
-    color: AppColors.blue,
-    fontFamily: AppFonts.subhead.fontFamily,
+    flexDirection: 'row',
+    justifyContent: 'center',
+    gap: 100
   },
   modalClose: {
     color: AppColors.blue,
-    fontSize: 16,
-    fontWeight: '700',
+    fontSize: 28,
     fontFamily: AppFonts.body.fontFamily,
+    alignSelf: 'center',
   },
   modalButton: {
     ...ButtonStyles.action,

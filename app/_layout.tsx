@@ -19,7 +19,7 @@ export default function RootLayout() {
 
   const session = useCommunity((s) => s.session);
 
-  useSocket(user?.id ?? null);
+  const { isRegistered } = useSocket(user?.id ?? null);
   useSessionInvite(user?.id ?? null);
 
   const [fontsLoaded] = useFonts({
@@ -116,7 +116,7 @@ export default function RootLayout() {
     };
   }, [user?.id, session?._id]);
 
-  if (!fontsLoaded || !isReady) return null;
+if (!fontsLoaded || !isReady || (user?.id && !isRegistered)) return null;
 
   return (
     <ThemeProvider value={DefaultTheme}>

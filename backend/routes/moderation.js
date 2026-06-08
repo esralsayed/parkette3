@@ -103,15 +103,13 @@ Your task is to classify the message into EXACTLY ONE tier:
 MESSAGE:
 "${content}"
 
-OPENAI MODERATION RESULT:
-${JSON.stringify(moderationResult, null, 2)}
-
 Return ONLY valid JSON:
 
 {
   "tier": "safe | needs_caution | unsafe",
   "reasons": ["reason1", "reason2"],
-  "sanitized": "optional safer rewritten version"
+  "sanitized": "rewritten version with problematic content removed or softened, preserving friendly intent — REQUIRED for needs_caution, null for safe and unsafe"
+
 }
 `;
 
