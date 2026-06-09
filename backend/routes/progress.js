@@ -95,10 +95,10 @@ router.post('/level', async (req, res) => {
     progress.levelProgress[existingLevelIndex]?.passed === true;
 
     if (existingLevelIndex !== -1) {
-      progress.levelProgress[existingLevelIndex] = {
-        ...progress.levelProgress[existingLevelIndex].toObject(),
-        ...levelProgressEntry,
-      };
+    progress.set(
+      `levelProgress.${existingLevelIndex}`,
+      { ...progress.levelProgress[existingLevelIndex].toObject(), ...levelProgressEntry }
+    );
     } else {
       progress.levelProgress.push(levelProgressEntry);
     }
@@ -139,8 +139,6 @@ const skillScores = updatedProgress?.skillScores ?? {};
     console.log(newUnlocks)
 
   }
-
-  console.log("progress", progress)
 
     res.json({ 
       success: true, 

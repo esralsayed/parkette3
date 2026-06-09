@@ -75,6 +75,7 @@ export class LevelService {
   private currentDifficulty: 'easy' | 'medium' | 'hard' = 'medium';
   private levelRetrialCount: number = 0;
   private wrongChoiceCount: number = 0;
+  private progressSaved: boolean = false;  // ← add here
 
   // explanation -> 
   // this function takes the levelId, userId, difficulty 
@@ -337,11 +338,14 @@ async advanceToNextStep(userAnswer?: any): Promise<StepResult> {
     return this.performanceTracker.getCurrentPerformance();
   }
   
-  private async completeLevel(): Promise<StepResult> {
+  private async completeLevel(postAnswers?: { score: number; total: number } | null): Promise<StepResult> {
+  console.log('🔴 completeLevel entered, completed:', this.currentSession?.completed);
+  console.log('🔴 postQuestionAnswers:', this.postQuestionAnswers);
     if (!this.currentSession) throw new Error('No active session');
-    if (this.currentSession.completed) {
-      return { success: true, nextStep: null };
-    }
+  // Only block truly duplicate calls where save already happened
+  if (this.currentSession.completed && this.progressSaved) {
+    return { success: true, nextStep: null };
+  }
 
     this.currentSession.completed = true;
 
@@ -359,6 +363,11 @@ async advanceToNextStep(userAnswer?: any): Promise<StepResult> {
       session.attempts = await this.getAccumulatedAttempts(session.levelId);
     }
 
+    const userId = await this.getCurrentUserId();
+
+
+    console.log('👤 userId for save:', userId);
+
     await levelRepository.saveProgress({
       userId: await this.getCurrentUserId(),
       levelId: session.levelId,
@@ -371,6 +380,7 @@ async advanceToNextStep(userAnswer?: any): Promise<StepResult> {
       preQuestionAnswers:  this.preQuestionAnswers  ?? null,
       postQuestionAnswers: this.postQuestionAnswers ?? null,
     });
+    this.progressSaved = true;  // ← add here
 
     this.preQuestionAnswers  = null;
     this.postQuestionAnswers = null;
@@ -436,7 +446,7 @@ async advanceToNextStep(userAnswer?: any): Promise<StepResult> {
 
     // If gameplay already finished, trigger the save now
     if (this.currentSession?.completed) {
-      await this.completeLevel();
+      await this.completeLevel(answers);
     }
   }
   
@@ -444,6 +454,7 @@ async advanceToNextStep(userAnswer?: any): Promise<StepResult> {
   destroy(): void {
     this.currentSession = null;
     this.performanceTracker = null;
+    this.progressSaved = false;
   }
 
     getStars(): number {

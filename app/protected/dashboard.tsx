@@ -334,8 +334,7 @@ const TokenRewards = ({ completedChapters }: { completedChapters: number[] }) =>
         })()}
       </View>
     </View>
-        {recommendation &&
-        recommendation.recommendedLevelId !== data?.currentLevel?._id
+        {recommendation
         && recommendation.recommendedLevelId && recommendation.type !== 'complete' && (
         <CoachTipCard recommendation={recommendation} userId={userId} />
       )}

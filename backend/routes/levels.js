@@ -41,6 +41,7 @@ levelroutes.get("/", async (req, res) => {
         : false;
 
       const unlocked = isFirst || previousPassed;
+      console.log('level', level.title, 'unlocked:', unlocked, 'previousPassed:', previousPassed);
 
       const myProgress = chapterLevelProgress.find(
         (lp) => lp.levelId.toString() === level._id.toString()

@@ -28,7 +28,7 @@ export class LevelRepository {
   private cacheTimestamps: Map<string, number> = new Map();
   
   // API URL from environment variables (works in both dev and production)
-  private apiUrl = `${process.env.EXPO_PUBLIC_API_URL}/api` ||'http://localhost:5000/api';
+  private apiUrl = `${process.env.EXPO_PUBLIC_API_URL}/api` || "http://localhost:5000/api";
 
   private async getAuthHeaders(): Promise<HeadersInit> {
     try {
@@ -116,7 +116,7 @@ export class LevelRepository {
   // 3. SAVE PLAYER PROGRESS
   // ──────────────────────────────────────────────────────────
   async saveProgress(progress: LevelProgress): Promise<void> {
-    try {
+      console.log('💾 saveProgress called with:', JSON.stringify(progress));
     const headers = await this.getAuthHeaders();
       // Save to backend
       const response = await fetch(`${this.apiUrl}/progress/level`, {
@@ -134,11 +134,6 @@ export class LevelRepository {
       this.invalidateCache(progress.levelId);
       
       console.log(`💾 Progress saved for level ${progress.levelId}`);
-    } catch (error) {
-      console.error('Error saving progress:', error);
-      // Don't throw - we'll retry later
-      await this.queueForRetry(progress);
-    }
   }
 
   // ──────────────────────────────────────────────────────────
